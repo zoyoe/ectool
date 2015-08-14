@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<RelistItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <ErrorLanguage>en_US</ErrorLanguage>
+  <WarningLevel>High</WarningLevel>
+  <Item>
+    <ItemID>{{item.ebayid}}</ItemID>
+    <Description>{{description|safe}}</Description>
+  </Item>
+  <RequesterCredentials>
+    <eBayAuthToken>{{token}}</eBayAuthToken>
+  </RequesterCredentials>
+  <WarningLevel>High</WarningLevel>
+</RelistItemRequest>

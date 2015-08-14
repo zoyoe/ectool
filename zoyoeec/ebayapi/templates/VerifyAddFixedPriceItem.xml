@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VerifyAddFixedPriceItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <RequesterCredentials>
+    <eBayAuthToken>{{token}}</eBayAuthToken>
+  </RequesterCredentials>
+  <ErrorLanguage>en_US</ErrorLanguage>
+  <WarningLevel>High</WarningLevel>
+  <Item>
+    <Title>{{ITEM.name|safe}}</Title>
+    <Description>{{ITEM.description}}</Description>
+    <PrimaryCategory>
+      <CategoryID>{{ITEM.category}}</CategoryID>
+    </PrimaryCategory>
+    <StartPrice>{{ITEM.price}}</StartPrice>
+    <CategoryMappingAllowed>true</CategoryMappingAllowed>
+    <ConditionID>1000</ConditionID>
+    <Country>AU</Country>
+    <Currency>AUD</Currency>
+    <DispatchTimeMax>3</DispatchTimeMax>
+    <ListingDuration>Days_30</ListingDuration>
+    <ListingType>FixedPriceItem</ListingType>
+    <PaymentMethods>PayPal</PaymentMethods>
+    <PayPalEmailAddress>zoyoeproject@gmail.com</PayPalEmailAddress>
+    <PictureDetails>
+      <GalleryType>Gallery</GalleryType>
+    </PictureDetails>
+    <PostalCode>2208</PostalCode>
+    <Quantity>1</Quantity>
+    <SKU>{{ITEM.refid|safe}}</SKU>
+    <ReturnPolicy>
+      <ReturnsAcceptedOption>ReturnsAccepted</ReturnsAcceptedOption>
+      <RefundOption>MoneyBack</RefundOption>
+      <ReturnsWithinOption>Days_30</ReturnsWithinOption>
+      <Description>If you are not satisfied, return the item for refund.</Description>
+      <ShippingCostPaidByOption>Buyer</ShippingCostPaidByOption>
+    </ReturnPolicy>
+    <ShippingDetails>
+      <ShippingType>Flat</ShippingType>
+      <ShippingServiceOptions>
+        <ShippingServicePriority>1</ShippingServicePriority>
+        <ShippingService>AU_StandardDelivery</ShippingService>
+        <FreeShipping>false</FreeShipping>
+        <ShippingServiceCost currencyID="AUD">10</ShippingServiceCost>
+        <ShippingServiceAdditionalCost currencyID="AUD">5</ShippingServiceAdditionalCost>
+      </ShippingServiceOptions>
+    </ShippingDetails>
+    <PictureDetails>
+      <PictureURL>{{ITEM.galleryurl}}</PictureURL>
+    </PictureDetails>
+  </Item>
+</VerifyAddFixedPriceItemRequest>

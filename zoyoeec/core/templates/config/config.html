@@ -1,0 +1,110 @@
+{% extends "gbase.html" %}
+{% load hash_filters %}
+{% block title %}
+  <h5><i class="fa fa-cogs"></i>Ebay config <small>--{{PATH}}</small></h5>
+{% endblock %}
+
+{% block head %}
+<div class = "panel panel-default">
+  <div class="panel-heading"><h6 class="panel-title">Embeded Code:</h6>
+  </div>
+  <div class = "panel-body">
+      {% fullescape%}{% include "embed.html" %}{% endfullescape %}
+  </div>
+</div>
+
+<div class = "panel panel-default">
+  <div class="panel-heading"><h6 class="panel-title">Ebay Code:</h6>
+  </div>
+  <div class = "panel-body">
+      <div>
+{% for line in EBAY %}
+<div class="product-set">
+  <div class="product-rate clearfix" style="padding-top:40px;">
+    <h4>{{line.name}}</h4><span>[{{line.type}}]</span>
+  </div>
+  <div class="product-info">
+  {{line.content|safe}}
+  </div>
+</div>
+{% endfor %}
+      </div>
+  </div>
+</div>
+
+<div class = "panel panel-default">
+  <div class="panel-heading"><h6 class="panel-title">Footer Code:</h6>
+  </div>
+  <div class = "panel-body">
+      <div>
+{% for line in FOOTER %}
+<div class="product-set">
+  <div class="product-rate clearfix" style="padding-top:40px;">
+    <h4>{{line.name}}</h4><span>[{{line.type}}]</span>
+  </div>
+  <div class="product-info">
+  {{line.content|safe}}
+  </div>
+</div>
+{% endfor %}
+      </div>
+  </div>
+</div>
+
+<div class = "panel panel-default">
+  <div class="panel-heading"><h6 class="panel-title">GoogleAnalytic Code:</h6>
+  </div>
+  <div class = "panel-body">
+      <div>
+<div class="product-set">
+  <div class="product-info">
+  {{ANALYTIC|safe}}
+  </div>
+</div>
+      </div>
+  </div>
+</div>
+
+
+
+<form action="/admin/addconfig/" method='POST'>
+<div class = "panel panel-default">
+  <div class="panel-heading">
+    <h6 class="panel-title">Specification:</h6>
+    <button class="btn btn-sm pull-right btn-danger btn-icon"><i class="fa fa-cogs"></i>&nbsp;submit</button>
+  </div>
+  <div class="panel-body" id='specification'>{{ITEM.description|safe}}
+      <div class="form-horizontal caption">
+      {% csrf_token %}
+      <div class="form-group">
+       <label class="col-lg-2 control-label">title: </label>
+       <div class="col-lg-10">
+        <input type="text" name="title" class="form-control">
+       </div>
+      </div>
+      <div class="form-group">
+       <label class="col-lg-2 control-label">type: </label>
+       <div class="col-lg-10">
+        <select name="type">
+         <option value="ebay">Ebay</option>
+         <option value="footer">Footer</option>
+         <option value="extra">Extra</option>
+        </select>
+       </div>
+      </div>
+      <div class="form-group">
+       <label class="col-lg-2 control-label">content: </label>
+       <div class="col-lg-10">
+        <textarea name="content" class="form-control"></textarea>
+       </div>
+      </div>
+      </div>
+  </div>
+  </form>
+</div>
+
+
+
+{% endblock %}
+{% block subsidebar %}
+{% endblock%}

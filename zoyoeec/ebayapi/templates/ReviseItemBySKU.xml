@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ReviseItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <ErrorLanguage>en_US</ErrorLanguage>
+  <WarningLevel>High</WarningLevel>
+  <Item>
+    <SKU>{{sku}}</SKU>
+    <Title>{{name|safe}}</Title>
+    <Description>{{description|safe}}</Description>
+  </Item>
+  <RequesterCredentials>
+    <eBayAuthToken>{{token}}</eBayAuthToken>
+  </RequesterCredentials>
+  <WarningLevel>High</WarningLevel>
+</ReviseItemRequest>

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load hash_filters %}
+
+{% block title %}
+  <h5><i class="fa fa-shopping-cart"></i> My Shopping Cart <small>--{{PATH}}</small></h5>
+  <div class="btn-group">
+    <a href="#" class="btn btn-link btn-lg btn-icon dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cogs"></i><span class="caret"></span></a>
+    <ul class="dropdown-menu dropdown-menu-right">
+      <li><a href="#">save as draft</a></li>
+    </ul>
+  </div>
+{% endblock %}
+
+
+
+{% block head %}
+  <div class="box">
+    <div id="cart-result" "class="col-lg-12 col-md-12 col-sm-12">
+{% include "cart.html" %}
+    </div>
+    <div style="margin-top:20px;text-align:center">
+      <a href="/billinginfo/" class='btn btn-primary btn-lg btn-grad'><i class='fa fa-shopping-cart'></i>&nbsp;checkout</a>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block subsidebar %}
+{% endblock%}
+
+{% block dialogfirst %}
+{% endblock %}
+

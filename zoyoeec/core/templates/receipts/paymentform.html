@@ -1,0 +1,42 @@
+<ul class="nav nav-tabs">
+   <li class="active"><a data-toggle="tab" href="#creditcard">Pay by paypal</a></li>
+   <li><a data-toggle="tab" href="#paypal-invoice">Pay by paypal invoice</a></li>
+</ul>
+<div class="tab-content">
+  <div id="creditcard" class="tab-pane fade in active">
+    <div style="padding:15px 10px 5px 10px;">
+    <form method="POST" id="paybycredit" class="form-horizontal validate" action="/retail/expresspaypal/{{RECEIPT.key.id}}/" role="form" novalidate="novalidate">
+     {% csrf_token %}
+    </form>
+    {% if RECEIPT.paypal %}
+      <p>paypal invoice ID : {{RECEIPT.paypal}} </p>
+    {% endif %}
+    {% if RECEIPT.status != "paid" %}
+    <p>Paypal's paying method allows buyers to pay payments with a credit card, bank account, or other source. PayPal keeps financial information private. When a buyer pays using PayPal, we never sees the credit card or bank account numbers.<p>
+    <div><a href="javascript:zoyoe.cart.paybycredit('#paybycredit')" style="display:block;position:relative" class='btn btn-warning btn-xs'>Pay by paypal </a>
+    {% endif %}
+    </div>
+    </div>
+  </div>
+  <div id="paypal-invoice" class="tab-pane fade">
+
+    <div style="padding:15px 10px 5px 10px;">
+{% if RECEIPT.paypal %}
+      <p>paypal invoice ID : {{RECEIPT.paypal}} </p>
+      <p> invoice status : 
+  {% if INVOICE %}
+    {% if INVOICE.status != 'PAID' %} invoice is not paid </li>
+      <div><a href="https://www.paypal.com/cgi_bin/webscr?cmd=_pay-inv&amp;id={{RECEIPT.paypal}}" style="display:block;position:relative" class='btn btn-warning btn-xs'>Pay paypal invoice </a></div>
+    {% else %} invoice is paid </p>
+    {% endif %}
+  {% endif %}
+{% else %}
+      <p>paypal invoice is not created</p>
+      <div><a href="/retail/sendpaypalinvoice/{{RECEIPT.key.id}}" style="display:block;position:relative" class='btn btn-warning btn-xs'>Create and send paypal invoice </a>
+      </div>
+{% endif %}
+    </div>
+  </div>
+
+</div>
+

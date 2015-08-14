@@ -1,0 +1,42 @@
+{% extends "gbase.html" %}
+{% load hash_filters %}
+
+{% block title %}
+                <h5><i class="fa fa-warning"></i>Authentication Error</h5>
+{% endblock %}
+
+{% block head %}
+            <div class="error-wrapper text-center">
+                <h1>403</h1>
+                <h5> -- Oops, an error has occurred. You need to login with you ebay account to procceed!</h5>
+
+                <!-- Error content -->
+                <div class="error-content">
+                   <form class='widget-inner' action="index.html">
+                      <div class="input-group">
+                        <input type="text" placeholder="search ..." class="form-control">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button">search</button>
+                        </span> 
+                      </div>
+                   </form>
+                   <div class="row">
+                        <div class="col-md-6">
+                            <a href="/auth/" class="btn btn-info btn-block">Login to ebay</a> 
+                        </div>
+                        <div class="col-md-6">
+                            <a href="/" class="btn btn-warning btn-block">Back to shop</a> 
+                        </div>
+                   </div>
+                </div>
+                <!-- /error content -->
+            </div>  
+            <!-- /error wrapper -->
+{% endblock %}
+
+{% block subsidebar %}
+{% endblock%}
+
+{% block dialogfirst %}
+{% endblock %}
+

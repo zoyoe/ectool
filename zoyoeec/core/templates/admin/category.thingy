@@ -1,0 +1,19 @@
+{% load hash_filters %}
+{% for shop in STORIES %}
+{% for id in STORIES|hash:shop %}
+  {% if not id == "1" %}
+    {% if STORIES|hash:shop|hash:id|hash:'children' %}
+       {% for cid in STORIES|hash:shop|hash:id|hash:'children' %}
+       <li class="list-group-item"><a href="/admin/items/{{shop}}/{{cid}}">
+         <option value="{{cid}}" {% if cid == category %}selected{% endif %} >{{STORIES|hash:shop|hash:id|hash:'name'}}-{{STORIES|hash:shop|hash:id|hash:'children'|hash:cid|hash:'name'}} </option>
+         {{STORIES|hash:shop|hash:id|hash:'children'|hash:cid|hash:'name'}}</a></li>
+       {% endfor %}
+    {% else %}
+        <option value="{{id}}" {% if id == category %}selected{% endif %}>{{STORIES|hash:shop|hash:id|hash:'name'}}</option>
+        <a href="/admin/items/{{shop}}/{{id}}">
+    {% endif %}
+  {% endif %}
+{% endfor %}
+{% endfor %}
+
+

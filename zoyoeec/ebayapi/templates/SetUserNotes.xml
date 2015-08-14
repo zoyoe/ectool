@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<SetUserNotesRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <ItemID>{{item_id}}</ItemID>
+  <Action>AddOrUpdate</Action>
+  <NoteText>{{note}}</NoteText>
+  <RequesterCredentials>
+    <eBayAuthToken>{{token}}</eBayAuthToken>
+  </RequesterCredentials>
+  <WarningLevel>High</WarningLevel>
+</SetUserNotesRequest>

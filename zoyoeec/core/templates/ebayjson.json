@@ -1,0 +1,6 @@
+{% load hash_filters %}
+[{% for item in sellitems %}{"viewItemURL":"{{item|hash:"viewItemURL"|hash:"value"}}","galleryURL":"{{item|hash:"galleryURL"|hash:"value"}}","title","{{item|hash:"title"|hash:"value"}}","price":"{{item|hash:"sellingStatus"|hash:"currentPrice"|hash:"value"}}"},
+{% endfor %}
+{}
+]
+

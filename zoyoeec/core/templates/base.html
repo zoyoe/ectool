@@ -1,0 +1,228 @@
+{% load hash_filters %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>zoyoe gift ideas</title>
+
+    <!--IE Compatibility modes-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!--Mobile first-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="http://fonts.googleapis.com/css?family=Cuprum" rel="stylesheet" type="text/css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/css/bootstrap.min.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
+
+    <link href="/static/css/temp.css" rel="stylesheet">
+    <link href="/static/css/brain-theme.css" rel="stylesheet">
+    <link href="/static/css/styles.css" rel="stylesheet">
+    <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', '{{ANALYTIC}}', 'auto');
+  ga('send', 'pageview');
+    </script>
+  </head>
+
+<body>
+    <!-- Navbar -->
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <div class="hidden-lg pull-right">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-right">
+                        <span class="sr-only">Toggle navigation</span>
+                        <i class="fa fa-chevron-down"></i>
+                    </button>
+
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar">
+                        <span class="sr-only">Toggle sidebar</span>
+                        <i class="fa fa-bars"></i>
+                    </button>
+                </div>
+
+                <ul class="nav navbar-nav navbar-left-custom">
+                    <li class="user dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown">
+                            <img src="/static/res/default-thumbnail.jpg" alt="">
+                            {% if user %}
+                            <span>{{user.email}}</span>
+                            {% else %}
+                            <span>Guest</span>
+                            {% endif %}
+                            <i class="caret"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% if not user %}
+                            <li><a href="{{user|loginurl:request}}"><i class="fa fa-mail-forward"></i> Login google account</a></li>
+                            {% else %}
+                            <li><a href="{{user|logouturl:request}}"><i class="fa fa-mail-forward"></i> Logout </a></li>
+                            {% endif %}
+                            <!--
+                            <li><a href="#"><i class="fa fa-user"></i> Profile</a></li>
+                            <li><a href="#"><i class="fa fa-tasks"></i> Tasks</a></li>
+                            <li><a href="#"><i class="fa fa-cog"></i> Settings</a></li>
+                            <li><a href="#"><i class="fa fa-mail-forward"></i> Logout</a></li>
+                            -->
+                        </ul>
+                    </li>
+                    <li><a class="nav-icon sidebar-toggle"><i class="fa fa-bars"></i></a></li>
+                </ul>
+            </div>
+
+            <ul class="nav navbar-nav navbar-right" id="navbar-right">
+
+                <li>
+                    <a href="#">
+                        <i class="fa fa-info"></i>
+                        <span>Most Popular</span>
+                        <strong class="label label-danger">15</strong>
+                    </a>
+                </li>
+
+                <li><a href="/"><i class="fa fa-home"></i><span>Back to shop</span></a></li>
+                <li><a href="/shoppingcart/"><i class="fa fa-shopping-cart"></i>&nbsp;Shopping cart</a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- /navbar -->
+    <!-- Page header -->
+    <div class="container-fluid">
+        <div class="page-header">
+            <div class="logo"><a href="/" title=""><img style="height:80px;" src="{{LOGO}}" alt=""></a>
+</div>
+<div style="margin:20px 0 20px 0" class="logo col-lg-5 col-md-4 col-sm-6">
+          <form action="/items/search/">
+            <div class="input-group">
+              <input type="text" name="key" placeholder="search ..." class="form-control">
+              <span class="input-group-btn">
+            <button class="btn btn-default" type="submit"><i class="fa fa-search"></i></button>
+              </span> 
+            </div>
+          </form>
+        </div>
+            <ul class="middle-nav">
+                <li><a href="#" class="btn btn-default"><i class="fa fa-comments-o"></i> <span>Message</span></a><div class="label label-info">0</div></li>
+                <li><a href="/user/receipts/" class="btn btn-default"><i class="fa fa-list"></i> <span>My Receipts</span></a></li>
+                <li><a href="/user/viewhistory/" class="btn btn-default"><i class="fa fa-eye"></i> <span>View History</span></a></li>
+                <li><a href="#" class="btn btn-default"><i class="fa fa-money"></i> <span>Discount Special</span></a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- /page header -->
+
+    <!-- subHeader -->
+    <div class="subHeader">
+        <div class="navbar">
+          <ul class="nav">
+            <li class="active subli"><a href="#"><i class="fa-home fa"></i></a></li>
+        {% for shop in STORIES %}
+          <!--li class="nav-header">{{shop}}</li> -->
+          {% for id in STORIES|hash:shop %}
+          {% if not id == "1" %}
+          <li class='active subli'>
+            {% if STORIES|hash:shop|hash:id|hash:'children' %}
+            <a href="javascript:" class="dropdown-toggle" data-toggle="dropdown">
+              <span class="link-title">&nbsp;{{STORIES|hash:shop|hash:id|hash:'name'}}
+              </span> 
+              <i class="caret"></i>
+            </a> 
+            <ul class="dropdown-menu">
+            {% for cid in STORIES|hash:shop|hash:id|hash:'children' %}
+              <li><a href="/items/{{shop}}/{{cid}}">
+                <i class="fa fa-angle-right"></i>&nbsp;{{STORIES|hash:shop|hash:id|hash:'children'|hash:cid|hash:'name'}}</a></li>
+            {% endfor %}
+            </ul>
+            {% else %}
+            <a href="/items/{{shop}}/{{id}}">
+              <span class="link-title">&nbsp;{{STORIES|hash:shop|hash:id|hash:'name'}}
+              </span> 
+            </a> 
+            {% endif %}
+          </li>
+          {% endif %}
+        {% endfor %}
+          {% endfor %}
+
+          </ul><!--end nav-->
+        </div><!--end container-->
+    </div>
+
+
+  <div class="page-container hidden-sidebar container-fluid">
+    <div id="page-content" class="page-content">
+      <div class="page-title">
+{% block title %}
+{% endblock %}
+      </div>
+{% block head %}
+{% endblock %}
+    </div>
+  </div> <!-- fluid page-container -->
+
+  <footer>
+        <div class="footerOuter">
+            <div class="container">
+                <div class="row-fluid" style="color:#ccc">
+
+                {% for line in FOOTER %}
+                    <div class="col-lg-3 col-md-3">
+                        <div class="titleHeader clearfix">
+                           <h4>{{line.name}}</h4>
+                        </div>
+                        <div class="newslatter">
+                            {{line.content|safe}}
+                        </div>
+
+                    </div><!--end span3-->
+                {% endfor %}
+
+                </div><!--end row-fluid-->
+
+            </div><!--end container-->
+        </div><!--end footerOuter-->
+
+        <div class="container">
+            <div class="row">
+               <p>powered by zoyoe</p>
+            </div>
+        </div>
+  </footer>
+
+  <!-- Bootstrap core JavaScript
+  ================================================== -->
+  <!-- Placed at the end of the document so the pages load faster -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <script src="/static/bstrap/js/bootstrap.min.js"></script>
+  <script src="/static/bstrap/js/bootstrap-dialog.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jquery-jgrowl/1.4.1/jquery.jgrowl.min.css" />
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-jgrowl/1.4.1/jquery.jgrowl.min.js"></script>
+  <script src="/static/jslib/ebayajax.js"></script>
+  {% block dialogfirst %}
+  {% endblock %}
+  <script src="http://masonry.desandro.com/masonry.pkgd.js"></script>
+  <script src="/static/jslib/image.js"></script>
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var $_Tawk_API={},$_Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/558264befe756e98651f19ce/default';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->
+  </body>
+</html>

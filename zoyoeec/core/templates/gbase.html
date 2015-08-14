@@ -1,0 +1,278 @@
+{% load hash_filters %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>zoyoe gift ideas</title>
+
+    <!--IE Compatibility modes-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!--Mobile first-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="http://fonts.googleapis.com/css?family=Cuprum" rel="stylesheet" type="text/css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.1/css/bootstrap.min.css">
+
+    {% block extracss %}
+    {% endblock %}
+     <!-- Font Awesome -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
+
+    <link href="/static/css/temp.css" rel="stylesheet">
+    <link href="/static/css/brain-theme-dark.css" rel="stylesheet">
+    <link href="/static/css/styles-dark.css" rel="stylesheet">
+    <script src="http://masonry.desandro.com/masonry.pkgd.js"></script>
+  </head>
+
+<body>
+    <!-- Navbar -->
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <div class="hidden-lg pull-right">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-right">
+                        <span class="sr-only">Toggle navigation</span>
+                        <i class="fa fa-chevron-down"></i>
+                    </button>
+
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar">
+                        <span class="sr-only">Toggle sidebar</span>
+                        <i class="fa fa-bars"></i>
+                    </button>
+                </div>
+
+                <ul class="nav navbar-nav navbar-left-custom">
+                    <li class="user dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown">
+                            <img src="/static/res/default-thumbnail.jpg" alt="">
+                            {% if user %}
+                            <span>{{user.email}}</span>
+                            {% else %}
+                            <span>Guest</span>
+                            {% endif %}
+                            <i class="caret"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% if not user %}
+                            <li><a href="{{user|loginurl:request}}"><i class="fa fa-mail-forward"></i> Login google account</a></li>
+                            {% else %}
+                            <li><a href="{{user|logouturl:request}}"><i class="fa fa-mail-forward"></i> Logout </a></li>
+                            {% endif %}
+                            <!--
+                            <li><a href="#"><i class="fa fa-user"></i> Profile</a></li>
+                            <li><a href="#"><i class="fa fa-tasks"></i> Tasks</a></li>
+                            <li><a href="#"><i class="fa fa-cog"></i> Settings</a></li>
+                            <li><a href="#"><i class="fa fa-mail-forward"></i> Logout</a></li>
+                            -->
+                        </ul>
+                    </li>
+                    <li><a class="nav-icon sidebar-toggle"><i class="fa fa-bars"></i></a></li>
+                </ul>
+            </div>
+
+            <ul class="nav navbar-nav navbar-right" id="navbar-right">
+                <li>
+                    <a href="#">
+                        <i class="fa fa-info"></i>
+                        <span>Most Popular</span>
+                        <strong class="label label-danger">15</strong>
+                    </a>
+                </li>
+
+                <li><a href="/"><i class="fa fa-home"></i><span>Back to shop</span></a></li>
+                <li><a href="/pos/"><i class="fa fa-shopping-cart"></i>&nbsp;Point of sale</a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- /navbar -->
+    <!-- Page header -->
+    <div class="container-fluid">
+        <div class="page-header">
+          <div class="logo" style="height: 60px;overflow: visible;">
+            <a href="/admin/" title=""><img src="/static/images/logo.png" alt="" style="position: relative;top: -10px;"></a></div>
+            <ul class="middle-nav">
+                <li><a href="/admin/" class="btn btn-default"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a><div class="label label-info">0</div></li>
+                <li><a href="/receipts/" class="btn btn-default"><i class="fa fa-list"></i> <span>Receipt</span></a></li>
+                <li><a href="/admin/actionhistory/" class="btn btn-default"><i class="fa fa-eye"></i> <span>History</span></a></li>
+                <li><a href="/" class="btn btn-default"><i class="fa fa-home"></i> <span>Home</span></a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- /page header -->
+  <div class="page-container container-fluid">
+    <div class="sidebar " style="height: 3px;">
+      <ul class="navigation">
+          <li class="nav-header">
+            <a href="/admin/">
+              <i class="fa fa-dashboard"></i><span class="link-title">&nbsp;Dashboard</span> 
+            </a> 
+          </li>
+          <li class="">
+            <a href="javascript:">
+              <i class="fa fa-building "></i>
+              <span class="link-title">Config</span> 
+              <span class="fa arrow"></span> 
+            </a> 
+            <ul>
+              <li><a href="/admin/ebayconfig/">
+              <i class="fa fa-angle-right"></i>&nbsp;ebay</a> 
+              </li>
+              <li><a href="/admin/config/categories/">
+              <i class="fa fa-angle-right"></i>&nbsp;categories</a> 
+              </li>
+            </ul>
+          </li>
+          <li class="">
+            <a href="javascript:">
+              <i class="fa fa-tasks"></i>
+              <span class="link-title">Ebay</span> 
+              <span class="fa arrow"></span> 
+            </a> 
+            <ul>
+              <li><a href="/admin/deploy/">
+              <i class="fa fa-angle-right"></i>&nbsp;deploy</a> 
+              </li>
+              <li><a href="/admin/relist/">
+              <i class="fa fa-angle-right"></i>&nbsp;relist</a> 
+              </li>
+            </ul>
+          </li>
+          <li class="">
+            <a href="javascript:;">
+              <i class="fa fa-pencil"></i>
+              <span class="link-title">
+              Notes
+              </span> 
+              <span class="fa arrow"></span> 
+            </a> 
+          </li>
+          <li class="">
+            <a href="/pos/">
+              <i class="fa fa-shopping-cart"></i>
+              <span class="link-title">
+              point of sale
+              </span> 
+              <span class="fa arrow"></span> 
+            </a> 
+          </li>
+          <li class="">
+              <a href="javascript:">
+              <i class="fa fa-book"></i>
+              <span class="link-title">
+              orders
+              </span></a> 
+              <ul>
+                <li><a href="/order/neworder/">
+                <i class="fa fa-angle-right"></i>&nbsp;new order</a> 
+                </li>
+                <li><a href="/orders/">
+                <i class="fa fa-angle-right"></i>&nbsp;all orders</a> 
+                </li>
+              </ul>
+          </li>
+          <li class="">
+            <a href="/receipts/">
+              <i class="fa fa-book"></i>
+              <span class="link-title">
+              receipts
+              </span> 
+              <span class="fa arrow"></span> 
+            </a> 
+          </li>
+          <li class="">
+            <a href="/orders/ebay/">
+              <i class="fa fa-book"></i>
+              <span class="link-title">
+              delivery
+              </span> 
+              <span class="fa arrow"></span> 
+            </a> 
+          </li>
+
+          {% block subsidebar %}
+          {% endblock %}
+          <li class="nav-divider"></li>
+<!--
+          {% if not request.session.ebayinfo %}
+          <li>
+            <a href="/auth/">
+            <i class="fa fa-sign-in"></i>
+            <span class="link-title">Login Ebay</span> 
+           </a> 
+          </li>
+          {% else %}
+          <li>
+            <a href="/logoutebay/">
+            <i class="fa fa-sign-in"></i>
+            <span class="link-title">Logout Ebay</span> 
+            </a> 
+          </li>
+          {% endif %}
+-->
+
+      </ul><!-- /#menu -->
+    </div><!-- /#left -->
+    <div id="page-content" class="page-content">
+      <div class="page-title">
+{% block title %}
+{% endblock %}
+      </div>
+{% block head %}
+{% endblock %}
+    </div>
+  </div> <!-- fluid page-container -->
+
+
+<!--
+            <a class="user-link" href="">
+              {% if request.session.ebayinfo %}
+              <img class="media-object img-thumbnail user-img" style="width:75px;" alt="User Picture" src="{{ebayinfo|hash:'logo'}}">
+              {% else %}
+              <img class="media-object img-thumbnail user-img" alt="User Picture" src="/static/res/default-thumbnail.jpg">
+              {% endif %}
+              <span class="label label-danger user-label">16</span> 
+            </a> 
+            <div class="media-body">
+              <h5 class="media-heading">
+              {% if request.session.ebayinfo %}
+              {{ebayinfo|hash:'id'}} 
+              {% else %}
+              Guest User
+              {% endif %}
+              </h5>
+              <ul class="list-unstyled user-info">
+                <li> <a href="">Ebay Seller</a>  </li>
+                <li>ebay shop :
+                  <br>
+                  <small>
+                    {% if request.session.ebayinfo %}
+                    {{ebayinfo|hash:'store'}}
+                    {% else %}
+                    Shop not specified 
+                    {% endif %}
+                    </br>
+                    <i class="fa fa-calendar"></i>&nbsp;16 Mar 16:32
+                  </small> 
+                </li>
+              </ul>
+            </div>
+-->
+
+  <!-- Bootstrap core JavaScript
+  ================================================== -->
+  <!-- Placed at the end of the document so the pages load faster -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <script src="/static/bstrap/js/bootstrap.min.js"></script>
+  <script src="/static/bstrap/js/bootstrap-dialog.min.js"></script>
+  <script src="/static/jslib/ebayajax.js"></script>
+  <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jquery-jgrowl/1.4.1/jquery.jgrowl.min.css" />
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-jgrowl/1.4.1/jquery.jgrowl.min.js"></script>
+  {% block dialogfirst %}
+  {% endblock %}
+  </body>
+</html>

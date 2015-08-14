@@ -1,0 +1,1 @@
+quick ebay description helper

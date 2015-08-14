@@ -1,0 +1,18 @@
+{% load hash_filters %}
+<a class="dropdown-toggle" data-toggle="dropdown">
+  <img style="width:30px;" src="/static/res/default-thumbnail.jpg" alt="">
+  {% if user %}
+  <span>{{user.email}}</span>
+  {% else %}
+  <span>Guest</span>
+  {% endif %}
+  <i class="caret"></i>
+</a>
+<ul class="dropdown-menu">
+  {% if not user %}
+  <li><a href="{{user|loginurl:request}}"><i class="fa fa-mail-forward"></i> Login google account</a></li>
+  {% else %}
+  <li><a href="{{user|logouturl:request}}"><i class="fa fa-mail-forward"></i> Logout </a></li>
+  {% endif %}
+</ul>
+

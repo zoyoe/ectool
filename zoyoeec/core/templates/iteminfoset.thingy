@@ -1,0 +1,70 @@
+{% load hash_filters %}
+<div class="product-set">
+  <div class="product-price">
+    <span><!--span class="strike-through">$200.00</span-->${{ITEM.price}}</span>
+  </div><!--end product-price-->
+  <div class="product-rate clearfix">
+    <ul class="rating">
+      <li><i class="fa fa-star-o"></i></li>
+      <li><i class="fa fa-star-o"></i></li>
+      <li><i class="fa fa-star-o"></i></li>
+      <li><i class="fa fa-star-o"></i></li>
+      <li><i class="fa fa-star-o"></i></li>
+    </ul>
+    <span>0 Review(s)&nbsp;&nbsp;
+      <a href="#"><i class="icon-pencil"></i> Write a Review</a>
+      <a href="javascript:zoyoe.cart.add('{{ITEM.refid}}','{{ITEM.name}}','{{ITEM.price}}')" class="btn pull-right btn-default btn-xs"><i class='fa fa-shopping-cart'></i>&nbsp;add to chart</a>
+    </span>
+  </div><!--end product-inputs-->
+  <div class="product-info">
+    <dl class="dl-horizontal">
+      <dt>Availability:</dt>
+      <dd>Available In Stock</dd>
+
+      <dt>Product Code:</dt>
+      <dd>{{ITEM.key.id}}</dd>
+
+      <dt>Supplier Brand:</dt>
+      <dd>{{ITEM.parent.name}}</dd>
+
+      <dt>Review Points:</dt>
+      <dd>25 Points</dd>
+    </dl>
+  </div><!--end product-info-->
+  <div class="product-rate clearfix" style="padding-top:40px;">
+    <h4> More specification about this item:</h4>
+  </div>
+  <div class="product-info">
+    <dl class="dl-horizontal">
+    {% for key in ITEM.getSpecification %}
+      <dt>{{key}}:</dt>
+      <dd>{{ITEM.getSpecification|hash:key}}</dd>
+    {% endfor %}
+    </dl>
+  </div><!--end product-info-->
+  <div class="product-rate clearfix" style="padding-top:40px;">
+    <h4> More Product Info:</h4>
+  </div>
+  <div class="product-info">
+    {{ITEM.description|safe}}
+  </div>
+  <div class="product-rate clearfix" style="padding-top:40px;">
+    <h4>For Ebay Users:</h4>
+  </div>
+  <div class="product-info">
+    <ul class="list-group">
+      <dl class="dl-horizontal">
+        <dt>item on ebay:</dt><dd>
+<a target="_blank" href="http://rover.ebay.com/rover/1/705-53470-19255-0/1?icep_ff3=2&pub=5575128734&toolid=10001&campid=5337706149&customid=&icep_item={{ITEM.ebayid}}&ipn=psmain&icep_vectorid=229515&kwid=902099&mtid=824&kw=lg">{{ITEM.ebayid}}</a><img style="text-decoration:none;border:0;padding:0;margin:0;" src="http://rover.ebay.com/roverimp/1/705-53470-19255-0/1?ff3=2&pub=5575128734&toolid=10001&campid=5337706149&customid=&item={{ITEM.ebayid}}&mpt=[CACHEBUSTER]">
+        </dd>
+      </dl>
+    </ul>
+  </div>
+  <div class="product-rate clearfix" style="padding-top:40px">
+    <h4> Shipping Info:</h4>
+  </div>
+  <div class="product-info">
+    {% include "shipping.html" %}
+  </div>
+</div><!--end product-set-->
+

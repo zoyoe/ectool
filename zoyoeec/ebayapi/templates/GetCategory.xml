@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GetCategoriesRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <RequesterCredentials>
+    <eBayAuthToken>{{token}}</eBayAuthToken>
+  </RequesterCredentials>
+  {% if id != "0" %}
+  <CategoryParent>{{id}}</CategoryParent>
+  {% else %}
+  {% endif %}
+  <LevelLimit>2</LevelLimit>
+  <DetailLevel>ReturnAll</DetailLevel>
+  <WarningLevel>High</WarningLevel>
+</GetCategoriesRequest>

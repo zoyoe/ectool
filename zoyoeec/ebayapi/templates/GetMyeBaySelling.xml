@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GetMyeBaySellingRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <ActiveList>
+    <Include>true</Include>
+    <IncludeNotes>true</IncludeNotes>
+    <Pagination>
+      <EntriesPerPage>30</EntriesPerPage>
+      <PageNumber>{{page}}</PageNumber>
+    </Pagination>
+    <Sort>EndTimeDescending</Sort>
+  </ActiveList>
+  <RequesterCredentials>
+    <eBayAuthToken>{{token}}</eBayAuthToken>
+  </RequesterCredentials>
+</GetMyeBaySellingRequest>

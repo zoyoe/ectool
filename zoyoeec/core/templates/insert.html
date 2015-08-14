@@ -1,0 +1,64 @@
+{% extends "gbase.html" %}
+{% load hash_filters %}
+
+{% block title %}
+<h5><i class="fa fa-warning"></i>Deploy and Synchronis Ebay</h5>
+{% endblock %}
+
+{% block head %}
+<div class = "panel panel-default">
+  <div class="panel-body">
+      <div id="div-1" class="body collapse in" aria-expanded="true">
+      <form class="form-horizontal" action="/admin/deploy/">
+        <div class = "form-group">
+          <div class="col-lg-12">
+          <input type="text" name='itemid' class = "form-control" id="search-item"></input>
+          </div>
+        </div>
+        <ul class="item-search"></ul>
+      </form>
+      </div>
+  </div>
+</div>
+<div class = "panel panel-default">
+  <div class="panel-heading"><h6 class="panel-title">
+  Depoly gallery to your ebay selling items
+    </h6>
+    <!-- .toolbar -->
+     <div class="btn-group pull-right">
+      <button class="btn btn-sm btn-danger btn-icon"><i class="fa fa-cogs"></i></button>
+      <button class="btn btn-sm btn-danger dropdown-toggle" data-toggle="dropdown"><span class="caret caret-split"></span></button>
+      <ul class="dropdown-menu dropdown-menu-right">
+       <li><a href="javascript:zoyoe.ebay.format()">deploy selected</a></li>
+       <li><a href="javascript:zoyoe.ebay.formatall()">deploy all</a></li>
+      </ul>
+     </div>
+  </div>
+
+  <div class="panel-body">
+    <form name='quickinsert'>
+    {% if itemlist %}
+       {{itemlist|safe}}
+    <script>
+    var noitems = false;
+    </script>
+    {% else %}
+    <script>
+    var noitems = true;
+    </script>
+    {% endif %}
+    </form>
+  </div>
+</div>
+
+
+{% endblock %}
+
+
+{% block dialogfirst %}
+  <script>
+  </script>
+{% endblock %}
+
+{% block subsidebar %}
+{% endblock%}

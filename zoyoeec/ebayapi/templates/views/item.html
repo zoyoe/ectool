@@ -1,0 +1,145 @@
+{% extends 'core/clean.html' %}
+{% load hash_filters %}
+{% load comp_filters %}
+
+{% block title %} zoyoe sydneyscent {% endblock %}
+
+{% block css_link %} 
+  <link rel="stylesheet" href="/css/contrib/960.css" type="text/css" media="all" charset="utf-8"/>
+  <link rel="stylesheet" href="/css/contrib/general.css" type="text/css" media="all" charset="utf-8"/>
+  <link rel="stylesheet" href="/css/contrib/nav.css" type="text/css" media="all" charset="utf-8"/>
+  <link rel="stylesheet" href="/css/contrib/dialog.css" type="text/css" media="all" charset="utf-8"/>
+
+<style type="text/css">
+h3{
+  padding:0px;
+  margin:15px 0px 5px 0px;
+}
+textarea{
+  height:140px;
+  width:940px;
+  padding:10px;
+  margin:auto;
+  font-size:14px;
+  border:0px;
+}
+.page{
+  border:1px solid #EAEAEA;
+  margin:auto;
+  margin-top:40px;
+  margin-bottom:60px;
+}
+.img_res img{
+  height:150px;
+}
+.mission{
+ background: transparent url("/res/bg/target.png") center 9px no-repeat;
+}
+#preview iframe{
+ width:100%;
+ height:600px;
+ overflow:hidden;
+}
+.ebay-details img{
+ width:100%;
+}
+
+.ebay-details label{
+ margin-top:10px;
+ display:block;
+}
+.ebay-details input{
+ padding:3px;
+ font-size:14px;
+ width:600px;
+ border:1px solid #EAEAEA;
+ display:block;
+ margin-top:5px;
+}
+.btnblue{
+ float:left;
+}
+
+</style>
+
+
+{% endblock %}
+
+{% block js_link %}
+ <script type="text/javascript" charset="utf-8"
+        src="http://yui.yahooapis.com/3.5.1/build/yui/yui-min.js">
+ </script>
+ <script type="text/javascript" src="/js/comps.js"></script>
+ <script type="text/javascript" src="/js/ui.js"></script>
+ <script type="text/javascript" src="/js/zoyoe.js"></script>
+ <script type="text/javascript" src="/js/ele.js"></script>
+ <script type="text/javascript">
+    function document_load(){
+      YUI().use('node','anim','io-form',function(Y){
+        zoyoe.InitZoyoe(false,Y);
+        zoyoe.admin = InitAdmin(zoyoe);
+        zoyoe.service_name = 'SYSTEM__garden';
+        var icons = Y.all('div.img_res');
+        icons.each(function(container){
+          container.on('click',function(e){
+            zoyoe.ui.PickImageFromGallery(function(current){
+              container.one('img').set('src',current);
+            });
+          });
+        });
+      });
+    }
+  </script>
+
+{% endblock %}
+
+{% block nav %}
+  <li class='menu'><a href='/zoyoe/'>Zoyoe</a></li>
+  <li class='menu'><a href='/forum/'>Forum</a></li>
+  {% include "core/_usrmenu.html" %}
+{% endblock %}
+
+{% block content %}
+ <div class='nav-sup' style="border-bottom:1px solid white;">
+   <span class='btnblue'><a href='javascript:ReviseEbayItem()'>Revise This Item</a></span>
+   <span class='btnblue'><a href='javascript:Preview()'>Preview</a></span>
+   <span class='btnblue'><a href='{{view_item_url}}'>Ebay Item Page</a></span>
+   <div style="clear:both;"></div>
+ </div>
+ <div class='nav-last' style="height:1px;"></div>
+ <form id = 'info' action='/ebay/revise/{{item_id}}/'>
+ <div class='container_12 page'>
+  {{detail|safe}}
+  <div class='nav-sup' style="border-bottom:1px solid white;">
+   Measurement: 
+  </div>
+  <div class='nav-last' style="height:1px;"></div>
+  <div>
+  <textarea name='measurement'></textarea>
+  <div class='nav-sup' style="border-bottom:1px solid white;">
+   Shipping 
+  </div>
+  <div class='nav-last' style="height:1px;"></div>
+  <textarea name='shipping'></textarea>
+  <div class='nav-sup' style="border-bottom:1px solid white;">
+   Payment 
+  </div>
+  <div class='nav-last' style="height:1px;"></div>
+  <textarea name='payment'></textarea>
+  <div class='nav-sup' style="border-bottom:1px solid white;margin-bottom:5px;">
+   imgs 
+  </div>
+  <div class='grid_2 img_res'><img src='/res/res_error.png'></img></div>
+  <div class='grid_2 img_res'><img src='/res/res_error.png'></img></div>
+  <div class='grid_2 img_res'><img src='/res/res_error.png'></img></div>
+  <div class='grid_2 img_res'><img src='/res/res_error.png'></img></div>
+  <div class='grid_2 img_res'><img src='/res/res_error.png'></img></div>
+  <div class='grid_2 img_res'><img src='/res/res_error.png'></img></div>
+  <div class='nav-last' style="height:1px;clear:both;"></div>
+  </form>
+ </div>
+{% endblock %}
+
+{% block tail %}
+ {% include "core/_tail.html" %}
+{% endblock %}

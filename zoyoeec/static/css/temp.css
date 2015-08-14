@@ -1,0 +1,50 @@
+.loadingbg{
+  background: url('/static/res/loadbg.gif') center no-repeat
+}
+.receipt-paid{
+  background: url('/static/res/paid.png') right no-repeat
+}
+.gallery-big-pic img{
+  width:100%;
+}
+.gallery-big-pic {
+  border:3px solid white;
+}
+
+td .rating li {
+  margin:0;
+  padding:0;
+  float: left;
+}
+#cart-result td img{
+  width:90px;
+  max-height:90px;
+  border:2px solid #f0f0f0
+}
+
+#cart-result{
+  margin-bottom:20px;
+}
+
+td.desc .rating{
+  list-style: none;
+  padding: 0;
+  margin: 6px 0;
+}
+
+td.quantity input{
+  width: 25px;
+  height:35px;
+  text-align: center;
+  line-height:20px;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+}
+
+ul.ui-autocomplete{
+  background-color:#3f3f3f;
+}
+.ui-progressbar-value{
+  height:10px;
+  background-color:#228b22;
+}

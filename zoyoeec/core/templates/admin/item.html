@@ -1,0 +1,176 @@
+{% extends "gbase.html" %}
+{% load hash_filters %}
+
+{% block head %}
+    <form id='item-info' class='validate' action="/admin/saveitem/{{ITEM.parent.name}}/{{ITEM.key.id}}/" method='POST'>
+    <ul class="row stats">
+       <li class="col-xs-3 col-lg-4"><span href="#" class="btn" style="height:40px;"><label style="float:left">$&nbsp;</label>
+        <input value="{{ITEM.price}}" style="float:left;font-size: 12px;width:90px;background-color: transparent;color: #ddd; border:0px solid #333;font-size:20px;" type="text" name="price" ></span></li>
+    </ul>
+
+    <div class="row">
+       <div class="col-lg-4 col-md-6 col-sm-6">
+          <div class="widget">
+              <div class="thumbnail">
+                  <div class="thumb">
+                      <img src='{{ITEM.galleryurl}}'></img>
+                  </div>
+                  <div class="caption">
+                    <h4>
+                      <input value="{{ITEM.name}}" type="text" name="name" class="form-control"></h4>
+                  </div>
+                  <div class="col-lg-4">
+                   <img src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/1/'></img>
+                  </div>
+                  <div class="col-lg-4">
+                   <img src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/2/'></img>
+                  </div>
+                  <div class="col-lg-4">
+                   <img src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/3/'></img>
+                  </div>
+                  <div class="caption" style="clear:both">
+                      <h6><a href = "/admin/itemimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/"><i class="glyphicon glyphicon-picture"></i>&nbsp;manage images</a></h6>
+                  </div>
+                  <div class="form-horizontal caption">
+                      {% csrf_token %}
+                    <div class="form-group">
+                      <label class="col-sm-4 control-label">key: </label>
+                      <div class="col-sm-8">
+                      <input value="{{ITEM.key.id}}" readonly type="text" name="key" class="form-control">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-4 control-label">id: </label>
+                      <div class="col-sm-8">
+                      <input value="{{ITEM.refid}}" readonly type="text" name="refid" class="form-control">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-4 control-label">supplier: </label>
+                      <div class="col-sm-8">
+                      <input value="{{ITEM.parent.name}}" readonly type="text" name="supplier" class="form-control">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-4 control-label">cost: </label>
+                      <div class="col-sm-8">
+                      <input value="{{ITEM.cost}}" type="text" name="cost" class="form-control"></input>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-4 control-label">category: </label>
+                      <div class="col-sm-8">
+                      <select value="{{ITEM.category}}" name="category" class="form-control">
+                        {% include "admin/category.thingy" with category=ITEM.category %}
+                      </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-4 control-label">second category: </label>
+                      <div class="col-sm-8">
+                      <select value="{{ITEM.category2}}" name="sndcategory" class="form-control">
+                        {% include "admin/category.thingy" with category=ITEM.category2%}
+                      </select>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+          </div>
+       </div>
+       <div class="col-lg-8 col-md-6 col-sm-6">
+         <div class="panel panel-default">
+           <div class="panel-heading"><h6 class="panel-title">Product Description:</h6>
+           </div>
+           <div class="panel-body" id='specification'>
+             <textarea id="dscp" class="form-control" value="" name="description">{{ITEM.description|safe}}</textarea>
+           </div>
+         </div>
+         <textarea id="spec-dscp" style="display:none" class="form-control" value="" name="spec">{{ITEM.specification|safe}}</textarea>
+         <div class="panel panel-default">
+           <div class="panel-heading"><h6 class="panel-title">Details & Specification:</h6>
+           </div>
+           <div class="panel-body">
+           <table id="table-edit" class="table">
+             <tr>
+             <th width="100px">size</th>
+             <td> </td>
+             </tr> 
+             <tr>
+             <th>color</th>
+             <td> </td>
+             </tr> 
+             <th>material</th>
+             <td> </td>
+             </tr> 
+             <th>details</th>
+             <td> </td>
+             </tr> 
+           </table>
+           </div>
+         </div>
+         <div class="panel panel-default">
+           <div class="panel-heading"><h6 class="panel-title">Ebay Integration:</h6>
+           </div>
+           <div class="panel-body">
+            <ul class="list-group">
+             <li class="list-group-item">ebayid:{{ITEM.ebayid}}</li> 
+             <li class="list-group-item">infourl:{{ITEM.infourl}}</li>
+            </ul>
+            </br>
+            <div class="form-group">
+              <label class="col-sm-4 control-label">ebay category: </label>
+              <div class="col-sm-8">
+              <input id='category-search' value="{{ITEM.ebaycategory}}" type="text" name="ebaycategory" class="form-control">
+              </div>
+            </div>
+           </div>
+         </div>
+         <div class="panel-default panel">
+          <div class="panel-heading">
+           <h6 class="panel-title">Shipping Policy </h6>
+          </div>
+          <div class="panel-body">
+           {% include "shipping.html" %}
+          </div>
+         </div><!-- panel-default -->
+       </div>
+    </div> <!-- end panel-body -->
+    </form>
+
+{% endblock %}
+
+{% block title %}
+  <h5><i class="fa fa-bars"></i> {{ITEM.name}} <small><a href="/admin/items/{{ITEM.parent.name}}/">{{ITEM.parent.name}}</a></small></h5>
+  <div class="btn-group">
+    <a href="#" class="btn btn-link btn-lg btn-icon dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cogs"></i><span class="caret"></span></a>
+    <span id="ebayresult"></span>
+    <ul class="dropdown-menu dropdown-menu-right">
+      <li><a href="javascript:zoyoe.ebay.exportCell('{{ITEM.parent.name}}','{{ITEM.key.id}}','#ebayresult')">export to ebay</a></li>
+      <li><a href="javascript:zoyoe.ebay.syncCell('{{ITEM.parent.name}}','{{ITEM.key.id}}','#ebayresult')">sychronize with ebay</a></li>
+      <li><a href="javascript:zoyoe.ebay.saveItem('{{ITEM.parent.name}}','{{ITEM.key.id}|       zoyoe.ebay.result(id,data);                                                     
+}','#table-edit')">save</a></li>
+      <li><a href="/admin/deleteitem/{{ITEM.parent.name}}/{{ITEM.key.id}}/">delete</a></li>
+    </ul>
+  </div>
+{% endblock %}
+
+
+
+{% block subsidebar %}
+{% endblock%}
+
+{% block dialogfirst %}
+<script src="/static/jslib/fileinput.min.js"></script>
+<script src="/static/jslib/mindmup-editabletable.js"></script>
+<script>
+$('#table-edit').editableTableWidget({});
+$(function() {
+    $( "#category-search" ).autocomplete({
+      minLength: 4,
+      source: "/admin/categories/",
+    });
+ });
+zoyoe.ebay.parsespec($('#table-edit'),'{{ITEM.specification|safe}}');
+</script>
+{% endblock %}
+

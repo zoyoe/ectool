@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ReviseItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <ErrorLanguage>en_US</ErrorLanguage>
+  <WarningLevel>High</WarningLevel>
+  <Item>
+    <ItemID>{{item.ebayid}}</ItemID>
+    <Title>{{item.name}}</Title>
+    <Description>{{description|safe}}</Description>
+    <Storefront>
+      <StoreCategoryID>{{item.category}}</StoreCategoryID>
+    </Storefront>
+    <PrimaryCategory>
+      <CategoryID>{{item.ebaycategory}}</CategoryID>
+    </PrimaryCategory>
+    <PictureDetails>
+      {% with item.getImages as images %}
+        {% if images %}
+          {% for img in images %}
+          <PictureURL>{{img.url}}?timestamp={% now "dMYHs"%}</PictureURL>
+          {% endfor %}
+        {% else %}
+          <PictureURL>{{item.galleryurl}}</PictureURL>
+        {% endif %}
+      {% endwith %}
+    </PictureDetails>
+  </Item>
+  <RequesterCredentials>
+    <eBayAuthToken>{{token}}</eBayAuthToken>
+  </RequesterCredentials>
+  <WarningLevel>High</WarningLevel>
+</ReviseItemRequest>

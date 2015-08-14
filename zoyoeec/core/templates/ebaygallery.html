@@ -1,0 +1,59 @@
+{% load hash_filters %}
+  <div>
+  <style type="text/css">
+  div.reformat{
+    border: none;
+    padding:0px;
+    margin:0px;
+  }
+  div.item{
+    background-color:#ffffff;
+    margin:5px;
+    width:{{ITEM_WIDTH}}px;
+    border:1px solid #cccccc;
+    border-radius:3px;
+    -webkit-border-radius:3px;
+    -moz-border-radius:3px;
+    box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.18);
+    overflow:hidden;
+    float:left;
+  }
+  div.item table{
+    height:200px;
+    width:100%;
+    border-collapse:collapse;
+    border-spacing:0;
+  }
+  div.item table td{
+    text-align:center;
+    vertical-align:middle;
+    height:200px;
+  }
+  div.item table td img{
+    max-width:200px;
+    max-height:200px;
+  }
+  div.item .desc{
+    height:60px; 
+  }
+  </style>
+  </div>
+
+  <div id="container" class="js-masonry">
+  {% for item in sellitems %}
+    <div class='item' ><table>
+    <tr>
+    <td>
+    <a href='{{item|hash:"viewItemURL"|hash:"value"}}'>
+    <img onload = 'DoLayout()' src='{{item|hash:"galleryURL"|hash:"value"}}'/></a>
+    </td>
+    </tr>
+    </table>
+    <div class='desc' style="font-size:14px;padding:5px;border-top:1px solid #cccccc"><span>{{item|hash:"title"|hash:"value"}}</span></div>
+    <div style="font-size:14px;padding:5px;border-top:1px solid #cccccc">
+    <span>{{item|hash:"sellingStatus"|hash:"currentPrice"|hash:"value"}} 
+    {{item|hash:"sellingStatus"|hash:"currentPrice"|hash:"currencyId"|hash:"value"}}</span></div>
+    </div>
+  {% endfor %}
+  </div>
+

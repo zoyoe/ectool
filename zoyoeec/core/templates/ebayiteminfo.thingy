@@ -1,0 +1,31 @@
+{% load hash_filters %}
+<div class="product-set">
+  <div class="product-rate clearfix" style="padding-top:40px;">
+    <h4> Specification:</h4>
+  </div>
+  <div class="product-info">
+    <dl class="dl-horizontal">
+      <dt>Availabilty:</dt>
+      <dd>Available In Stock</dd>
+
+      <dt>Product Code:</dt>
+      <dd>{{ITEM.key.id}}</dd>
+
+      <dt>Supplier Brand:</dt>
+      <dd>{{ITEM.parent.name}}</dd>
+    </dl>
+    <dl class="dl-horizontal">
+    {% for key in ITEM.getSpecification %}
+      <dt>{{key}}:</dt>
+      <dd>{{ITEM.getSpecification|hash:key}}</dd>
+    {% endfor %}
+    </dl>
+  </div><!--end product-info-->
+  <div class="product-rate clearfix" style="padding-top:40px">
+    <h4> Shipping Info:</h4>
+  </div>
+  <div class="product-info">
+    {% include "shipping.html" %}
+  </div>
+</div><!--end product-set-->
+

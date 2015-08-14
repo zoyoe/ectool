@@ -1,0 +1,32 @@
+              <div class="bb-content">
+                <div id="paypal-invoice" class="tab-pane fade in active">
+                  <ul class='list-group'>
+{% if RECEIPT.paypal %}
+                    <li class='list-group-item'>paypal invoice ID : {{RECEIPT.paypal}} </li>
+                    <li class='list-group-item'> invoice status : 
+  {% if INVOICE %}
+    {% if INVOICE.status != 'PAID' %} invoice is not paid </li>
+                    <li class='list-group-item'><a href="https://www.paypal.com/cgi_bin/webscr?cmd=_pay-inv&amp;id={{RECEIPT.paypal}}" style="display:block;position:relative" class='btn btn-warning btn-xs'>Pay paypal invoice </a></li>
+    {% else %} invoice is paid </li>
+    {% endif %}
+  {% else %}
+                    invoice is not created</li>{% endif %}
+                    <li class='list-group-item'><a href="/retail/sendpaypalinvoice/{{RECEIPT.key.id}}" style="display:block;position:relative" class='btn btn-warning btn-xs'>Create and send paypal invoice </a>
+                  </li>
+{% endif %}
+                </ul>
+                </div>
+
+                <div id="paypal-invoice" class="tab-pane fade in active">
+                  <ul class='list-group'>
+                    <li class='list-group-item'>paypal payment id:</li>
+                  </ul>
+                </div>
+
+                <div id="creditcard" class="tab-pane fade in active">
+                  <ul class='list-group'>
+                    <li class="list-group-item'>pay by creditcard:</li>
+                  </ul>
+                </div>
+              </div>
+

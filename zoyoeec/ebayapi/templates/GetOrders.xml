@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GetOrdersRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <RequesterCredentials>
+    <eBayAuthToken>{{token}}</eBayAuthToken>
+  </RequesterCredentials>
+  <OrderRole>Seller</OrderRole>
+  <OrderStatus>Completed</OrderStatus>
+  <WarningLevel>High</WarningLevel>
+  <CreateTimeFrom>{{from}}</CreateTimeFrom>
+  <CreateTimeTo>{{to}}</CreateTimeTo>
+</GetOrdersRequest>

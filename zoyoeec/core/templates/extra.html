@@ -1,0 +1,12 @@
+{% load hash_filters %}
+{% for line in EXTRA %}
+<div class="product-set">
+  <div class="product-rate clearfix" style="padding-top:40px;">
+    <h4>{{line.name}}</h4>
+  </div>
+  <div class="product-info">
+  {{line.content|safe}}
+  </div>
+</div>
+{% endfor %}
+

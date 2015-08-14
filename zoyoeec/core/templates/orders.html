@@ -1,0 +1,35 @@
+{% extends "gbase.html" %}
+{% load hash_filters %}
+
+
+{% block title %}
+<h5><i class="fa fa-book"></i>All Orders</h5>
+{% endblock %}
+
+{% block head %}
+  <div class = "panel panel-default">
+    <div class="panel-heading"><h6 class="panel-title">
+        Manage Orders </h6>
+    </div>
+    <ul class = "list-group">
+    {% for order in ORDERS %}
+        <!-- .toolbar -->
+        <li class="list-group-item">
+          <a href="/order/orderview/?key={{order.key.id}}">
+          {{order.supplier}} -- {{order.oid}}</a>
+          <span class="pull-right label">Order #{{order.key.id}}  </span>
+        </li>
+    {% endfor %}
+    </ul>
+  </div>
+
+
+{% endblock %}
+
+{% block subsidebar %}
+
+{% endblock%}
+
+{% block dialogfirst %}
+{% endblock %}
+

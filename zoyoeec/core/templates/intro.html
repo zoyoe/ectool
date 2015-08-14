@@ -1,0 +1,141 @@
+{% extends "gbase.html" %}
+{% load hash_filters %}
+
+{% block title %}
+<h5><i class="fa fa-dashboard"></i>Dashboard</h5>
+{% endblock %}
+
+{% block head %}
+<div class="col-lg-12 col-md-12">
+  <div class = "panel panel-default">
+    <div class = "panel-heading">
+        <h6 class= "panel-title">Item Id:</h6>
+        <a class='btn pull-right btn-xs btn-default' href="javascript:$('#add-item').submit()">check and add</a>
+    </div>
+    <div class="panel-body">
+      <div id="div-1" class="body collapse in" aria-expanded="true">
+      <form name="add-item" class="validate form-horizontal" action="/admin/additem/" id="add-item">
+        <div class = "form-group">
+          <div class="col-lg-12">
+          <input type="text" name='rid' class = "form-control" id="search-item"></input>
+          </div>
+        </div>
+        <ul class='list-group' id="autocomp">
+        </ul>
+      </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+  {% for shop in STORIES %}
+  <div class="col-lg-12 col-md-12">
+    <div class='panel panel-default'>
+      <div class='panel-heading'>
+        <h6 class='panel-title'>{{shop}}
+        </h6>
+        <span class="pull-right badge"><a href="/admin/items/{{shop}}/">{{STAT|hash:shop}}</a></span>
+        <span class="pull-right btn btn-xs"><a href="/admin/uploadimages/?supplier={{shop}}">feed images</a></span>
+      </div>
+      <div class="panel-body">
+      <ul class="list-group">
+    {% for id in STORIES|hash:shop %}
+      {% if not id == "1" %}
+        <li class="list-group-item"><h6>
+            {% if STORIES|hash:shop|hash:id|hash:'children' %}
+            <a href="javascript:">
+            {% else %}
+            <a href="/admin/items/{{shop}}/{{id}}">
+            {% endif %}
+            <i class="fa fa-cog"></i>
+              <span class="link-title">&nbsp;{{STORIES|hash:shop|hash:id|hash:'name'}}</span> 
+            </a></h6>
+        {% if STORIES|hash:shop|hash:id|hash:'children' %}
+        <ul class="list-group">
+           {% for cid in STORIES|hash:shop|hash:id|hash:'children' %}
+           <li class="list-group-item"><a href="/admin/items/{{shop}}/{{cid}}">
+             {{STORIES|hash:shop|hash:id|hash:'children'|hash:cid|hash:'name'}}</a></li>
+           {% endfor %}
+        </ul>
+        {% endif %}
+        </li>
+      {% endif %}
+    {% endfor %}
+        <li class="list-group-item">
+           <span class="pull-right badge">{{ESTAT|hash:shop}}</span>
+            <h6>
+            <a href="/admin/ebayitems/{{shop}}/">
+            <i class="fa fa-cog"></i>
+              <span class="link-title">&nbsp;Ebay</span> 
+            </a></h6>
+        </li>
+        <li class="list-group-item">
+            <h6>
+            <a href="/admin/unpublisheditems/{{shop}}/">
+            <i class="fa fa-cog"></i>
+              <span class="link-title">&nbsp;Unpublished</span> 
+            </a></h6>
+        </li>
+      </ul>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+
+{% endblock %}
+
+{% block subsidebar %}
+{% endblock%}
+
+{% block dialogfirst %}
+  <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+  <script>
+  $(function() {
+    $( "#search-item" ).autocomplete({
+      minLength: 4,
+      source: "/search/",
+      select: function(event,ui){
+         window.location = ui.item.modify;
+      },
+      open: function(event, ui) {
+        $($('ul.ui-autocomplete').removeAttr('style').hide()).appendTo('#autocomp').show();
+      }
+    }).data('ui-autocomplete')._renderItem = function(ul, item) {
+      return $("<li class='list-group-item'/>")
+      .data('item.autocomplete', item)
+      .append(item.label)
+      .appendTo(ul);
+    };
+
+/* # Form Validation
+================================================== */
+
+    $(".validate").validate({
+        errorPlacement: function(error, element) {
+            if (element.parent().parent().attr("class") == "checker" || element.parent().parent().attr("class") == "choice" ) {
+              error.appendTo( element.parent().parent().parent().parent().parent() );
+            } 
+            else if (element.parent().parent().attr("class") == "checkbox" || element.parent().parent().attr("class") == "radio" ) {
+              error.appendTo( element.parent().parent().parent() );
+            } 
+            else {
+              error.insertAfter(    element);
+            }
+        },
+        rules: {
+            rid: {
+                required: true,
+            },
+        },
+        success: function(label) {
+            label.text('Success!').addClass('valid');
+        }
+    });
+  });
+  </script>
+
+{% endblock %}
+

@@ -1,0 +1,43 @@
+{% load hash_filters %}
+<table class="table">
+  <thead>
+    <tr>
+      <th><span>Image</span></th>
+      <th class="desc"><span>Descraption</span></th>
+      <th><span>Quantity</span></th>
+      <th><span>Unit Price</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in CART %}
+    <tr>
+      <td>
+        <a href="#"><img src="{{item|hash:"galleryurl"}}" alt=""></img></a>
+      </td>
+      <td class="desc">
+        <h4><a href="#" class="invarseColor">{{item|hash:"description"}}
+        </a></h4>
+        <ul class="rating clearfix">
+          <li><i class="fa fa-star-o"></i></li>
+          <li><i class="fa fa-star-o"></i></li>
+          <li><i class="fa fa-star-o"></i></li>
+          <li><i class="fa fa-star-o"></i></li>
+          <li><i class="fa fa-star-o"></i></li>
+        </ul>
+        <ul class="unstyled">
+          <li>No. CtAw9458</li>
+        </ul>
+      </td>
+      <td class="quantity">
+        <div class="input-prepend input-append">
+          <input readonly="readonly" type="text" name="" value="{{item|hash:"amount"}}">
+          </input>
+        </div>
+      </td>
+      <td class="total-price">
+        <h2>${{item|hash:"price"}}</h2>include gst
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

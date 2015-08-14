@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GetItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <RequesterCredentials>
+    <eBayAuthToken>{{token}}</eBayAuthToken>
+  </RequesterCredentials>
+  <DetailLevel>ReturnAll</DetailLevel>
+  <ItemID>{{item_id}}</ItemID>
+  <WarningLevel>High</WarningLevel>
+</GetItemRequest>
