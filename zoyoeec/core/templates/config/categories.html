@@ -9,7 +9,7 @@
 <div class = "panel panel-default">
   <div class="panel-heading">
     <h6 class="panel-title">{{line.name}}<span>[{{line.type}}]</span></h6>
-    <a href="javascript:zoyoe.config.modify('#config-form','{{line.name}}','{{line.content}}')" class="btn btn-sm pull-right btn-danger btn-icon"><i class="fa fa-cogs"></i>modify</a>
+    <span onclick="zoyoe.config.modify('#config-form','{{line.name}}',this.parentElement.parentElement)" class="btn btn-sm pull-right btn-danger btn-icon"><i class="fa fa-cogs"></i>modify</span>
   </div>
   <div class = "panel-body">
   {{line.content|safe}}

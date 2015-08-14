@@ -11,7 +11,7 @@ zoyoe.image = {}
 zoyoe.config = {}
 
 
-zoyoe.config.modify = function(fid,title,content){
+zoyoe.config.modify = function(fid,title,htmlwrapper){
   if(!zoyoe.config.formobj){
     var formobj = $(fid);
     formobj.detach();
@@ -19,6 +19,7 @@ zoyoe.config.modify = function(fid,title,content){
     zoyoe.config.formobj = formobj;
   }
   zoyoe.config.formobj.find('#title').val(title);
+  var content = $(htmlwrapper).find(".panel-body").html();
   zoyoe.config.formobj.find('#content').val(content);
   zoyoe.config.dialog = new BootstrapDialog({
       title: "<i class='fa fa-shopping-cart'></i>&nbsp;Modify",
