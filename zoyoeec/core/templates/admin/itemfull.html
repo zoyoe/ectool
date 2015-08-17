@@ -1,0 +1,180 @@
+{% extends "admin/item.html" %}
+{% load hash_filters %}
+{% block image %}
+  <div class="panel"> 
+    <div class="panel-heading">
+      manage image
+    </div>
+    <div class="panel-body">
+       <div class="col-lg-3 col-md-6 col-sm-12">
+          <div class="widget" id='image-load'>
+              <div class="thumbnail">
+                  <div class="thumb">
+                      <img style="width:100%" src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/0/'></img>
+                  </div>
+                  <div class="caption" >
+                        <div class="progress widget-inner">
+                            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+                            </div>
+                        </div>
+         <form action="{{BLOBURL}}" method='POST' enctype="multipart/form-data">
+         {% csrf_token %}
+         <input class='file' name='image' type="file" accept="image/*;capture=camera">
+         </form>
+                  </div>
+              </div>
+          </div>
+       </div>
+       <div class="col-lg-3 col-md-6 col-sm-12">
+          <div class="widget" id="image-load-1">
+              <div class="thumbnail">
+                  <div class="thumb">
+                      <img style="width:100%" src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/1/'></img>
+                  </div>
+                  <div class="caption">
+                      <div class="progress widget-inner">
+                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+                      </div>
+                      <form action="{{BLOBURL1}}" method='POST' enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input class='file' name='image' type="file" accept="image/*;capture=camera">
+                      </form>
+                  </div>
+              </div>
+          </div>
+       </div>
+       <div class="col-lg-3 col-md-6 col-sm-12">
+          <div class="widget" id="image-load-2">
+              <div class="thumbnail">
+                  <div class="thumb">
+                      <img style="width:100%" src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/2/'></img>
+                  </div>
+                  <div class="caption" >
+                      <div class="progress widget-inner">
+                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+                      </div>
+                      <form action="{{BLOBURL2}}" method='POST' enctype="multipart/form-data">
+                      {% csrf_token %}
+                        <input class='file' name='image' type="file" accept="image/*;capture=camera">
+                      </form>
+                  </div>
+
+              </div>
+          </div>
+       </div>
+       <div class="col-lg-3 col-md-6 col-sm-12">
+          <div class="widget" id="image-load-3">
+              <div class="thumbnail">
+                  <div class="thumb">
+                      <img style="width:100%" src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/3/'></img>
+                  </div>
+                  <div class="caption" >
+                      <div class="progress widget-inner">
+                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+                      </div>
+                      <form action="{{BLOBURL3}}" method='POST' enctype="multipart/form-data">
+                      {% csrf_token %}
+                        <input class='file' name='image' type="file" accept="image/*;capture=camera">
+                      </form>
+                  </div>
+
+              </div>
+          </div>
+       </div>
+
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block dialogfirst %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/blueimp-file-upload/9.5.7/jquery.iframe-transport.js"></script>
+<!-- The basic File Upload plugin -->
+<script src="/static/jslib/load-image.all.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/blueimp-file-upload/9.5.7/jquery.fileupload.js"></script>
+<!-- The File Upload processing plugin -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/blueimp-file-upload/9.5.7/jquery.fileupload-process.js"></script>
+<!-- The File Upload image preview & resize plugin -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/blueimp-file-upload/9.5.7/jquery.fileupload-image.js"></script>
+<script>
+$(function () {
+  $("#image-load input").fileupload({
+    done:function(e,data){
+      var src = $('#image-load img').attr('src');
+      $('#image-load img').attr('src', src+"?rand="+Math.random());
+    },
+    disableImageResize: /Android(?!.*Chrome)|Opera/
+        .test(window.navigator && navigator.userAgent),
+    progressall: function (e, data) {
+        var progress = parseInt(data.loaded / data.total * 100, 10);
+        $('#image-load .progress-bar').css(
+            'width',
+            progress + '%'
+        );
+    }
+  });
+
+  $("#image-load-1 input").fileupload({
+    done:function(e,data){
+      var src = $('#image-load-1 img').attr('src');
+      $('#image-load-1 img').attr('src', src+"&rand="+Math.random());
+    },
+    disableImageResize: /Android(?!.*Chrome)|Opera/
+        .test(window.navigator && navigator.userAgent),
+    progressall: function (e, data) {
+        var progress = parseInt(data.loaded / data.total * 100, 10);
+        $('#image-load-1 .progress-bar').css(
+            'width',
+            progress + '%'
+        );
+    }
+  });
+  $("#image-load-2 input").fileupload({
+    done:function(e,data){
+        var src = $('#image-load-2 img').attr('src');
+        $('#image-load-2 img').attr('src', src+"&rand="+Math.random());
+    },
+    disableImageResize: /Android(?!.*Chrome)|Opera/
+        .test(window.navigator && navigator.userAgent),
+    progressall: function (e, data) {
+        var progress = parseInt(data.loaded / data.total * 100, 10);
+        $('#image-load-2 .progress-bar').css(
+            'width',
+            progress + '%'
+        );
+    }
+  });
+  $("#image-load-3 input").fileupload({
+    done:function(e,data){
+        var src = $('#image-load-3 img').attr('src');
+        $('#image-load-3 img').attr('src', src+"&rand="+Math.random());
+    },
+    disableImageResize: /Android(?!.*Chrome)|Opera/
+        .test(window.navigator && navigator.userAgent),
+    progressall: function (e, data) {
+        var progress = parseInt(data.loaded / data.total * 100, 10);
+        $('#image-load-3 .progress-bar').css(
+            'width',
+            progress + '%'
+        );
+    }
+  });
+});
+</script>
+<script src="/static/jslib/mindmup-editabletable.js"></script>
+<script>
+$('#table-edit').editableTableWidget({});
+$(function() {
+    $( "#category-search" ).autocomplete({
+      minLength: 4,
+      source: "/admin/categories/",
+    });
+ });
+zoyoe.ebay.parsespec($('#table-edit'),'{{ITEM.specification|safe}}');
+</script>
+{% endblock %}
+
+{% block extracss %}
+<link href="http://hayageek.github.io/jQuery-Upload-File/uploadfile.min.css" rel="stylesheet">
+{% endblock %}
+

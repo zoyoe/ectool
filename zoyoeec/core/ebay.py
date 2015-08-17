@@ -6,6 +6,7 @@ from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
 from ebayapi.api import *
+from ebayapi import api as ebayapi
 from retail import Supplier,ShopInfo,getSupplierFromEbayInfo
 import retailtype
 from google.appengine.api import users
@@ -97,7 +98,7 @@ def auth(request):
       token = GetToken(args,session.text)
       return token
     else:
-      return HttpResponse(sessionid)
+      return HttpResponse(ack.text)
 
 def logoutebay(request):
   request.session['ebayinfo'] = None
@@ -253,6 +254,37 @@ def ebayordersajax(request):
   return HttpResponse(rst)
 
 
+def relist(ebayinfo,item):
+  token = ebayinfo['token']
+  config = {'SELLER_ID':ebayinfo['id']}
+  config['INITIAL'] = item.description
+  config['ITEM'] = item
+  config['EXTRA'] = ShopInfo.all().filter("type =","ebay").order("name")
+  format = loader.get_template("format.html")
+  content = format.render(Context(config))
+  ebayitem = GetItem(item.ebayid,token)
+  xml_doc = etree.parse(StringIO(ebayitem))
+  ack = xml_doc.xpath("//xs:Ack",
+    namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
+  if('Success' in ack.text):
+    sellingstatus = xml_doc.xpath("//xs:SellingStatus/xs:ListingStatus",
+      namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
+    if (sellingstatus == "Completed"):
+      revise = RelistItemSimple(item,token,content)
+      xml_doc = etree.parse(StringIO(revise))
+      ack = xml_doc.xpath("//xs:Ack",
+        namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
+      if('Success' in ack.text):
+        ebayid = xml_doc.xpath("//xs:ItemID",
+          namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
+        item.ebayid = refid
+        item.put()
+      return (HttpResponse(revise,mimetype = "text/xml"),item)
+    else:
+      return (returnError("Related ebay item is still active"),item)
+  else:
+    return (HttpResponse(ebayitem,mimetype = "text/xml"),item)
+
 
 ####
 # This function will append general infomation after item description
@@ -324,9 +356,9 @@ def format(ebayinfo,itemid):
       ack = xml_doc.xpath("//xs:Ack",
         namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
       if('Success' in ack.text):
-        refid = xml_doc.xpath("//xs:ItemID",
+        ebayid = xml_doc.xpath("//xs:ItemID",
           namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
-        zitem.refid = refid
+        zitem.ebayid = refid
         zitem.put()
       return (HttpResponse(revise,mimetype = "text/xml"),item)
   else:

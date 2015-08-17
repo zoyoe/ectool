@@ -87,7 +87,6 @@ SECRET_KEY = '63n=-fk_h2-)97%f%60uen4+*58l_m97ngkisvn76m2vb3gyyu'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
 )
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
@@ -125,6 +124,7 @@ INSTALLED_APPS = (
     'ebayapi',
     'ebaysdk',
     'requests',
+    'usertemplates',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:

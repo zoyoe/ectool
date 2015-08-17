@@ -14,7 +14,7 @@ from google.appengine.api import images
 import datetime
 import urllib2,httplib,random,json
 from urllib import urlencode
-from ebay import ebay_view_prefix,ebay_ajax_prefix,getinactivelist,getactivelist, getEbayInfo, sync, format
+from ebay import ebay_view_prefix,ebay_ajax_prefix,getinactivelist,getactivelist, getEbayInfo, sync,relist, format
 from order import *
 from error import *
 from page import *
@@ -149,17 +149,22 @@ def item(request,shop,key):
   stories = siteinfo()
   item = Item.get_by_id(int(key),parent = getSupplier(shop))
   if item:
-    upload_url = blobstore.create_upload_url('/admin/blobimage/'+key +"/0/")
-    upload_url1 = blobstore.create_upload_url('/admin/blobimage/'+key +"/1/")
-    upload_url2 = blobstore.create_upload_url('/admin/blobimage/'+key +"/2/")
-    upload_url3 = blobstore.create_upload_url('/admin/blobimage/'+key +"/3/")
+    upload_url = '/admin/blobimage/'+ shop + "/" + key +"/0/"
+    upload_url1 = '/admin/blobimage/'+ shop + "/" + key +"/1/"
+    upload_url2 = '/admin/blobimage/'+ shop + "/" + key +"/2/"
+    upload_url3 = '/admin/blobimage/'+ shop + "/" + key +"/3/"
+    dict = {'ITEM':item,'STORIES':stories,'BLOBURL':upload_url
+        ,'BLOBURL1':upload_url1
+        ,'BLOBURL2':upload_url2
+        ,'BLOBURL3':upload_url3}
+
     dict = {'ITEM':item,'STORIES':stories,'BLOBURL':upload_url
         ,'BLOBURL1':upload_url1
         ,'BLOBURL2':upload_url2
         ,'BLOBURL3':upload_url3}
     dict['STORIES'] = stories
     context = Context(dict)
-    response = render_to_response("admin/item.html",context,context_instance=RequestContext(request))
+    response = render_to_response("admin/itemfull.html",context,context_instance=RequestContext(request))
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
   else:
@@ -203,6 +208,7 @@ def saveitem(request,shop,key):
   item = Item.get_by_id(int(key),parent = getSupplier(shop))
   if(item):
     item.name = request.POST['name']
+    item.refid = request.POST['refid']
     item.price = float(request.POST['price'])
     item.cost = float(request.POST['cost'])
     item.description = request.POST['description']
@@ -346,6 +352,19 @@ def exporttoebay(request,shop,key):
       item.put()
     return HttpResponse(rslt,mimetype="text/xml")
 
+
+@zuser.authority_ebay
+@ebay_view_prefix
+def relisttoebay(request,shop,key):
+  registerAdminAction("ebayrelist",shop+"/"+key)
+  info = ebay.getEbayInfo(request)
+  item = Item.get_by_id(int(key),parent = getSupplier(shop))
+  if item:
+    if (item.ebayid and (item.ebayid != '0')):
+      rslt,item = relist(info,item)
+      return rslt
+  return (returnError("item not find or not exists in ebay"))
+
 @ebay_ajax_prefix
 def importfromebay(ebayinfo,itemid):
   (rslt,item) = format(ebayinfo,itemid)
@@ -360,7 +379,7 @@ def syncwithebay(request,shop,key):
   item = Item.get_by_id(int(key),parent = getSupplier(shop))
   if item:
     rslt = sync(info,item)
-    return HttpResponse(rslt,mimetype="text/xml")
+    return rslt
 
 def clean(request):
   items = Item.all()
@@ -430,7 +449,6 @@ def addconfig(request):
     feedinfo(request.POST['title'],request.POST['content'],request.POST['type'])
   return HttpResponse("ok")
 
-
 @zuser.authority_config
 def removeconfig(request):
   if ("title" in request.POST):
@@ -438,8 +456,6 @@ def removeconfig(request):
     if line:
       line.delete()
   return HttpResponse("ok")
-
-
 
 @zuser.authority_ebay
 @ebay_view_prefix
@@ -459,12 +475,10 @@ def deploy(request):
 
 @zuser.authority_ebay
 @ebay_view_prefix
-def relist(request):
+def relistlist(request):
   context = {}
   context['itemlist'] = getinactivelist(request)
   return (render_to_response("insert.html",context,context_instance=RequestContext(request)))
-
-
 
 @zuser.authority_item
 @ebay_view_prefix
@@ -515,5 +529,5 @@ def cleanitems(request):
       item.delete()
   return HttpResponse("ok")
 
-      
-     
+def configsite(request):
+  return None

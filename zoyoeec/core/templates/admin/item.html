@@ -2,36 +2,17 @@
 {% load hash_filters %}
 
 {% block head %}
-    <form id='item-info' class='validate' action="/admin/saveitem/{{ITEM.parent.name}}/{{ITEM.key.id}}/" method='POST'>
-    <ul class="row stats">
-       <li class="col-xs-3 col-lg-4"><span href="#" class="btn" style="height:40px;"><label style="float:left">$&nbsp;</label>
-        <input value="{{ITEM.price}}" style="float:left;font-size: 12px;width:90px;background-color: transparent;color: #ddd; border:0px solid #333;font-size:20px;" type="text" name="price" ></span></li>
-    </ul>
-
-    <div class="row">
-       <div class="col-lg-4 col-md-6 col-sm-6">
-          <div class="widget">
-              <div class="thumbnail">
-                  <div class="thumb">
-                      <img src='{{ITEM.galleryurl}}'></img>
-                  </div>
-                  <div class="caption">
-                    <h4>
-                      <input value="{{ITEM.name}}" type="text" name="name" class="form-control"></h4>
-                  </div>
-                  <div class="col-lg-4">
-                   <img src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/1/'></img>
-                  </div>
-                  <div class="col-lg-4">
-                   <img src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/2/'></img>
-                  </div>
-                  <div class="col-lg-4">
-                   <img src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/3/'></img>
-                  </div>
-                  <div class="caption" style="clear:both">
-                      <h6><a href = "/admin/itemimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/"><i class="glyphicon glyphicon-picture"></i>&nbsp;manage images</a></h6>
-                  </div>
-                  <div class="form-horizontal caption">
+  <div class="col-lg-12 col-md-12 col-sm-12">
+    {% block image %}
+    {% endblock %}
+  </div>
+<form id='item-info' class='validate' action="/admin/saveitem/{{ITEM.parent.name}}/{{ITEM.key.id}}/" method='POST'>
+    <!-- basic info -->
+    <div class="col-lg-4 col-md-6 col-sm-6">
+    <section class="panel">
+      <header class="panel-heading">basic info </header>
+      <div class="panel-body">
+        <div class="form-horizontal caption">
                       {% csrf_token %}
                     <div class="form-group">
                       <label class="col-sm-4 control-label">key: </label>
@@ -40,9 +21,21 @@
                       </div>
                     </div>
                     <div class="form-group">
+                      <label class="col-sm-4 control-label">price: </label>
+                      <div class="col-sm-8">
+                      <input value="{{ITEM.price}}" type="text" name="price" class="form-control">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-4 control-label">item name: </label>
+                      <div class="col-sm-8">
+                      <input value="{{ITEM.name}}" type="text" name="name" class="form-control">
+                      </div>
+                    </div>
+                    <div class="form-group">
                       <label class="col-sm-4 control-label">id: </label>
                       <div class="col-sm-8">
-                      <input value="{{ITEM.refid}}" readonly type="text" name="refid" class="form-control">
+                      <input value="{{ITEM.refid}}" type="text" name="refid" class="form-control">
                       </div>
                     </div>
                     <div class="form-group">
@@ -74,20 +67,21 @@
                       </div>
                     </div>
                   </div>
-              </div>
           </div>
        </div>
-       <div class="col-lg-8 col-md-6 col-sm-6">
-         <div class="panel panel-default">
-           <div class="panel-heading"><h6 class="panel-title">Product Description:</h6>
+    </div>
+    </div><!-- end panel basic info -->
+    <div class="col-lg-8 col-md-6 col-sm-6">
+         <div class="panel ">
+           <div class="panel-heading">Product Description:
            </div>
            <div class="panel-body" id='specification'>
              <textarea id="dscp" class="form-control" value="" name="description">{{ITEM.description|safe}}</textarea>
            </div>
          </div>
          <textarea id="spec-dscp" style="display:none" class="form-control" value="" name="spec">{{ITEM.specification|safe}}</textarea>
-         <div class="panel panel-default">
-           <div class="panel-heading"><h6 class="panel-title">Details & Specification:</h6>
+         <div class="panel ">
+           <div class="panel-heading">Details & Specification:
            </div>
            <div class="panel-body">
            <table id="table-edit" class="table">
@@ -108,8 +102,8 @@
            </table>
            </div>
          </div>
-         <div class="panel panel-default">
-           <div class="panel-heading"><h6 class="panel-title">Ebay Integration:</h6>
+         <div class="panel ">
+           <div class="panel-heading">Ebay Integration:
            </div>
            <div class="panel-body">
             <ul class="list-group">
@@ -125,33 +119,50 @@
             </div>
            </div>
          </div>
-         <div class="panel-default panel">
+         <div class=" panel">
           <div class="panel-heading">
-           <h6 class="panel-title">Shipping Policy </h6>
+           Shipping Policy 
           </div>
           <div class="panel-body">
            {% include "shipping.html" %}
           </div>
-         </div><!-- panel-default -->
-       </div>
-    </div> <!-- end panel-body -->
+         </div><!--  -->
+    </div>
     </form>
 
 {% endblock %}
 
 {% block title %}
-  <h5><i class="fa fa-bars"></i> {{ITEM.name}} <small><a href="/admin/items/{{ITEM.parent.name}}/">{{ITEM.parent.name}}</a></small></h5>
-  <div class="btn-group">
-    <a href="#" class="btn btn-link btn-lg btn-icon dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cogs"></i><span class="caret"></span></a>
-    <span id="ebayresult"></span>
-    <ul class="dropdown-menu dropdown-menu-right">
-      <li><a href="javascript:zoyoe.ebay.exportCell('{{ITEM.parent.name}}','{{ITEM.key.id}}','#ebayresult')">export to ebay</a></li>
-      <li><a href="javascript:zoyoe.ebay.syncCell('{{ITEM.parent.name}}','{{ITEM.key.id}}','#ebayresult')">sychronize with ebay</a></li>
-      <li><a href="javascript:zoyoe.ebay.saveItem('{{ITEM.parent.name}}','{{ITEM.key.id}|       zoyoe.ebay.result(id,data);                                                     
-}','#table-edit')">save</a></li>
-      <li><a href="/admin/deleteitem/{{ITEM.parent.name}}/{{ITEM.key.id}}/">delete</a></li>
-    </ul>
-  </div>
+<div class="col-md-12">
+  <ul class="breadcrumbs-alt">
+    <li>
+      <a href="#">Admin</a>
+    </li>
+    <li>
+      <a href="/admin/items/{{ITEM.parent.name}}/">{{ITEM.parent.name}}</a>
+    </li>
+    <li><a class="active" href="#">{{ITEM.name}}</a>
+    </li>
+
+  </ul>
+</div>
+<div class="collapse navbar-collapse navbar-ex1-collapse">
+  <ul class="nav navbar-nav">
+    <li><a href="javascript:zoyoe.ebay.saveItem('{{ITEM.parent.name}}','{{ITEM.key.id}}','#table-edit')"><i class='fa-file fa'></i> save</a></li>
+    <li class="dropdown">
+      <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true"><i class='fa fa-cog'></i> more actions <b class="caret"></b></a>
+      <ul class="dropdown-menu">
+        <li><a href="javascript:zoyoe.ebay.exportToCell('{{ITEM.parent.name}}','{{ITEM.key.id}}','#ebayresult')">export to ebay</a></li>
+        <li><a href="javascript:zoyoe.ebay.syncToCell('{{ITEM.parent.name}}','{{ITEM.key.id}}','#ebayresult')">sychronize with ebay</a></li>
+        <li><a href="javascript:zoyoe.ebay.relistToCell('{{ITEM.parent.name}}','{{ITEM.key.id}}','#ebayresult')">relist to ebay</a></li>
+        <li><a href="/admin/deleteitem/{{ITEM.parent.name}}/{{ITEM.key.id}}/">delete</a></li>
+      </ul>
+    </li>
+  </ul>
+  <ul class="nav navbar-nav navbar-right">
+    <li id="ebayresult"></li>
+  </ul>
+</div>
 {% endblock %}
 
 
@@ -159,18 +170,4 @@
 {% block subsidebar %}
 {% endblock%}
 
-{% block dialogfirst %}
-<script src="/static/jslib/fileinput.min.js"></script>
-<script src="/static/jslib/mindmup-editabletable.js"></script>
-<script>
-$('#table-edit').editableTableWidget({});
-$(function() {
-    $( "#category-search" ).autocomplete({
-      minLength: 4,
-      source: "/admin/categories/",
-    });
- });
-zoyoe.ebay.parsespec($('#table-edit'),'{{ITEM.specification|safe}}');
-</script>
-{% endblock %}
 

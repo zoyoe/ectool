@@ -18,10 +18,21 @@ import record
 
 application = django.core.handlers.wsgi.WSGIHandler()
 
+def main(request):
+  if (request.META['HTTP_HOST']=="www.zoyoe.com"):
+    # This is the main website
+    stories = siteinfo()
+    fliers = ShopInfo.all().filter("type =","category").order("name")
+    context = Context({'STORIES':stories,'FLIERS':fliers})
+    return (render_to_response("zoyoe/index.html",context,context_instance=RequestContext(request)))
+  else:
+    # This is customer's website
+    return retail(request)
+
 def retail(request):
   stories = siteinfo()
   fliers = ShopInfo.all().filter("type =","category").order("name")
-  context = Context({'RETAIL': True,'ITEM_WIDTH':'200','STORIES':stories,'FLIERS':fliers})
+  context = Context({'STORIES':stories,'FLIERS':fliers})
   return (render_to_response("retailcover.html",context,context_instance=RequestContext(request)))
 
 def products(request):

@@ -230,7 +230,18 @@ zoyoe.ebay.lock = false;
 
 zoyoe.ebay.result = function(cell,data){
   var ns = "urn:ebay:apis:eBLBaseComponents";
-  var ack = data.getElementsByTagNameNS(ns,"Ack")[0].textContent;
+  var ack = data.getElementsByTagNameNS(ns,"Ack");
+  if (ack.length == 0){
+    $(cell).html("<button type='button' class='btn btn-danger btn-sm'>Error</button>");
+    $(cell + " button").click(function(){
+       BootstrapDialog.alert({
+         title: 'Error',
+         message: new XMLSerializer().serializeToString(data)
+       });
+    });
+    return; /* FIXME: early return here, not nice */
+  }
+  ack = ack[0].textContent;
   if( ack == "Failure"){
     $(cell).html("<button type='button' class='btn btn-danger btn-sm'>Error</button>");
     var errors = data.getElementsByTagNameNS(ns,"Errors")[0];
@@ -292,11 +303,21 @@ zoyoe.ebay.result = function(cell,data){
   }
 }
 
-zoyoe.ebay.syncCell = function(shop,id,cell){
+zoyoe.ebay.syncToCell = function(shop,id,cell){
    $(cell).html("<button type='button' class='btn btn-primary btn-sm'><i class='fa fa-refresh'></i>loading...</button>");
    $(cell).addClass('loadingbg');
    $.ajax({
       url: "/admin/syncwithebay/"+shop+"/" + id +"/"
+     }).done(function (data){
+        zoyoe.ebay.result(cell,data);
+     });
+}
+
+zoyoe.ebay.relistToCell = function(shop,id,cell){
+   $(cell).html("<button type='button' class='btn btn-primary btn-sm'><i class='fa fa-refresh'></i>loading...</button>");
+   $(cell).addClass('loadingbg');
+   $.ajax({
+      url: "/admin/relisttoebay/"+shop+"/" + id +"/"
      }).done(function (data){
         zoyoe.ebay.result(cell,data);
      });
@@ -307,7 +328,7 @@ zoyoe.ebay.saveItem = function(shop,id,table){
   document.getElementById('item-info').submit();
 }
 
-zoyoe.ebay.exportCell = function(shop,id,cell){
+zoyoe.ebay.exportToCell = function(shop,id,cell){
    $(cell).html("<button type='button' class='btn btn-primary btn-sm'><i class='fa fa-refresh'></i>loading...</button>");
    $(cell).addClass('loadingbg');
    $.ajax({

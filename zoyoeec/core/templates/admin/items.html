@@ -2,9 +2,10 @@
 {% load hash_filters %}
 
 {% block head %}
-  <div class="panel-default panel">
+<section class="col-lg-12">
+  <div class="panel">
     <div class="panel-heading">
-      <h6 class="panel-title">{{CATEGORY}}</h6>
+      {{CATEGORY}}
     </div>
     <div class="panel-body">
     {% include "./admin/gallery.html" %}
@@ -12,8 +13,8 @@
   </div>
 
 
-<div class="col-xs-6">
-  <div class="dataTables_paginate paging_simple_numbers" id="dataTable_paginate">
+  <div class="col-xs-6">
+    <div class="dataTables_paginate paging_simple_numbers" id="dataTable_paginate">
     <ul class="pagination">
       <li class="paginate_button previous disabled" aria-controls="dataTable" tabindex="0" id="dataTable_previous"><a href="{{queryurlprev}}">Previous</a></li>
       {% for page in pages %}
@@ -21,22 +22,24 @@
       {% endfor %}
       <li class="paginate_button next" aria-controls="dataTable" tabindex="0" id="dataTable_next"><a href="{{queryurlnext}}">Next</a></li>
     </ul>
+    </div>
   </div>
-</div>
+</section
 
 
 {% endblock %}
 
 {% block title %}
-  <h5><i class="fa fa-bars"></i> {{SHOP}} <small>{{PATH}}</small></h5>
-  <div class="btn-group">
-    <a href="#" class="btn btn-link btn-lg btn-icon dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cogs"></i><span class="caret"></span></a>
-    <ul class="dropdown-menu dropdown-menu-right">
-      <li><a href="#">view in list</a></li>
-    </ul>
-  </div>
+<div class="col-md-12">
+  <ul class="breadcrumbs-alt">
+    <li>
+      <a href="#">Admin</a>
+    </li>
+    <li><a class="active" href="#">{{SHOP}}<small>{{PATH}}</small></a>
+    </li>
+  </ul>
+</div>
 {% endblock %}
-
 
 
 {% block subsidebar %}

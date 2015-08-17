@@ -1,15 +1,10 @@
 {% extends "gbase.html" %}
 {% load hash_filters %}
 
-
-{% block title %}
-<h5><i class="fa fa-book"></i>Deploy and Synchronis Ebay</h5>
-{% endblock %}
-
 {% block head %}
-  <div class = "panel panel-default">
-    <div class="panel-heading"><h6 class="panel-title">
-        Manage Receipt </h6>
+  <div class = "panel">
+    <div class="panel-heading">
+        Search Receipt
     </div>
     <div class="panel-body">
     <div id="div-1" class="body collapse in" aria-expanded="true">
@@ -24,8 +19,10 @@
     </div>
     </div>
   </div>
-  <div class="panel panel-deafult">
-
+  <div class="panel">
+    <div class="panel-heading">
+        Manage Receipts
+    </div>
     <div class = "panel-body">
     {% for receipt in receipts %}
         <!-- .toolbar -->

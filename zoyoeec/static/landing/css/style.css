@@ -1,0 +1,287 @@
+﻿
+/*=============================================================
+    Authour URL: www.designbootstrap.com
+
+    http://www.designbootstrap.com/
+
+    License: MIT
+
+    http://opensource.org/licenses/MIT
+
+    100% Free To use For Personal And Commercial Use.
+
+    IN EXCHANGE JUST TELL PEOPLE ABOUT THIS WEBSITE
+   
+========================================================  */
+
+/*================================
+    GENERAL STYLES
+==================================*/
+@import url(http://fonts.googleapis.com/css?family=Raleway); /* FREE GOOGLE FONTS */
+
+html {
+    margin-top: -20px;
+}
+
+
+
+body {
+    font-family: 'Raleway', sans-serif;
+    line-height: 30px;
+    font-size: 16px;
+}
+
+section {
+    padding-top: 80px;
+    padding-bottom: 80px;
+}
+
+.pad-bottom {
+    padding-bottom: 70px;
+}
+
+h2 {
+    padding-bottom: 20px;
+}
+
+.btn {
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+    border: 0px solid #fff;
+}
+
+/*================================
+    HOME STYLES
+==================================*/
+#home {
+    background: url(../img/home.jpg); /*Full Witdth background image*/
+    -webkit-background-size: cover;
+    background-size: cover;
+    -moz-background-size: cover;
+    -webkit-animation: bgscroll 15s infinite linear; /* 15s - speed of scroll , you can change it */
+    animation: bgscroll 15s infinite linear;
+    -moz-animation: bgscroll 15s infinite linear;
+    -ms-animation: bgscroll 15s infinite linear;
+}
+
+    #home .overlay {
+        background-color: rgba(35, 197, 135, 0.75); /*.75 opacity of the color so that background image is visible*/
+        min-height: 400px;
+        color: #fff;
+    }
+
+    #home h1 {
+        padding-top: 120px;
+        line-height: 60px;
+        font-size: 30px;
+    }
+
+    #home h3 {
+        line-height: 30px;
+        font-size: 20px;
+    }
+
+    #home mark {
+        background-color: rgba(0, 0, 0, 0.31);
+        padding: 10px 10px 10px 10px;
+        margin-left: 20px;
+        margin-right: 25px;
+        color: #fff;
+    }
+
+    #home .scroll-arrow, #home .scroll-arrow:hover {
+        padding-top: 80px;
+        color: #fff;
+        font-size: 40px;
+    }
+
+#fixed-menu-custom {
+    position: fixed;
+    right: 30px;
+    top: 30px;
+    z-index: 999;
+    background-color: rgba(0,0,0,0.2);
+    padding: 5px 10px 5px 10px;
+}
+
+    #fixed-menu-custom a {
+        width: 80px;
+        font-size: 12px;
+    }
+
+/*Background Scrolling Animation*/
+@-webkit-keyframes bgscroll {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 0 -500px;
+    }
+}
+
+@-moz-keyframes bgscroll {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 0 -500px;
+    }
+}
+
+@-ms-keyframes bgscroll {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 0 -500px;
+    }
+}
+
+@-o-keyframes bgscroll {
+    from;
+
+{
+    background-position: 0 0;
+}
+
+to {
+    background-position: 0 -500px;
+}
+
+}
+
+@keyframes bgscroll {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 0 -500px;
+    }
+}
+
+/*================================
+    STATS  STYLES
+==================================*/
+
+.color-set {
+    background-color: rgba(35, 197, 135, 1);
+}
+
+#stats i {
+    padding: 20px;
+    font-size: 50px;
+    color: #fff;
+}
+/*================================
+    FEATURES STYLES
+==================================*/
+#features {
+    background-color: rgba(237, 237, 237, 1);
+}
+
+    #features i {
+        font-size: 80px;
+        padding: 30px;
+        color: rgba(35, 197, 135, 1);
+    }
+
+    #features h4 {
+        padding-bottom: 5px;
+        padding-top: 15px;
+    }
+/*================================
+    SCREENSHOT STYLES
+==================================*/
+
+#screens h3 {
+    color: rgba(35, 197, 135, 1);
+    padding-top: 20px;
+}
+
+#screens h5 {
+    padding-bottom: 20px;
+}
+/*================================
+    VIDEO STYLES
+==================================*/
+#contact {
+    background-color: rgba(237, 237, 237, 1);
+}
+
+    #contact a i {
+        font-size: 25px;
+        margin: 5px;
+    }
+
+
+
+.btn-social {
+    color: white;
+    opacity: 0.6;
+}
+
+#contact .carousel-inner-set {
+    min-height: 200px;
+    max-width: 500px;
+}
+
+#contact .carousel-set li {
+    background-color: rgba(35, 197, 135, 1);
+    height: 8px;
+    width: 8px;
+}
+
+#contact .carousel-set .active {
+    background-color: #fff;
+    height: 8px;
+    width: 8px;
+}
+
+#contact .carousel-inner-set h4 {
+    color: rgba(35, 197, 135, 1);
+    line-height: 30px;
+}
+
+.btn-social:hover {
+    color: white;
+    opacity: 1;
+    text-decoration: none;
+}
+
+.btn-facebook {
+    background-color: #3b5998;
+}
+
+.btn-twitter {
+    background-color: #00aced;
+}
+
+.btn-pinterest {
+    background-color: #C92228;
+}
+
+.btn-google {
+    background-color: #c32f10;
+}
+/*================================
+    FOOTER SECTION STYLES
+==================================*/
+
+footer {
+    padding: 10px;
+    font-size: 15px;
+    text-align: center;
+    font-weight: 900;
+    color: #fff;
+    background-color: rgba(35, 197, 135, 1);
+}
+
+    footer a, footer a:hover {
+        color: #fff;
+        text-decoration: none;
+    }

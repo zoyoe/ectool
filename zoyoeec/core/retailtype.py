@@ -22,6 +22,9 @@ class SiteInfo(db.Model):
   logo = db.BlobProperty(default=None)
   mainshop = db.StringProperty(default=None)
   analytics = db.StringProperty(default=None)
+  published = db.BooleanProperty()
+  trial = db.BooleanProperty()
+  template = db.StringProperty(default=None)
 
 def siteinfo():
   site = SiteInfo.all().get()

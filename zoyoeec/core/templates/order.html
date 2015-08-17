@@ -3,12 +3,23 @@
 
 
 {% block title %}
-<h5><i class="fa fa-book"></i>Deploy and Synchronis Ebay</h5>
+<div class="col-md-12">
+  <ul class="breadcrumbs-alt">
+    <li>
+      <a href="#">Admin</a>
+    </li>
+    <li><a class="active" href="#">Manage Order</a>
+    </li>
+
+  </ul>
+</div>
+
 {% endblock %}
 
 {% block head %}
-  <div class = "panel panel-default">
-    <div class="panel-heading"><h6 class="panel-title"> Order Info </h6>
+<div class="col-lg-12">
+  <div class = "panel ">
+    <div class="panel-heading">Order Info
         <a href="javascript:zoyoe.order.submit('#order-info','#tbody-instance')" class="pull-right btn btn-xs btn-primary">Submit</a>
     </div>
     <div class="panel-body">
@@ -42,9 +53,9 @@
       </div>
     </div>
   </div>
-  <div class = "panel panel-default">
-    <div class="panel-heading"><h6 class="panel-title">
-        Order Details </h6>
+  <div class = "panel ">
+    <div class="panel-heading">
+        Order Details
     </div>
     <div class="panel-body">
       <div id="table-edit"  class="table-responsive">
@@ -64,14 +75,15 @@
       </div>
     </div>
   </div>
-  <div class = "panel panel-default">
-    <div class="panel-heading"><h6 class="panel-title">
-        Order Receipt Copy From Supplier </h6>
+  <div class = "panel ">
+    <div class="panel-heading">
+        Order Receipt Copy From Supplier
     </div>
     <div class="panel-body">
     <iframe style="width:100%;" src="" id="pdf-viewer"></iframe>
     </div>
   </div>
+</div>
 
 
 {% endblock %}

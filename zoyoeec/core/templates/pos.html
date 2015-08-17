@@ -2,14 +2,23 @@
 {% load hash_filters %}
 
 {% block title %}
-<h5><i class="fa fa-cogs"></i>Point of Sale</h5>
+<div class="col-md-12">
+  <ul class="breadcrumbs-alt">
+    <li>
+      <a href="#">Admin</a>
+    </li>
+    <li>
+      <a class="current" href="#">Point of Sale</a>
+    </li>
+  </ul>
+</div>
 {% endblock %}
 
 {% block head %}
 <div class="col-md-4">
-  <div class = "panel panel-default">
+  <div class = "panel">
     <div class = "panel-heading">
-        <h6 class= "panel-title">Items Info</h6>
+        Items Info
     </div>
     <div class="panel-body" style ="min-height:500px">
     <ul class='list-group' id="autocomp">
@@ -18,9 +27,9 @@
   </div>
 </div>
 <div class="col-md-8">
-  <div class = "panel panel-default">
+  <div class = "panel">
     <div class = "panel-heading">
-        <h6 class= "panel-title">Add Item</h6>
+        Add Item
     </div>
     <div class="panel-body">
       <div id="div-1" class="body collapse in" aria-expanded="true">
@@ -35,9 +44,9 @@
       </div>
     </div>
   </div>
-  <div class = "panel panel-default">
+  <div class = "panel">
     <div class = "panel-heading">
-        <h6 class= "panel-title">New Receipt</h6>
+        New Receipt
     </div>
     <div class= "panel-body">
       <div id='cart-result'>

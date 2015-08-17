@@ -2,11 +2,25 @@
 {% load hash_filters %}
 
 {% block title %}
-<h5><i class="fa fa-warning"></i>Deploy and Synchronis Ebay</h5>
+<div class="col-md-12">
+  <ul class="breadcrumbs-alt">
+    <li>
+      <a href="#">Admin</a>
+    </li>
+    <li>
+      <a class="current" href="#">Deploy</a>
+    </li>
+  </ul>
+</div>
 {% endblock %}
 
 {% block head %}
-<div class = "panel panel-default">
+<section class="col-lg-12">
+<div class = "panel">
+  <div class="panel-heading">
+    ebay id:
+  </div>
+
   <div class="panel-body">
       <div id="div-1" class="body collapse in" aria-expanded="true">
       <form class="form-horizontal" action="/admin/deploy/">
@@ -20,10 +34,9 @@
       </div>
   </div>
 </div>
-<div class = "panel panel-default">
-  <div class="panel-heading"><h6 class="panel-title">
+<div class = "panel">
+  <div class="panel-heading">
   Depoly gallery to your ebay selling items
-    </h6>
     <!-- .toolbar -->
      <div class="btn-group pull-right">
       <button class="btn btn-sm btn-danger btn-icon"><i class="fa fa-cogs"></i></button>
@@ -50,6 +63,7 @@
     </form>
   </div>
 </div>
+</section>
 
 
 {% endblock %}

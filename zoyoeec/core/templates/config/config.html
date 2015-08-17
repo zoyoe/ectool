@@ -1,26 +1,40 @@
 {% extends "gbase.html" %}
 {% load hash_filters %}
+
 {% block title %}
-  <h5><i class="fa fa-cogs"></i>Ebay config <small>--{{PATH}}</small></h5>
+<div class="col-md-12">
+  <ul class="breadcrumbs-alt">
+    <li>
+      <a href="#">Admin</a>
+    </li>
+    <li>
+      <a href="#">Config</a>
+    </li>
+    <li>
+      <a class="current" href="#">Ebay Config</a>
+    </li>
+  </ul>
+</div>
 {% endblock %}
 
 {% block head %}
-<div class = "panel panel-default">
-  <div class="panel-heading"><h6 class="panel-title">Embeded Code:</h6>
+<div class = "col-md-8">
+<div class = "panel">
+  <div class="panel-heading">Embeded Code:
   </div>
   <div class = "panel-body">
       {% fullescape%}{% include "embed.html" %}{% endfullescape %}
   </div>
 </div>
 
-<div class = "panel panel-default">
-  <div class="panel-heading"><h6 class="panel-title">Ebay Code:</h6>
+<div class = "panel">
+  <div class="panel-heading">Ebay Code:
   </div>
   <div class = "panel-body">
       <div>
 {% for line in EBAY %}
-<div class="product-set">
-  <div class="product-rate clearfix" style="padding-top:40px;">
+<div class="well">
+  <div class="product-rate clearfix" style="padding-top:0px;">
     <h4>{{line.name}}</h4><span>[{{line.type}}]</span>
   </div>
   <div class="product-info">
@@ -32,8 +46,8 @@
   </div>
 </div>
 
-<div class = "panel panel-default">
-  <div class="panel-heading"><h6 class="panel-title">Footer Code:</h6>
+<div class = "panel">
+  <div class="panel-heading">Footer Code:
   </div>
   <div class = "panel-body">
       <div>
@@ -51,8 +65,8 @@
   </div>
 </div>
 
-<div class = "panel panel-default">
-  <div class="panel-heading"><h6 class="panel-title">GoogleAnalytic Code:</h6>
+<div class = "panel">
+  <div class="panel-heading">GoogleAnalytic Code:
   </div>
   <div class = "panel-body">
       <div>
@@ -65,13 +79,17 @@
   </div>
 </div>
 
+</div>
 
+<!-- end of col -->
+
+<div class="col-md-4">
 
 <form action="/admin/addconfig/" method='POST'>
-<div class = "panel panel-default">
+<div class = "panel">
   <div class="panel-heading">
-    <h6 class="panel-title">Specification:</h6>
-    <button class="btn btn-sm pull-right btn-danger btn-icon"><i class="fa fa-cogs"></i>&nbsp;submit</button>
+    New Specification:
+    <button class="btn btn-xs pull-right btn-danger"><i class="fa fa-cogs"></i>&nbsp;submit</button>
   </div>
   <div class="panel-body" id='specification'>{{ITEM.description|safe}}
       <div class="form-horizontal caption">
@@ -101,6 +119,8 @@
       </div>
   </div>
   </form>
+</div>
+
 </div>
 
 
