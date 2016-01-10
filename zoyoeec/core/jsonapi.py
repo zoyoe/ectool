@@ -16,13 +16,13 @@ from zuser import *
 from retailtype import getCategoryItems, getItem
 
 def categories(request):
-  stories = siteinfo()
+  stories = getCategoriesInfo()
   response =  HttpResponse(json.dumps(stories))
   response['Access-Control-Allow-Origin']  = "*"
   return response
 
 def item(request,itemid):
-  stories = siteinfo()
+  stories = getCategoriesInfo()
   item = getItem(itemid)
   if item:
     iteminfo = {}

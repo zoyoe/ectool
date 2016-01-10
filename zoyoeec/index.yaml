@@ -16,6 +16,11 @@ indexes:
 # your application using appcfg.py.
 
 - kind: Item
+  properties:
+  - name: category
+  - name: disable
+
+- kind: Item
   ancestor: yes
   properties:
   - name: ebay

@@ -41,30 +41,48 @@ def checkAuthority(authority,user):
   else:
     return False
 
+def authority_login(handler):
+  def rst_handler(request,*args,**kargs):
+    user = getCurrentUser()
+    if user:
+      return handler(request,*args,**kargs)
+    else:
+      return loginError(request,"Please login with your google account continue");
+  return rsthandler
+
 def authority_item(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser()
-    if user and checkAuthority("item",user):
-      return handler(request,*args,**kargs)
-    else:
-      return authorityError(request,"Not authorised activity, You need to be in the item modification group to do this")
+    if user:
+      if checkAuthority("item",user):
+        return handler(request,*args,**kargs)
+      else:
+        return authorityError(request,"Not authorised activity, You need to be in the item modification group to do this")
+    else: 
+      return loginError(request,"Please login with your google account continue");
   return rst_handler
 
 def authority_ebay(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser()
-    if user and checkAuthority("ebay",user):
-      return handler(request,*args,**kargs)
+    if user:
+      if checkAuthority("ebay",user):
+        return handler(request,*args,**kargs)
+      else:
+        return authorityError(request,"Not authorised activity, You need to be in the ebay management group to do this")
     else:
-      return authorityError(request,"Not authorised activity, You need to be in the ebay management group to do this")
+      return loginError(request,"Please login with your google account continue");
   return rst_handler
 
 def authority_config(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser()
-    if user and checkAuthority("config",user):
-      return handler(request,*args,**kargs)
+    if user:
+      if checkAuthority("config",user):
+        return handler(request,*args,**kargs)
+      else:
+        return authorityError(request,"Not authorised activity, You need to be in the site configuration group to do this")
     else:
-      return authorityError(request,"Not authorised activity, You need to be in the site configuration group to do this")
+      return loginError(request,"Please login with your google account continue");
   return rst_handler
 

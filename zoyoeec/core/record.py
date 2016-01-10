@@ -5,7 +5,7 @@ from django.shortcuts import render_to_response
 from ebay import ebay_view_prefix,getactivelist, getEbayInfo
 from retail import getSupplier,saveSupplier,getSupplierFromEbayInfo,Supplier,Item,SiteInfo
 import random,json
-from retailtype import siteinfo, getCategoryItems, getItem
+from retailtype import getCategoriesInfo, getCategoryItems, getItem
 from google.appengine.ext import db
 from google.appengine.api import users
 from error import *
@@ -16,7 +16,8 @@ def getItemResponse(request,item,stories):
     dict = {'ITEM':item,'STORIES':stories}
     context = Context(dict)
     recordItemHistory(request,item)
-    return (render_to_response("retailitem.html",context,context_instance=RequestContext(request)))
+    tpath = getSiteInfo().gettemplate("retailitem.html");
+    return (render_to_response(tpath,context,context_instance=RequestContext(request)))
   else:
     return retailError(request,"item not found")
 
@@ -34,7 +35,7 @@ def recordItemHistory(request,item):
     if item.refid in items:
       items.remove(item.refid)
     items = [item.refid] + items
-    if (len(items) > 30):
+    if (len(items) > 10):
       items.pop()
     history['items'] = items
     user.history = json.dumps(history)
@@ -42,6 +43,7 @@ def recordItemHistory(request,item):
 
 def getItemHistory(request):
   user = zuser.getCurrentUser()
+  rslt = []
   if user:
     history = user.history
     if not history:
@@ -51,10 +53,11 @@ def getItemHistory(request):
       items = history['items']
     else:
       items = []
-    return items
-  else:
-    return None
-
+    for rid in items:
+      item = getItem(rid)
+      if item:
+        rslt.append(item)
+  return rslt
 
 def getItemHistoryResponse(request):
   itemrefs = getItemHistory(request)
@@ -62,12 +65,13 @@ def getItemHistoryResponse(request):
   if (itemrefs != None):
     for ref in itemrefs:
       items.append(getItem(ref))
-    stories = siteinfo()
+    stories = getCategoriesInfo()
     lvl1 = "Viewing History"
     dict = {'SHOP':'Items you recently viewed','STORIES':stories,'PATH':lvl1,'CATEGORY':""}
     dict['sellitems'] = items
     context = Context(dict)
-    return (render_to_response("retail.html",context,context_instance=RequestContext(request)))
+    temp_path = currentsite().gettemplate("products.html");
+    return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
   else:
     return userError(request,"Your have not signed in")
   

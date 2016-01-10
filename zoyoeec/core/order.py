@@ -13,7 +13,7 @@ import urllib2,httplib
 import requests,json,datetime
 from google.appengine.ext import db
 from google.appengine.api import urlfetch
-import re,string
+import re,string,zuser
 
 class SupplierOrder(db.Model):
   oid = db.StringProperty(required=True)
@@ -29,7 +29,7 @@ class SupplierItem(db.Model):
   cost = db.FloatProperty()
   amount = db.IntegerProperty()
 
-@ebay_view_prefix
+@zuser.authority_item
 def saveorder(request):
   order = SupplierOrder(oid = request.POST['supplier_id']
     ,supplier = request.POST['supplier_name']
@@ -42,7 +42,7 @@ def saveorder(request):
       row  = data.pop(0)
       siid = row.pop(0)
       name = row.pop(0)
-      quantity = int(row.pop(0))
+      quantity = int(float(row.pop(0)))
       value = re.search("\d+.\d+", row.pop(0))
       value = float(value.group(0))
       a = SupplierItem(iid = siid,description = name
@@ -50,7 +50,7 @@ def saveorder(request):
       a.put()
   return HttpResponseRedirect('/order/orderview/?key='+str(order.key().id()))
 
-@ebay_view_prefix
+@zuser.authority_item
 def modifyorder(request):
   k = request.POST['key']
   order = SupplierOrder.get_by_id(int(k))
@@ -61,7 +61,7 @@ def modifyorder(request):
   order.put()
   return HttpResponseRedirect('/order/orderview/?key='+str(order.key().id()))
 
-@ebay_view_prefix
+@zuser.authority_item
 def deleteorder(request):
   k = request.GET['key']
   order = SupplierOrder.get_by_id(int(k))
@@ -71,7 +71,7 @@ def deleteorder(request):
   order.delete()
   return HttpResponseRedirect('/orders/')
 
-@ebay_view_prefix
+@zuser.authority_item
 def orderview(request):
   key = request.GET['key']
   order = SupplierOrder.get_by_id(int(key))
@@ -79,9 +79,9 @@ def orderview(request):
     return retailError(request,"Order not exist.")
   orderitems = SupplierItem.all().ancestor(order)
   context = Context({'ORDER':order,'ITEMS':orderitems})
-  return (render_to_response("orderview.html",context,context_instance=RequestContext(request)))
+  return (render_to_response("order/orderview.html",context,context_instance=RequestContext(request)))
 
-@ebay_view_prefix
+@zuser.authority_item
 def deploy(request):
   key = request.GET['key']
   order = SupplierOrder.get_by_id(int(key))
@@ -118,10 +118,10 @@ def deployitem(item,supplier):
 
 ### A view that returns all the recepits 
 ###
-@ebay_view_prefix
+@zuser.authority_item
 def orders(request):
   receipts = db.GqlQuery("SELECT * FROM SupplierOrder ORDER BY date DESC")
   context = Context({'ORDERS':receipts,'ebayinfo':getEbayInfo(request)})
-  return (render_to_response("orders.html",context,context_instance=RequestContext(request)))
+  return (render_to_response("order/orders.html",context,context_instance=RequestContext(request)))
 
 

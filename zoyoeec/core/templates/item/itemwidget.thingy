@@ -5,31 +5,18 @@
       </div>
     </div>
   </div>
+  {% with item.getImages as images %}
+     {% if images %}
+          {% for img in images %}
   <div class="col-lg-4 col-sm-4">
     <div class="widget">
       <div class="thumbnail">
         <div class="thumb">
-          <img src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/1/'></img>
+          <img src='{{img.url}}'></img>
         </div>
       </div>
     </div>
   </div>
-  <div class="col-lg-4 col-sm-4">
-    <div class="widget">
-      <div class="thumbnail">
-        <div class="thumb">
-          <img src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/2/'></img>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-lg-4 col-sm-4">
-    <div class="widget">
-      <div class="thumbnail">
-        <div class="thumb">
-          <img src='/admin/fetchimage/{{ITEM.parent.name}}/{{ITEM.key.id}}/3/'></img>
-        </div>
-      </div>
-    </div>
-  </div>
-
+          {% endfor %}
+     {% endif %}
+  {% endwith %}

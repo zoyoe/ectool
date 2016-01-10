@@ -10,8 +10,15 @@ zoyoe.order = {}
 zoyoe.image = {}
 zoyoe.config = {}
 
+/* You need a post form to do it properly */
+zoyoe.config.delete = function(fid,title){
+  var formobj = $(fid);
+  formobj.find('#title').val(title);
+  formobj.find('#content').val("");
+  formobj.submit();
+}
 
-zoyoe.config.modify = function(fid,title,htmlwrapper){
+zoyoe.config.modify = function(fid,title,prefix,type){
   if(!zoyoe.config.formobj){
     var formobj = $(fid);
     formobj.detach();
@@ -19,15 +26,44 @@ zoyoe.config.modify = function(fid,title,htmlwrapper){
     zoyoe.config.formobj = formobj;
   }
   zoyoe.config.formobj.find('#title').val(title);
-  var content = $(htmlwrapper).find(".panel-body").html();
-  zoyoe.config.formobj.find('#content').val(content);
+  var content = $("#config-" + prefix + "-" + title).find(".panel-body").html();
+  if(prefix){
+    var option = document.createElement("option");
+    option.value = prefix;
+    option.innerHTML = prefix;
+    var wrap = zoyoe.config.formobj.get()[0].elements.type;
+    wrap.innerHTML = 0;
+    wrap.add(option);
+  }
+  if(type == "boolean"){
+    var wrap = zoyoe.config.formobj.get()[0].elements.content;
+    wrap.parentElement.innerHTML = "<select class='form-control' name='content'></select>";
+    wrap = zoyoe.config.formobj.get()[0].elements.content;
+    var trueopt = document.createElement("option");
+    trueopt.value = "True";
+    trueopt.innerHTML = "True";
+    var falseopt = document.createElement("option");
+    falseopt.value = "False";
+    falseopt.innerHTML = "False";
+    wrap.add(trueopt);
+    wrap.add(falseopt)
+    if(content == "True"){
+      trueopt.selected = true;
+    }else{
+      falseopt.selected = true;
+    }
+  }else{
+    var wrap = zoyoe.config.formobj.get()[0].elements.content;
+    wrap.parentElement.innerHTML = "<textarea name='content' id='content' class='form-control'></textarea>";
+    zoyoe.config.formobj.find('#content').val(content);
+  }
   zoyoe.config.dialog = new BootstrapDialog({
       title: "<i class='fa fa-shopping-cart'></i>&nbsp;Modify",
       message: zoyoe.config.formobj,
       buttons: [{
         label: 'Confirm',
         action: function(dialogRef){
-          formobj.submit();
+          zoyoe.config.formobj.submit();
         }},{
         label: 'Cancel',
         action: function(dialogRef){
@@ -105,20 +141,28 @@ zoyoe.cart.checkout = function(key){
 
 }
 
-zoyoe.cart.show = function(cell){
-   var that = cell;
-   $.ajax({
-      url: "/retail/get/"
-    }).done(function (data){
-      zoyoe.cart.dialog = new BootstrapDialog({
-         title: "<i class='fa fa-shopping-cart'></i>&nbsp;My Shopping Cart",
-         message: zoyoe.ebay.xml2Str(data),
-         buttons: [{
-                label: 'Ok',action: function(dialogRef){dialogRef.close();}
-            }]
+zoyoe.cart.showd = false;
+zoyoe.cart.show = function(){
+  zoyoe.cart.showed = !zoyoe.cart.showed;
+  if (zoyoe.cart.showed){
+     $.ajax({
+       url: "/retail/get/",
+     }).done(function (data){
+       if(data.documentElement.tagName == "ZoyoeError"){
+         BootstrapDialog.alert({
+           title: 'Error',
+           message: zoyoe.ebay.xml2Str(data)
          });
-      zoyoe.cart.dialog.open();
+       }else{ /* success */
+         if($("#cartdisplay")){
+           $("#cartdisplay").html(zoyoe.ebay.xml2Str(data));
+           $("#cartdisplay").show();
+         } 
+       }
     });
+  }else{
+    $("#cartdisplay").hide();
+  } 
 }
 zoyoe.cart.deletereceipt = function(cell,id){
    var ele = cell;

@@ -1,0 +1,21 @@
+{% extends "betadesign/base.html" %}
+{% load hash_filters %}
+
+{% block head %}
+<div id="format" class="clearfix js-masonry" style="margin:0 auto;">
+{% for fly in FLIERS %}
+  {% cycle 'row1' 'row2' as row silent %}
+  <div class="col-lg-6 item">
+  {{ fly.content|safe }}
+  </div>
+{% endfor %}
+</div>
+
+{% endblock %}
+
+{% block subsidebar %}
+{% endblock%}
+
+{% block dialogfirst %}
+{% endblock %}
+

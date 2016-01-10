@@ -13,6 +13,14 @@ from google.appengine.ext import db,search
 from google.appengine.api import urlfetch
 from zuser import *
 
+
+def retail(request):
+  stories = getCategoriesInfo()
+  fliers = ShopInfo.all().filter("type =","category").order("name")
+  context = Context({'STORIES':stories,'FLIERS':fliers})
+  cover_path = getSiteInfo().gettemplate("cover.html");
+  return (render_to_response(cover_path,context,context_instance=RequestContext(request)))
+
 def getSupplierFromEbayInfo(ebayinfo):
   if ebayinfo:
     suppliers = db.GqlQuery("SELECT * FROM Supplier WHERE name = :1", formatName(ebayinfo['store']))
@@ -59,9 +67,10 @@ def searchview(request):
       item = getItem(doc.doc_id)
       if (item.ebayid != None) and (item.ebayid != ""):
         items.append(item)
-  stories = siteinfo()
+  stories = getCategoriesInfo()
   context = Context({'RETAIL': True,'ITEM_WIDTH':'200','STORIES':stories,'sellitems':items})
-  return (render_to_response("retail.html",context,context_instance=RequestContext(request)))
+  temp_path = currentsite().gettemplate("products.html");
+  return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
 
 
 def formatName(name):
@@ -221,8 +230,52 @@ def createPayment(request,failurl,receipt):
     z = 1/0
     return None
 
+#### Following is paypal invoice api stuff,
+#### they are very rough at this stage and need to be moved to other place
 
-def buildInvoice(receipt,receiptitems):
+"""
+FIXME: send a paypal invoice by calling paypal invoice api 
+Like other functions that uses paypal api, error handling is missing.
+"""
+def sendinvoice(request,invoice):
+  token = getToken(request)
+  conn = httplib.HTTPSConnection("api.paypal.com")
+  conn.request("POST","/v1/invoicing/invoices/"+invoice+"/send",
+    '',
+    {"content-type": "application/json",
+     "Accept": "application/json",
+     "authorization": "Bearer "+token,
+    })
+  resp = conn.getresponse()
+  conn.close()
+  b = resp.status
+  if(b == 202):
+    return True
+  else:
+    return False
+
+
+"""
+FIXME: create a paypal invoice by calling paypal invoice api 
+Like other functions that uses paypal api, error handling is missing.
+"""
+def createinvoice(request,invoice):
+  token = getToken(request)
+  conn = httplib.HTTPSConnection("api.paypal.com")
+  conn.request("POST","/v1/invoicing/invoices",
+    json.dumps(invoice,default=eco),
+    {"content-type": "application/json",
+     "Accept": "application/json",
+     "authorization": "Bearer "+token,
+    })
+  resp = conn.getresponse()
+  conn.close()
+  b = resp.status
+  data = resp.read()
+  return data
+
+
+def buildinvoice(receipt,receiptitems):
   invoice = invoice_template
   invoice['billing_info'] = [{"email":receipt.email
     ,"first_name":receipt.firstname
@@ -234,7 +287,12 @@ def buildInvoice(receipt,receiptitems):
     ,"lastname":receipt.lastname }
   return invoice
 
-## Adding something into your cart 
+#### end of invoice stuff ####
+
+
+"""
+FIXME: A very rough implementation of adding something into your cart 
+"""
 def add(request):
   item = request.GET['id']
   token = ebay.getToken(request)
@@ -259,7 +317,8 @@ def add(request):
     galleryurl = itemobj.galleryurl
     cart[item] = {"id":item,"description":dscp,"price":value,'amount':1,"galleryurl":galleryurl}
   request.session['cart'] = cart
-  temp = loader.get_template('cart.html')
+  temp_path = currentsite().gettemplate("cart.thingy");
+  temp = loader.get_template(temp_path)
   context = Context({'CART':cart.values()})
   content = temp.render(context)
   return HttpResponse(content,mimetype = "text/xml")
@@ -271,7 +330,8 @@ def remove(request,item):
   if item in cart:
     del cart[item]
   request.session['cart'] = cart
-  temp = loader.get_template('cart.html')
+  temp_path = currentsite().gettemplate("cart.thingy");
+  temp = loader.get_template(temp_path)
   context = Context({'CART':cart.values()})
   content = temp.render(context)
   return HttpResponse(content,mimetype = "text/xml")
@@ -423,7 +483,7 @@ def paypalaccept(request):
   else:
     b = resp.status
     c = resp.reason
-    a = 1/0
+    # should not arrive here !!!
     return retailError(request,"Pay by paypal failed with payment id " + payid)
 
 ## checkout will create an invoice 
@@ -436,7 +496,7 @@ def sendpaypalinvoice(request,key):
     return retailError(request,"Paypal of this receipt has already been decided");
 
   receiptitems = ReceiptItem.all().ancestor(receipt)
-  draft = buildInvoice(receipt,receiptitems)
+  draft = buildinvoice(receipt,receiptitems)
   invoice = createinvoice(request,draft)
   invoice = json.loads(invoice)
   if 'id' in invoice:
@@ -452,19 +512,22 @@ def sendpaypalinvoice(request,key):
 
 def receiptsearch(request):
   # Here we are going to prepare for the saved billing info
-  stories = siteinfo()
-  context = Context({'STORIES':stories})
-  return (render_to_response("receiptsearch.html"
-    ,context,context_instance=RequestContext(request)))
+  temp_path = currentsite().gettemplate("receiptsearch.html");
+  temp = loader.get_template(temp_path)
+  context = Context({})
+  content = temp.render(context)
+  builderror(request,content)
+  return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
 
 
 def receipts(request):
   user = getCurrentUser()
   if (user):
-      stories = siteinfo()
       receipts = user.receipt_set
+      stories = getCategoriesInfo()
       context = Context({'receipts':receipts,'STORIES':stories})
-      return (render_to_response("receipts/userreceipts.html",context,context_instance=RequestContext(request)))
+      temp_path = currentsite().gettemplate("userreceipts.html");
+      return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
   else:
       return receiptsearch(request)
 
@@ -493,19 +556,24 @@ def receiptview(request):
       cart[item.iid] = {'galleryurl':galleryurl,'id':item.iid,'description':item.description,'price':item.price,'amount':item.amount}
 
   # Here we are going to prepare for the saved billing info
-  stories = siteinfo()
+  stories = getCategoriesInfo()
   context = Context({'address':address,'INVOICE':invoice,'RECEIPT':receipt,'STORIES':stories,'CART':cart.values()})
-  return (render_to_response("receiptview.html"
+  temp_path = currentsite().gettemplate("receiptview.html");
+  return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
 def get(request):
   cart = request.session.get('cart',{})
   if not cart:
     cart = {}
-  temp = loader.get_template('cart.html')
+  temp_path = currentsite().gettemplate("cartdisplay.html");
+  temp = loader.get_template(temp_path)
   context = Context({'CART':cart.values()})
   content = temp.render(context)
   return HttpResponse(content,mimetype = "text/xml")
+
+def builderror(request,error):
+  request.session['error'] = error
 
 def shoppingcart(request):
   suppliers = Supplier.all()
@@ -518,14 +586,15 @@ def shoppingcart(request):
     ,context,context_instance=RequestContext(request)))
 
 def billinginfo(request):
-  stories = siteinfo()
+  stories = getCategoriesInfo()
   cart = request.session.get('cart',{})
   total = 0.0
   for key in cart:
     item = cart[key]
     total += float(item['price']) * item['amount']
   context = Context({'STORIES':stories,'TOTAL':total,'CART':cart.values()})
-  return (render_to_response("billinginfo.html"
+  temp_path = currentsite().gettemplate("billinginfo.html");
+  return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
 def basic_authorization(user, password):
@@ -570,42 +639,14 @@ def getinvoice(request,invoice):
   return data
 
 
-def sendinvoice(request,invoice):
-  token = getToken(request)
-  conn = httplib.HTTPSConnection("api.paypal.com")
-  conn.request("POST","/v1/invoicing/invoices/"+invoice+"/send",
-    '',
-    {"content-type": "application/json",
-     "Accept": "application/json",
-     "authorization": "Bearer "+token,
-    })
-  resp = conn.getresponse()
-  conn.close()
-  b = resp.status
-  if(b == 202):
-    return True
-  else:
-    return False
-
-def createinvoice(request,invoice):
-  token = getToken(request)
-  conn = httplib.HTTPSConnection("api.paypal.com")
-  conn.request("POST","/v1/invoicing/invoices",
-    json.dumps(invoice,default=eco),
-    {"content-type": "application/json",
-     "Accept": "application/json",
-     "authorization": "Bearer "+token,
-    })
-  resp = conn.getresponse()
-  conn.close()
-  b = resp.status
-  data = resp.read()
-  return data
-
 def invoice(request):
   test = json.dumps(invoice_template)
   return createinvoice(request)
 
+"""
+This is an unfinished function which is supposed to catch paypal events.
+However it never works.
+"""
 def paypalpdt(request):
   _identity_toke = "1aVupu9gNufeVWLBqkNa619TjsYXgC-ZQd5rUOW_sWiVHR9A8F6zKuTOBFO"
   _identity_toke = "VbcoPtKY7npptth9GdQPW69fbH7DRoK1BBsTNIJDT2waJM_wU4BqGetpxZe"

@@ -6,6 +6,7 @@ from django.shortcuts import render_to_response
 from google.appengine.ext import db
 import random,json
 from retailtype import *
+import record
 from google.appengine.api import users
 
 def user(request):
@@ -20,4 +21,13 @@ def info(request):
   logourl = ShopInfo.all().filter("name =","logo").get()
   if logourl:
     logourl = logourl.content
-  return {'FOOTER':extra,'ANALYTIC':analytic,'LOGO':logourl}
+  history = record.getItemHistory(request)
+  error = request.session.get('error')
+  request.session['error'] = None
+
+  # Collect information of cart
+  cart = request.session.get('cart',{})
+  if not cart:
+    cart = {}
+
+  return {'CART':cart.values(),'HISTORY':history, 'ERROR':error, 'FOOTER':extra,'ANALYTIC':analytic,'LOGO':logourl}

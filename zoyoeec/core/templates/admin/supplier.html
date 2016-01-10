@@ -1,0 +1,137 @@
+{% extends "gbase.html" %}
+{% load hash_filters %}
+
+{% block title %}
+<div class="col-md-12">
+  <ul class="breadcrumbs-alt">
+    <li>
+      <a href="#">Suppliers</a>
+    </li>
+    <li>
+      <a class="current" href="#">{{SUPPLYER.name}}</a>
+    </li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block head %}
+<div class="col-lg-12">
+  <div class = "panel">
+    <div class = "panel-heading">
+        Item Id:
+        <a class='pull-right btn-xs tools' href="javascript:$('#add-item').submit()">check and add</a>
+    </div>
+    <div class="panel-body">
+    </div>
+  </div>
+  {% include "receipts/receipts.thingy" %}
+</div>
+
+<div class="col-6-12 col-md-6">
+  {% for shop in STORIES %}
+    <div class='panel'>
+      <div class='panel-heading'>
+        {{shop}}
+        <span class="pull-right badge"><a href="/admin/items/{{shop}}/">{{STAT|hash:shop}}</a></span>
+        <span class="pull-right btn btn-xs"><a href="/admin/uploadimages/?supplier={{shop}}">feed images</a></span>
+      </div>
+      <div class="panel-body">
+      <ul class="list-group">
+    {% for id in STORIES|hash:shop %}
+      {% if not id == "1" %}
+        <li class="list-group-item"><h6>
+            {% if STORIES|hash:shop|hash:id|hash:'children' %}
+            <a href="javascript:">
+            {% else %}
+            <a href="/admin/items/{{shop}}/{{id}}">
+            {% endif %}
+            <i class="fa fa-cog"></i>
+              <span class="link-title">&nbsp;{{STORIES|hash:shop|hash:id|hash:'name'}}</span> 
+            </a></h6>
+        {% if STORIES|hash:shop|hash:id|hash:'children' %}
+        <ul class="list-group">
+           {% for cid in STORIES|hash:shop|hash:id|hash:'children' %}
+           <li class="list-group-item"><a href="/admin/items/{{shop}}/{{cid}}">
+             {{STORIES|hash:shop|hash:id|hash:'children'|hash:cid|hash:'name'}}</a></li>
+           {% endfor %}
+        </ul>
+        {% endif %}
+        </li>
+      {% endif %}
+    {% endfor %}
+        <li class="list-group-item">
+           <span class="pull-right badge">{{ESTAT|hash:shop}}</span>
+            <h6>
+            <a href="/admin/ebayitems/{{shop}}/">
+            <i class="fa fa-cog"></i>
+              <span class="link-title">&nbsp;Ebay</span> 
+            </a></h6>
+        </li>
+        <li class="list-group-item">
+            <h6>
+            <a href="/admin/unpublisheditems/{{shop}}/">
+            <i class="fa fa-cog"></i>
+              <span class="link-title">&nbsp;Unpublished</span> 
+            </a></h6>
+        </li>
+      </ul>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+
+{% endblock %}
+
+{% block subsidebar %}
+{% endblock%}
+
+{% block dialogfirst %}
+  <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+  <script>
+  $(function() {
+    $( "#search-item" ).autocomplete({
+      minLength: 4,
+      source: "/search/",
+      select: function(event,ui){
+         window.location = ui.item.modify;
+      },
+      open: function(event, ui) {
+        $($('ul.ui-autocomplete').removeAttr('style').hide()).appendTo('#autocomp').show();
+      }
+    }).data('ui-autocomplete')._renderItem = function(ul, item) {
+      return $("<li class='list-group-item'/>")
+      .data('item.autocomplete', item)
+      .append(item.label)
+      .appendTo(ul);
+    };
+
+/* # Form Validation
+================================================== */
+
+    $(".validate").validate({
+        errorPlacement: function(error, element) {
+            if (element.parent().parent().attr("class") == "checker" || element.parent().parent().attr("class") == "choice" ) {
+              error.appendTo( element.parent().parent().parent().parent().parent() );
+            } 
+            else if (element.parent().parent().attr("class") == "checkbox" || element.parent().parent().attr("class") == "radio" ) {
+              error.appendTo( element.parent().parent().parent() );
+            } 
+            else {
+              error.insertAfter(    element);
+            }
+        },
+        rules: {
+            rid: {
+                required: true,
+            },
+        },
+        success: function(label) {
+            label.text('Success!').addClass('valid');
+        }
+    });
+  });
+  </script>
+
+{% endblock %}
+

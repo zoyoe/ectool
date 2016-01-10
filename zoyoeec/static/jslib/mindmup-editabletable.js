@@ -21,6 +21,7 @@ $.fn.editableTableWidget = function (options) {
 						.offset(active.offset())
 						.css(active.css(activeOptions.cloneProperties))
 						.css('background-color', '#333')
+						.css('color', '#aaaaaa')
 						.width(active.width())
 						.height(active.height())
 						.focus();

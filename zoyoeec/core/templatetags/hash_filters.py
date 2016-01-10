@@ -21,8 +21,6 @@ def jhash(dstr,key):
   else:
     return None
 
-
-
 @register.filter("loginurl")
 def loginurl(user,request):
   absoluteurl = request.path
@@ -47,3 +45,7 @@ class EscapeNode(template.Node):
 
 register.tag("fullescape",do_fullescape)
 
+@register.simple_tag()
+def multiply(qty, unit_price, *args, **kwargs):
+    # you would need to do any localization of the result here
+    return qty * unit_price

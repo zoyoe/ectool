@@ -1,0 +1,170 @@
+{% load hash_filters %}
+<!doctype html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>zoyoe</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+   <link href='http://fonts.googleapis.com/css?family=Dosis:300,400' rel='stylesheet' type='text/css'>
+   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
+   <link href="/static/css/temp.css" rel="stylesheet">
+   <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+   <link rel="stylesheet" href="/static/betadesign/rs-plugin/css/settings.css">
+   <link rel="stylesheet" href="/static/betadesign/rs-plugin/css/responsive.css">
+   <link rel="stylesheet" title="style" href="/static/betadesign/css/style.css">
+   <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/jquery-jgrowl/1.4.1/jquery.jgrowl.min.css" />
+   <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', '{{ANALYTIC}}', 'auto');
+  ga('send', 'pageview');
+  </script>
+ 
+</head>
+<body>
+   <div id="header">
+      <div class="header-top">
+         <div class="container">
+            <div class="pull-left auto-width-left">
+               <ul class="top-menu menu-beta l-inline">
+                  <li><a href="/"><i class="fa fa-home"></i> Home</a></li>
+               </ul>
+            </div>
+            <div class="pull-right auto-width-right">
+               <ul class="top-details menu-beta l-inline">
+                 {% if not user %}
+                 <li><a href="{{user|loginurl:request}}"><i class="fa fa-user"></i> Login google account</a></li>
+                 {% else %}
+                 <li><a href="{{user|logouturl:request}}"><i class="fa fa-user"></i> Logout </a></li>
+                 {% endif %}
+
+                 <li><a href="/shoppingcart/"><i class="fa fa-shopping-cart"></i>Shopping cart</a></li>
+                 <li><a href="/user/receipts/"><i class="fa fa-list"></i>My Receipts</a></li>
+               </ul>
+            </div>
+            <div class="clearfix"></div>
+         </div> <!-- .container -->
+      </div> <!-- .header-top -->
+      <div class="header-body">
+         <div class="container beta-relative">
+            <div class="pull-left">
+               <a href="/" id="logo"><img style="height:70px;" src="{{LOGO}}" alt=""></a>
+            </div>
+            <div class="pull-right beta-components space-left ov">
+               <div class="space10">&nbsp;</div>
+               <div class="beta-comp">
+                  <form role="search" method="get" id="searchform" action="/items/search">
+                       <input type="text" value="" name="key" id="s" placeholder="Search entire store here..." />
+                       <button class="fa fa-search" type="submit" id="searchsubmit"></button>
+                  </form>
+               </div>
+
+               <div class="beta-comp">
+                  <div class="cart">
+                     <div class="beta-select" onclick="zoyoe.cart.show()"><i class="fa fa-shopping-cart"></i>
+                        Cart <i class="fa fa-chevron-down"></i></div>
+                     <div id='cartdisplay' class="beta-dropdown cart-body">
+                       {% include "betadesign/cartdisplay.html" %}
+                     </div>
+                  </div> <!-- .cart -->
+               </div>
+            </div>
+            <div class="clearfix"></div>
+         </div> <!-- .container -->
+      </div> <!-- .header-body -->
+      <div class="header-bottom">
+         <div class="container">
+            <a class="visible-xs beta-menu-toggle pull-right" href="#"><span class='beta-menu-toggle-text'>Menu</span> <i class="fa fa-bars"></i></a>
+            <div class="visible-xs clearfix"></div>
+            <nav class="main-menu">
+               <ul class="l-inline ov">
+        {% for shop in STORIES %}
+          {% for id in STORIES|hash:shop %}
+            {% if not id == "1" %}
+                 {% if STORIES|hash:shop|hash:id|hash:'children' %}
+                 <li>
+                   <a href="javascript:">{{STORIES|hash:shop|hash:id|hash:'name'}}</a>
+                     <ul class="sub-menu">
+                     {% for cid in STORIES|hash:shop|hash:id|hash:'children' %}
+                       <li><a href="/items/{{shop}}/{{cid}}">{{STORIES|hash:shop|hash:id|hash:'children'|hash:cid|hash:'name'}}</a></li>
+                     {% endfor %}
+                     </ul>
+                 </li>
+                 {% else %}
+                 {% endif %}
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+               </ul>
+               <div class="clearfix"></div>
+            </nav>
+         </div> <!-- .container -->
+      </div> <!-- .header-bottom -->
+   </div> <!-- #header -->
+   {% if ERROR %}
+   {{ERROR|safe}}
+   {% endif %}
+   <div class="container">
+      <div id="content">
+        <div class="row">
+                 {% block content %}
+                 {% endblock %}
+        </div>
+      </div> <!-- #content -->
+   </div> <!-- .container -->
+
+   <div id="footer">
+      <div class="container">
+         <div class="row">
+            {% for line in FOOTER %}
+            <div class="col-sm-3">
+               <div class="widget">
+                  <h4 class="widget-title">{{line.name}}</h4>
+                  <div>{{line.content|safe}}</div>
+               </div>
+            </div>
+            {% endfor %}
+            <div class="col-sm-3">
+               <div class="widget">
+                  <h4 class="widget-title">Newsletter Subscribe</h4>
+                  <form action="#" method="post">
+                     <input type="email" name="your_email">
+                     <button class="pull-right" type="submit">Subscribe <i class="fa fa-chevron-right"></i></button>
+                  </form>
+               </div>
+            </div>
+         </div> <!-- .row -->
+      </div> <!-- .container -->
+   </div> <!-- #footer -->
+   <div class="copyright">
+      <div class="container">
+         <p class="pull-left">powered by zoyoe 2014</p>
+         <p class="pull-right pay-options">
+            <a href="#"><img src="/static/betadesign/images/pay/master.jpg" alt="" /></a>
+            <a href="#"><img src="/static/betadesign/images/pay/pay.jpg" alt="" /></a>
+            <a href="#"><img src="/static/betadesign/images/pay/visa.jpg" alt="" /></a>
+            <a href="#"><img src="/static/betadesign/images/pay/paypal.jpg" alt="" /></a>
+         </p>
+         <div class="clearfix"></div>
+      </div> <!-- .container -->
+   </div> <!-- .copyright -->
+
+   <!-- include js files -->
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+   <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+   <script src="/static/bstrap/js/bootstrap-dialog.min.js"></script>
+   <script src="/static/betadesign/vendors/bxslider/jquery.bxslider.min.js"></script>
+   <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-jgrowl/1.4.1/jquery.jgrowl.min.js"></script>
+   <script src="/static/jslib/ebayajax.js"></script>
+   <script src="http://masonry.desandro.com/masonry.pkgd.js"></script>
+   <script src="/static/jslib/image.js"></script>
+   {% block dialogfirst %}
+   {% endblock %}
+   
+</body>
+</html>

@@ -1,0 +1,79 @@
+{% extends "gbase.html" %}
+{% load hash_filters %}
+{% block title %}
+<div class="col-md-12">
+  <ul class="breadcrumbs-alt">
+    <li>
+      <a href="#">Admin</a>
+    </li>
+    <li>
+      <a href="#">preference</a>
+    </li>
+    <li><a class="current" href="#">site preference</a>
+    </li>
+
+  </ul>
+</div>
+{% endblock %}
+
+{% block head %}
+<section class="col-lg-7 col-md-7">
+{% for line in CATEGORIES %}
+{% include "config/config.thingy" with title=line.name category="category" form="config-form" content=line.content %}
+{% endfor %}
+<div class = "panel">
+  <div class="panel-heading">Footer:
+  </div>
+  <div class = "panel-body">
+{% for line in FOOTER %}
+    <div class="well">
+      <span class="pull-right">
+        <a href="javascript:zoyoe.config.delete('#config-form','{{line.name}}');" class="fa fa-times"></a>
+      </span>
+      <h4>{{line.name}}</h4>
+      <div>{{line.content|safe}}</div>
+    </div>
+{% endfor %}
+  </div>
+</div>
+</section>
+<section class="col-lg-5 col-md-5">
+{% include "config/config.thingy" with title="analytic" category="extra" form="config-form" content=ANALYTIC %}
+{% include "config/config.thingy" with title="paypal" category="private" form="config-form" content=SITEINFO.paypal %}
+{% include "config/config.thingy" with title="template" category="private" form="config-form" content=SITEINFO.template %}
+{% include "config/config.thingy" with title="published" datatype="boolean" category="private" form="config-form" content=SITEINFO.published %}
+</section>
+
+
+<div class="col-lg-12">
+<form action="/admin/addconfig/" method='POST' id="config-form" style="display:none">
+  <div class="form-horizontal caption">
+    {% csrf_token %}
+    <input type="text" name="setting" value="preference" style="display:none">
+    <div class="form-group">
+      <label class="col-lg-2 control-label">Title: </label>
+      <div class="col-lg-10">
+        <input type="text" id="title" name="title" class="form-control">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-lg-2 control-label">Type: </label>
+      <div class="col-lg-10">
+        <select class='form-control' name="type">
+         <option value="category">Category</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label col-lg-2">value: </label>
+      <div class="col-lg-10">
+        <textarea name="content" id="content" class="form-control"></textarea>
+      </div>
+    </div>
+  </div>
+</form>
+</div>
+
+{% endblock %}
+{% block subsidebar %}
+{% endblock%}

@@ -140,18 +140,19 @@ def getToken(request):
         # should not update ebayinfo in request.session
         # request.session['ebayinfo'] = ebayinfo
         logging.info("Can not get token from ebay id:" + token)
-        return None
-    elif user:
-      usr = zuser.getUser(user.email(),True)
-      if (usr and usr.ebaytoken):
-        ebayinfo['token'] = usr.ebaytoken
-    else:
-      logging.info("Can not get session for ebay auth")
-      return None
-# By the above computation we have tried to get the token
-  ebayinfo['token'] = token
+    if (not token): # can not get token from session
+      if user:
+        usr = zuser.getUser(user.email(),True)
+        if (usr and usr.ebaytoken):
+          token = usr.ebaytoken
+  # By the above computation we have tried to get the token
+  if (token):
+    ebayinfo['token'] = token
+  else:
+    logging.info("Can not get session for ebay auth")
+    return None
 
-# so far we might need to update the token of the current user 
+  # so far we might need to update the token of the current user 
   if user:
     usr = zuser.getUser(user.email(),False)
     if (usr):
@@ -189,8 +190,11 @@ def getToken(request):
           namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
         ebayinfo['store'] = name.text
         logo = store_doc.xpath("//xs:Store/xs:Logo/xs:URL",
-          namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
-        ebayinfo['logo'] = logo.text
+          namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})
+        if logo:
+          ebayinfo['logo'] = logo[0].text
+        else:
+          ebayinfo['logo'] = None
         cgs = {}
         categories = store_doc.xpath("//xs:Store/xs:CustomCategories/xs:CustomCategory",
           namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})
@@ -215,6 +219,7 @@ def getToken(request):
         logging.info("Can not find shopinfo in ebayinfo:" + store)
         return None
     request.session['ebayinfo'] = ebayinfo
+    setebayinfo(json.dumps(ebayinfo))
     return ebayinfo['token']
   else:
     return None  
@@ -260,7 +265,7 @@ def relist(ebayinfo,item):
   config['INITIAL'] = item.description
   config['ITEM'] = item
   config['EXTRA'] = ShopInfo.all().filter("type =","ebay").order("name")
-  format = loader.get_template("format.html")
+  format = loader.get_template("ebay/format.html")
   content = format.render(Context(config))
   ebayitem = GetItem(item.ebayid,token)
   xml_doc = etree.parse(StringIO(ebayitem))
@@ -345,11 +350,17 @@ def format(ebayinfo,itemid):
     zitem = supplier.saveItem(iteminfo)
 
     config['ITEM'] = zitem
-    format = loader.get_template("format.html")
+    format = loader.get_template("ebay/format.html")
     content = format.render(Context(config))
     if (sellingstatus != "Completed"):
       revise = ReviseItemSimple(item,token,content)
-      return (HttpResponse(revise,mimetype = "text/xml"),item)
+      xml_doc = etree.parse(StringIO(revise))
+      ack = xml_doc.xpath("//xs:Ack",
+        namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
+      if('Success' in ack.text):
+        return (HttpResponse(revise,mimetype = "text/xml"),item)
+      else:
+        return (HttpResponse(revise,mimetype = "text/xml"),None)
     else:
       revise = RelistItemSimple(item,token,content)
       xml_doc = etree.parse(StringIO(revise))
@@ -360,9 +371,11 @@ def format(ebayinfo,itemid):
           namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
         zitem.ebayid = refid
         zitem.put()
-      return (HttpResponse(revise,mimetype = "text/xml"),item)
+        return (HttpResponse(revise,mimetype = "text/xml"),item)
+      else:
+        return (HttpResponse(revise,mimetype = "text/xml"),None)
   else:
-    return (returnError(item),item)
+    return (HttpResponse(item,mimetype = "text/xml"),None)
 
 ####
 # This function will append general infomation after item description
@@ -377,7 +390,7 @@ def sync(ebayinfo,item):
   config['INITIAL'] = description
   config['ITEM'] = item
   config['EXTRA'] = ShopInfo.all().filter("type =","ebay").order("name")
-  format = loader.get_template("format.html")
+  format = loader.get_template("ebay/format.html")
   content = format.render(Context(config))
   if (not item.ebayid):
     revise = ReviseItemBySKU(item.refid,name,token,content)
@@ -429,7 +442,7 @@ def getinactivelist(request):
       total = xml_doc.xpath("//xs:TotalNumberOfPages",namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})
       list_content = "" #none item if there is no TotalNumberOfPages provided
       if(total):
-        total = int(total.text);
+        total = int(total[0].text);
         xslt = GetXSLT(Context({'pages':range(total+1)[1:]}),'xslt/MyeBaySelling2.xslt')
         list_content = etree.tostring(xslt(xml_doc.getroot()))
     return list_content

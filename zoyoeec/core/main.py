@@ -1,55 +1,59 @@
 import django.core.handlers.wsgi
 from django.core.context_processors import csrf
 from django.template import loader,Context,RequestContext
-from django.http import HttpResponse
+from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
 from ebay import ebay_view_prefix,getactivelist, getEbayInfo
-from retail import getSupplier,saveSupplier,getSupplierFromEbayInfo,Supplier,Item,SiteInfo
-import random,json
-from retailtype import getCategoryItems,siteinfo,ShopInfo
+from retail import retail, getSupplier,saveSupplier,getSupplierFromEbayInfo,Supplier,Item,SiteInfo
+from retailtype import getCategoryItems,ShopInfo,getSiteInfo,getCategoriesInfo
 from google.appengine.ext import db
-from google.appengine.api import users
-from google.appengine.api import namespace_manager
+from google.appengine.api import users,namespace_manager
 from page import *
-import zuser
-import record
+import zuser,record,random,json
 
 application = django.core.handlers.wsgi.WSGIHandler()
 
 def main(request):
   if (request.META['HTTP_HOST']=="www.zoyoe.com"):
     # This is the main website
-    stories = siteinfo()
+    stories = getCategoriesInfo()
     fliers = ShopInfo.all().filter("type =","category").order("name")
     context = Context({'STORIES':stories,'FLIERS':fliers})
     return (render_to_response("zoyoe/index.html",context,context_instance=RequestContext(request)))
   else:
     # This is customer's website
-    return retail(request)
+    site = getSiteInfo()
+    if site:
+      if site.published:
+        return retail(request)
+      else:
+        return HttpResponseRedirect('/admin/')
+    else:
+      return HttpResponseRedirect('/admin/config/preference/')
 
-def retail(request):
-  stories = siteinfo()
-  fliers = ShopInfo.all().filter("type =","category").order("name")
-  context = Context({'STORIES':stories,'FLIERS':fliers})
-  return (render_to_response("retailcover.html",context,context_instance=RequestContext(request)))
+def workspace(request):
+  if (request.META['HTTP_HOST']=="www.zoyoe.com"):
+    return (render_to_response("zoyoe/createworkspace.html",{},context_instance=RequestContext(request)))
+  else:
+    return HttpResponseRedirect('/admin/config/preference/')
 
 def products(request):
-  stories = siteinfo()
-  items = Item.all().filter("ebayid !=",None).filter("ebayid !=","").fetch(100)
+  stories = getCategoriesInfo()
+  items = Item.all().filter("disable !=",True).fetch(100)
   context = Context({'RETAIL': True,'ITEM_WIDTH':'200','STORIES':stories,'sellitems':items})
   return (render_to_response("products/gallery.html",context,context_instance=RequestContext(request)))
 
 
 def allebayitems(request):
-  stories = siteinfo()
+  stories = getCategoriesInfo()
   items = Item.all().filter("ebayid !=",None).filter("ebayid !=","")
   context = Context({'RETAIL': True,'ITEM_WIDTH':'200','STORIES':stories,'sellitems':items})
   return (render_to_response("admin/allebayitems.html",context,context_instance=RequestContext(request)))
 
 def items(request,shop,category):
-  stories = siteinfo()
+  stories = getCategoriesInfo()
   lvl1 = "Category"
   lvl2 = "Gallery"
   for c in stories[shop]:
@@ -57,8 +61,8 @@ def items(request,shop,category):
       lvl1 = stories[shop][c]['name']
       lvl2 = stories[shop][c]['children'][category]['name']
   dict = {'SHOP':shop,'ITEM_WIDTH':'200','STORIES':stories,'PATH':lvl1,'CATEGORY':lvl2}
-  query = getCategoryItems(category)
-  myPagedQuery = PagedQuery(query, 24)
+  query = getCategoryItems(category).filter("disable ==",False)
+  myPagedQuery = PagedQuery(query, 12)
   items = []
   dict['queryurlprev'] = "#" 
   dict['queryurlnext'] = "#" 
@@ -77,10 +81,22 @@ def items(request,shop,category):
   dict['sellitems'] = items
   dict['queryurl'] = "/items/"+shop+"/"+category
   context = Context(dict)
-  return (render_to_response("retail.html",context,context_instance=RequestContext(request)))
+  temp_path = getSiteInfo().gettemplate("products.html");
+  return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
+
+### This is the main view of pos #
+@zuser.authority_config
+def config(request):
+  cart = request.session.get('cart',{})
+  ebayinfo = getEbayInfo(request)
+  if not cart:
+    cart = {}
+  context = Context({'CART':cart.values(),'ebayinfo':ebayinfo})
+  return (render_to_response("pos.html",context,context_instance=RequestContext(request)))
+
 
 def item(request,shop,key):
-  stories = siteinfo()
+  stories = getCategoriesInfo()
   item = Item.get_by_id(int(key),parent = getSupplier(shop))
   return record.getItemResponse(request,item,stories)
 
@@ -100,7 +116,6 @@ class dashboard:
   totalcategories = 0
 
 @zuser.authority_item
-@ebay_view_prefix
 def admin(request):
   suppliers = Supplier.all()
   stories = {}
@@ -111,17 +126,9 @@ def admin(request):
     stories[supply.name] = json.loads(supply.data)
     stat[supply.name] = supply.getStat()
     estat[supply.name] = supply.getEbayStat()
-  ebayinfo = getEbayInfo(request)
-  if ebayinfo:
-    supplier = getSupplierFromEbayInfo(ebayinfo)
-    if (supplier):
-      context = Context({'ebayinfo':ebayinfo,'sellitems':items
-       ,'STORIES':stories,'STAT':stat,'ESTAT':estat})
-      return (render_to_response("intro.html",context,context_instance=RequestContext(request)))
-    else:
-      context = Context({'ebayinfo':ebayinfo,'sellitems':[]
-       ,'STORIES':stories})
-      return (render_to_response("intro.html",context,context_instance=RequestContext(request)))
+  context = Context({'sellitems':items
+   ,'STORIES':stories,'STAT':stat,'ESTAT':estat})
+  return (render_to_response("admin/dashboard.html",context,context_instance=RequestContext(request)))
 
 def find(request):
   api = finding(siteid='EBAY-AU',appid = 'zoyoea269-b772-4c8d-98bb-e8a23cefc0e');
@@ -173,12 +180,6 @@ def config(request):
   context['ebayinfo'] = getEbayInfo(request)
   return (render_to_response("config.html",context,context_instance=RequestContext(request)))
 
-def ebay(request):
-  context = buildPreviewContext(request,20)
-  response = render_to_response("ebay.html",context,mimetype="text")
-  response['Access-Control-Allow-Origin']  = "*"
-  return response
-
 def ebayjson(request):
   context = buildPreviewContext(request,20)
   rslt = "" 
@@ -194,9 +195,16 @@ def ebayjson(request):
 
 
 @zuser.authority_item
-def order(request):
+def pdforder(request):
   context = {}
-  return (render_to_response("order.html",context,context_instance=RequestContext(request)))
+  return (render_to_response("order/pdforder.html",context,context_instance=RequestContext(request)))
+
+@zuser.authority_item
+def csvorder(request):
+  context = {}
+  return (render_to_response("order/csvorder.html",context,context_instance=RequestContext(request)))
+
+
 
 def namespace(request):
   return HttpResponse(namespace_manager.get_namespace())

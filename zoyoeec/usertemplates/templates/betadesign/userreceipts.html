@@ -1,0 +1,64 @@
+{% extends "betadesign/root.html" %}
+{% load hash_filters %}
+
+
+{% block content %}
+  <div class="inner-header">
+        <div class="container">
+            <div class="pull-left">
+                <h6 class="inner-title">Receipts</h6>
+            </div>
+            <div class="pull-right">
+                <div class="beta-breadcrumb font-large">
+                    <a href="index.html">Home</a> 
+                </div>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+  </div>
+  <table class="shop_table beta-shopping-cart-table">
+  <thead>
+    <tr>
+      <th>receipt id</th>
+      <th>date</th>
+      <th>paying status</th>
+      <th>email</th>
+      <th>action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for receipt in receipts %}
+    <tr>
+      <td><a href="/retail/receiptview/?key={{receipt.key.id}}">
+      {{receipt.key.id}}</a>
+      </td>
+      <td>
+      {{receipt.date}}
+      </td>
+      <td>
+      {{receipt.status}}
+      </td>
+      <td>
+      {{receipt.email}}
+      </td>
+      <td>
+        <button onclick="javascript:zoyoe.cart.deletereceipt(this,'{{receipt.key.id}}')" class="btn btn-danger btn-icon">
+          <i class="fa fa-trash"></i>
+        </button> 
+        <button onclick="javascript:zoyoe.cart.loadreceipt(this,'{{receipt.key.id}}')" class="btn btn-default btn-icon">
+          <i class="fa fa-info"></i>
+        </button> 
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}
+
+{% block subsidebar %}
+{% endblock%}
+
+{% block dialogfirst %}
+{% endblock %}
+

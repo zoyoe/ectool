@@ -1,0 +1,135 @@
+{% extends "gbase.html" %}
+{% load hash_filters %}
+
+
+{% block title %}
+<div class="col-md-12">
+  <ul class="breadcrumbs-alt">
+    <li>
+      <a href="#">Admin</a>
+    </li>
+    <li><a class="active" href="#">Manage Order</a>
+    </li>
+
+  </ul>
+</div>
+
+{% endblock %}
+
+{% block head %}
+<div class="col-lg-12">
+  <div class = "panel ">
+    <div class="panel-heading">Order Info
+        <a href="javascript:zoyoe.order.submit('#order-info','#tbody-instance')" class="pull-right btn btn-xs btn-primary">Submit</a>
+    </div>
+    <div class="panel-body">
+      <div class="form-horizontal">
+      <form id='order-info' class='validate' action="/order/saveorder/" method='POST'>
+     {% csrf_token %}
+      <div class="form-group">
+        <label class="col-sm-2 control-label">Supplier Name: </label>
+        <div class="col-sm-4">
+          <input type="text" name="supplier_name" class="form-control required">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-2 control-label">Order Id: </label>
+        <div class="col-sm-4">
+          <input type="text" name="supplier_id" class="form-control required">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-2 control-label">Status: </label>
+        <div class="col-sm-2">
+          <select name="order_status" class="form-control input-lg">
+           <option value="ordered">Ordered</option>
+           <option value="dispatched">Dispatched</option>
+           <option value="received">Received</option>
+          </select>
+        </div>
+      </div>
+      <textarea name="details" class="zoyoe-table-data" style="display:none"></textarea>
+      </form>
+      </div>
+    </div>
+  </div>
+  <div class = "panel ">
+    <div class="panel-heading">
+        Order Details
+    </div>
+    <div class="panel-body">
+      <div id="table-edit"  class="table-responsive">
+         <table class="table">
+           <thead>
+             <tr>
+             <th>--</th>
+             <th><a onclick="javascript:pick(this,0)">item code </a></th>
+             <th><a onclick="javascript:pick(this,1)">description </a></th>
+             <th><a onclick="javascript:pick(this,2)">quantity </a></th>
+             <th><a onclick="javascript:pick(this,3)">cost </a></th>
+             </tr>
+           </thead>
+           <tbody id="tbody-instance">
+           </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class = "panel ">
+    <div class="panel-heading">
+        Order Receipt Copy From Supplier
+    </div>
+    <div class="panel-body">
+    <iframe style="width:100%;" src="" id="pdf-viewer"></iframe>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block subsidebar %}
+
+{% endblock%}
+
+{% block dialogfirst %}
+  <script src="/static/jslib/pdfpick.js"></script>
+  <script src="/static/jslib/mindmup-editabletable.js"></script>
+  <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+  <script>
+/* # Form Validation
+================================================== */
+
+    $(".validate").validate({
+        errorPlacement: function(error, element) {
+            if (element.parent().parent().attr("class") == "checker" || element.parent().parent().attr("class") == "choice" ) {
+              error.appendTo( element.parent().parent().parent().parent().parent() );
+            } 
+            else if (element.parent().parent().attr("class") == "checkbox" || element.parent().parent().attr("class") == "radio" ) {
+              error.appendTo( element.parent().parent().parent() );
+            } 
+            else {
+              error.insertAfter(    element);
+            }
+        },
+        rules: {
+            supplier_name: {
+                required: true,
+            },
+            supplier_id: {
+                required: true,
+            },
+        },
+        success: function(label) {
+            label.text('Success!').addClass('valid');
+        }
+    });
+   zoyoe.pdftable.load();
+  </script>
+
+{% endblock %}
+{% block extracss %}
+ <link href="/static/css/fileinput.min.css" media="all" rel="stylesheet" type="text/css" />
+ <link href="/static/css/handsontable.css" media="all" rel="stylesheet" type="text/css" />
+{% endblock %}
+

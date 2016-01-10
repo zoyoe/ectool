@@ -1,24 +1,23 @@
 import django.core.handlers.wsgi
+import ebayapi,zuser,retailtype
+import datetime,urllib2,httplib,random,json
 from django import forms
 from django.core.context_processors import csrf
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
-from retail import getSupplier,saveSupplier,getSupplierFromEbayInfo,Supplier,Item,ShopInfo,ImageData,formatName
-import ebayapi
-import zuser
-from google.appengine.ext import db,blobstore
-from google.appengine.api import users
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.cache import never_cache
+from google.appengine.ext import db,blobstore,deferred
+from google.appengine.api import users
 from google.appengine.api import images
-import datetime
-import urllib2,httplib,random,json
+from google.appengine.runtime.apiproxy_errors import RequestTooLargeError 
 from urllib import urlencode
 from ebay import ebay_view_prefix,ebay_ajax_prefix,getinactivelist,getactivelist, getEbayInfo, sync,relist, format
 from order import *
 from error import *
 from page import *
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from retail import getSupplier,saveSupplier,getSupplierFromEbayInfo,Supplier,Item,ShopInfo,ImageData,formatName
 
 application = django.core.handlers.wsgi.WSGIHandler()
 
@@ -146,18 +145,13 @@ def additem(request):
   
 @zuser.authority_item
 def item(request,shop,key):
-  stories = siteinfo()
+  stories = getCategoriesInfo()
   item = Item.get_by_id(int(key),parent = getSupplier(shop))
   if item:
     upload_url = '/admin/blobimage/'+ shop + "/" + key +"/0/"
     upload_url1 = '/admin/blobimage/'+ shop + "/" + key +"/1/"
     upload_url2 = '/admin/blobimage/'+ shop + "/" + key +"/2/"
     upload_url3 = '/admin/blobimage/'+ shop + "/" + key +"/3/"
-    dict = {'ITEM':item,'STORIES':stories,'BLOBURL':upload_url
-        ,'BLOBURL1':upload_url1
-        ,'BLOBURL2':upload_url2
-        ,'BLOBURL3':upload_url3}
-
     dict = {'ITEM':item,'STORIES':stories,'BLOBURL':upload_url
         ,'BLOBURL1':upload_url1
         ,'BLOBURL2':upload_url2
@@ -216,6 +210,7 @@ def saveitem(request,shop,key):
     item.category = request.POST['category']
     item.category2 = request.POST['sndcategory']
     item.ebaycategory = request.POST['ebaycategory']
+    item.disable = (True,False)[request.POST['disabled'] == "False"]
     item.put()
     indexItem(item)
   response =  HttpResponseRedirect('/admin/item/'+ shop + '/' + key +"/")
@@ -228,7 +223,23 @@ def fetchimage(request,shop,key,index="0"):
   if item:
     image = item.getImage(idx)
     if image:
-      picture = image.image
+      if ("sc" in request.GET):
+         if image.small:
+            picture = image.small
+         elif image.image:
+            image.small = createsc(image.image)
+            try:
+              image.put()
+            except RequestTooLargeError:
+              pic = rescale(image.image,600,600)
+              image.image = pic
+              image.put()
+              del pic
+            picture = image.small
+         else:
+            picture = None
+      else:
+         picture = image.image
     else:
       picture = None
   else:
@@ -250,16 +261,19 @@ def rotateimage(request,shop,key,index="0"):
       image.put()
   return HttpResponse("ok")
 
+def createsc(img_data):
+  image = images.Image(img_data)
+  image.resize(width=300)
+  return image.execute_transforms()
+
 def quickrescale(img_data, size):
   image = images.Image(img_data)
-  if image.width < image.height:
+  if image.width > image.height:
     image.resize(width=size)
     return image.execute_transforms()
   else:
     image.resize(height=size)
     return image.execute_transforms()
-
-
 
 
 def rescale(img_data, width, height, halign='middle', valign='middle'):
@@ -311,18 +325,18 @@ def blobimage(request,shop,key,index='0'):
   #type = request.FILES['image'].content_type
   #image = request.FILES['image'].content_type_extra
   file = request.FILES['image'].read()
-  picture = rescale(file,800,800)
+  picture = rescale(file,600,600)
   item = Item.get_by_id(int(key),parent = getSupplier(shop))
   idx = int(index)
   if item:
     img = item.getImage(idx)
     if img:
       img.image = picture
-      img.put()
     else:
       img = ImageData(image=picture,name=item.name,parent=item,idx=idx) 
       img.url = "http://" + request.META['HTTP_HOST'] + "/admin/fetchimage/" + shop + "/" + key + "/" + str(idx)
-      img.put()
+    img.small = createsc(picture)
+    img.put()
     del picture
     item.galleryurl = img.url
     item.put()
@@ -368,8 +382,11 @@ def relisttoebay(request,shop,key):
 @ebay_ajax_prefix
 def importfromebay(ebayinfo,itemid):
   (rslt,item) = format(ebayinfo,itemid)
-  registerAdminAction("ebaydepoly",item.parent().name+"/"+str(item.key().id()))
-  return rslt
+  if item:
+    registerAdminAction("ebaydepoly",item.parent().name+"/"+str(item.key().id()))
+    return rslt
+  else:
+    return rslt
   
 
 @ebay_view_prefix
@@ -392,20 +409,6 @@ def clean(request):
     item.put()
   return HttpResponse("over")
 
-def replaceimage(request):
-  items = Item.all()
-  for item in items:
-    if(item.picture):
-      img = ImageData(image=item.picture,name=item.name,parent=item,idx=0) 
-      img.url = "http://" + request.META['HTTP_HOST'] + "/admin/fetchimage/" + img.parent().parent().name + "/" + str(img.parent().key().id()) + "/0/"
-      img.put()
-      item.picture = None
-      item.put()
-    image = item.getImage(0)
-    if image:
-      item.galleryurl = image.url
-      item.put()
-  return HttpResponse("ok")
 
 
 def checkurl(request):
@@ -421,20 +424,40 @@ def checkurl(request):
 #
 @zuser.authority_config
 def feedinfo(k,content,type):
-  line = ShopInfo.all().filter("name =",k).get()
-  if not line:
-    line = ShopInfo(name=k,content=content,type=type)
-    line.put()
+  if(type == "private"):
+    configsite(k,content)
   else:
-    line.content = content
-    line.put()
+    line = ShopInfo.all().filter("name =",k).get()
+    if not line:
+      line = ShopInfo(name=k,content=content,type=type)
+      line.put()
+    else:
+      line.content = content
+      line.put()
+
+def configsite(attr,content):
+  siteinfo = retailtype.getSiteInfo()
+  keys = siteinfo.__dict__
+  properties = siteinfo.properties()
+  if (attr in properties):
+     model = properties.get(attr)
+     if isinstance(model, db.StringProperty):
+       setattr(siteinfo,attr,content)
+     elif isinstance(model,db.BooleanProperty):
+       setattr(siteinfo,attr,(False,True)[content == "True"])
+     elif isinstance(model,db.TextProperty):
+       setattr(siteinfo,attr,content)
+     else: 
+       pass
+  siteinfo.put()
+    
 
 @zuser.authority_config
-@ebay_view_prefix
-def categories(request):
+def preference(request):
   context = {}
   context['CATEGORIES'] = ShopInfo.all().filter("type =","category").order("name")
-  return (render_to_response("config/categories.html",context,context_instance=RequestContext(request)))
+  context['SITEINFO'] = retailtype.getSiteInfo()
+  return (render_to_response("config/preferences.html",context,context_instance=RequestContext(request)))
 
 @zuser.authority_config
 def ebayconfig(request):
@@ -446,8 +469,14 @@ def ebayconfig(request):
 @zuser.authority_config
 def addconfig(request):
   if ("title" in request.POST):
-    feedinfo(request.POST['title'],request.POST['content'],request.POST['type'])
-  return HttpResponse("ok")
+    if ("content" in request.POST and request.POST['content']):
+      feedinfo(request.POST['title'],request.POST['content'],request.POST['type'])
+    else:
+      line = ShopInfo.all().filter("name =",request.POST['title']).get()
+      if line:
+        line.delete()
+  response =  HttpResponseRedirect('/admin/config/'+ request.POST['setting'])
+  return response
 
 @zuser.authority_config
 def removeconfig(request):
@@ -503,31 +532,48 @@ def addimages(request,supplier):
   img = item.getImage(idx)
   if img:
     img.image = picture
+    img.small = createsc(img.image)
     img.put()
   else:
     img = ImageData(image=picture,name=item.name,parent=item,idx=idx) 
     img.url = "http://" + request.META['HTTP_HOST'] + "/admin/fetchimage/" + item.parent().name + "/" + str(item.key().id()) + "/" + str(idx)
+    img.small = createsc(img.image)
     img.put()
     del picture
     item.galleryurl = img.url
     item.put()
   return HttpResponse("ok")
 
+def fixitems(cursor=None, num_updated=0):
+    query = Item.all()
+    if cursor:
+        query.with_cursor(cursor)
+    to_put = []
+    for item  in query.fetch(limit=100):
+      if (item.disable == None):
+        item.disable = False
+      if (item.ebayid == None):
+        item.ebayid = ""
+      if (item.ebayid == ""):
+        item.disable = True
+      img = item.getImage(0)
+      if img:
+        img = ImageData(image=item.picture,name=item.name,parent=item,idx=0) 
+      item.picture = None
+      to_put.append(item)
+    if to_put:
+        db.put(to_put)
+        num_updated += len(to_put)
+        logging.debug(
+            'Scan %d entities to Datastore for a total of %d',
+            len(to_put), num_updated)
+        deferred.defer(
+            fixitems, cursor=query.cursor(), num_updated=num_updated)
+    else:
+        logging.debug(
+            'Scan items complete with %d updates!', num_updated)
+        return None
 
-def setupinfo(request):
-  lines = ShopInfo.all()
-  for line in lines:
-    line.type = "ebay"
-    line.put()
-  return HttpResponse("ok")
-
-def cleanitems(request):
-  items = Item.all()
-  for item in items:
-    if(item.parent()==None):
-      deleteItemIndex(item)
-      item.delete()
-  return HttpResponse("ok")
-
-def configsite(request):
-  return None
+def scanitems(request):
+  deferred.defer(fixitems)
+  return HttpResponse('Item scanning successfully initiated.')

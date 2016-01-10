@@ -1,0 +1,9 @@
+<div class = "panel" id='config-{{category}}-{{title}}'>
+  <div class="panel-heading">{{title}}:
+      <span  class="pull-right"> 
+         <a href="javascript:zoyoe.config.modify('#{{form}}','{{title}}','{{category}}','{{datatype}}')" class="fa fa-pencil"></a>
+      </span>
+  </div>
+  <div class="panel-body">{{content|safe}}</div>
+</div>
+

@@ -1,0 +1,42 @@
+{% extends "betadesign/root.html" %}
+{% load hash_filters %}
+{% block content %}
+  <div class="col-sm-9 main-content pull-right">
+{% block title %}{% endblock %}
+{% block head %}{% endblock %}
+  </div>
+  <div class="col-sm-3 aside">
+               <div class="widget">
+                 <h3 class="widget-title">Items you viewed</h3>
+                 <div class="widget-body">
+                    <div class="beta-sales beta-lists">
+{% for item in HISTORY %}
+                      <div class="media beta-sales-item">
+                        <a class="pull-left" href='/item/{{item.parent.name}}/{{item.key.id}}/'><img src='{{item.galleryurl}}?sc='alt=""></a>
+                        <div class="media-body">{{item.name}}
+                          <span class="beta-sales-price">${{item.price}}</span>
+                        </div>
+                      </div>
+{% endfor %}
+                    </div>
+                 </div>
+               </div>
+               <div class="widget">
+                  <h3 class="widget-title">More categories</h3>
+                  <div class="widget-body">
+                     <ul class="list-unstyled">
+                    {% for shop in STORIES %}
+                      {% for id in STORIES|hash:shop %}
+                        {% if not id == "1" %}
+                          {% if STORIES|hash:shop|hash:id|hash:'children' %}
+                          {% else %}
+                          <li><a href="/items/{{shop}}/{{id}}">{{STORIES|hash:shop|hash:id|hash:'name'}}</a></li>
+                          {% endif %}
+                        {% endif %}
+                      {% endfor %}
+                    {% endfor %}
+                     </ul>
+                  </div>
+               </div> <!-- brands widget -->
+  </div> <!-- .aside -->
+{% endblock %}

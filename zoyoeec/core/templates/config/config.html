@@ -11,7 +11,7 @@
       <a href="#">Config</a>
     </li>
     <li>
-      <a class="current" href="#">Ebay Config</a>
+      <a class="current" href="#">eBay listing preference</a>
     </li>
   </ul>
 </div>
@@ -20,64 +20,40 @@
 {% block head %}
 <div class = "col-md-8">
 <div class = "panel">
-  <div class="panel-heading">Embeded Code:
+  <div class="panel-heading">Ebay Listing Info:
+    <span class="tools pull-right">
+      <a href="javascript:;" class="fa fa-chevron-down"></a>
+    </span>
+  </div>
+  <div class = "panel-body">
+      <div>
+{% for line in EBAY %}
+<div class="well">
+  <span class="pull-right">
+    <a href="javascript:zoyoe.config.delete('#form-config','{{line.name}}');" class="fa fa-times"></a>
+  </span>
+  <h4>{{line.name}}
+  </h4> 
+  <div>
+  {{line.content|safe}}
+  </div>
+</div>
+{% endfor %}
+      </div>
+  </div>
+</div>
+
+<div class = "panel">
+  <div class="panel-heading">Embeded Plugin:
+    <span class="tools pull-right">
+      <a href="javascript:;" class="fa fa-chevron-down"></a>
+    </span>
   </div>
   <div class = "panel-body">
       {% fullescape%}{% include "embed.html" %}{% endfullescape %}
   </div>
 </div>
 
-<div class = "panel">
-  <div class="panel-heading">Ebay Code:
-  </div>
-  <div class = "panel-body">
-      <div>
-{% for line in EBAY %}
-<div class="well">
-  <div class="product-rate clearfix" style="padding-top:0px;">
-    <h4>{{line.name}}</h4><span>[{{line.type}}]</span>
-  </div>
-  <div class="product-info">
-  {{line.content|safe}}
-  </div>
-</div>
-{% endfor %}
-      </div>
-  </div>
-</div>
-
-<div class = "panel">
-  <div class="panel-heading">Footer Code:
-  </div>
-  <div class = "panel-body">
-      <div>
-{% for line in FOOTER %}
-<div class="product-set">
-  <div class="product-rate clearfix" style="padding-top:40px;">
-    <h4>{{line.name}}</h4><span>[{{line.type}}]</span>
-  </div>
-  <div class="product-info">
-  {{line.content|safe}}
-  </div>
-</div>
-{% endfor %}
-      </div>
-  </div>
-</div>
-
-<div class = "panel">
-  <div class="panel-heading">GoogleAnalytic Code:
-  </div>
-  <div class = "panel-body">
-      <div>
-<div class="product-set">
-  <div class="product-info">
-  {{ANALYTIC|safe}}
-  </div>
-</div>
-      </div>
-  </div>
-</div>
 
 </div>
 
@@ -85,7 +61,7 @@
 
 <div class="col-md-4">
 
-<form action="/admin/addconfig/" method='POST'>
+<form id='form-config' action="/admin/addconfig/" method='POST'>
 <div class = "panel">
   <div class="panel-heading">
     New Specification:
@@ -94,16 +70,17 @@
   <div class="panel-body" id='specification'>{{ITEM.description|safe}}
       <div class="form-horizontal caption">
       {% csrf_token %}
+      <input type="text" name="setting" value="ebay" style="display:none">
       <div class="form-group">
        <label class="col-lg-2 control-label">title: </label>
        <div class="col-lg-10">
-        <input type="text" name="title" class="form-control">
+        <input type="text" id="title" name="title" class="form-control">
        </div>
       </div>
       <div class="form-group">
        <label class="col-lg-2 control-label">type: </label>
        <div class="col-lg-10">
-        <select name="type">
+        <select name="type" class="form-control">
          <option value="ebay">Ebay</option>
          <option value="footer">Footer</option>
          <option value="extra">Extra</option>
@@ -113,7 +90,7 @@
       <div class="form-group">
        <label class="col-lg-2 control-label">content: </label>
        <div class="col-lg-10">
-        <textarea name="content" class="form-control"></textarea>
+        <textarea name="content" id="content" class="form-control"></textarea>
        </div>
       </div>
       </div>

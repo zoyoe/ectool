@@ -13,33 +13,78 @@ from google.appengine.ext import db
 from google.appengine.api import search
 
 
-#####
-#  data = {'id': XX,'email': XX,'logo':XX,
-#    'categories': categories}
-#
-#
+
 class SiteInfo(db.Model):
+
+  """ site logo, it should be a must if site is published
+      but we do not enforce it at the moment
+  """
+
   logo = db.BlobProperty(default=None)
+
+  """ the mainshop is a pseudo supplier that
+      we used to store the information of categories
+  """
   mainshop = db.StringProperty(default=None)
+
+  """ google analytic code
+  """
   analytics = db.StringProperty(default=None)
-  published = db.BooleanProperty()
-  trial = db.BooleanProperty()
+
+  """ whether this site has been published on www.zoyoe.com
+  """
+  published = db.BooleanProperty(default=False)
+  type = db.StringProperty()
+  siteinfo = db.TextProperty(default=None)
+  ebayinfo = db.TextProperty(default=None)
+  paypal = db.TextProperty(default=None)
   template = db.StringProperty(default=None)
 
-def siteinfo():
+  """ return the template path regarding certain file name
+  """
+  def gettemplate(self,name):
+    if self.template:
+      return self.template + "/" + name
+    else:
+      return "default/" + name 
+
+def setebayinfo(ebayinfo):
   site = SiteInfo.all().get()
+  if not site:
+    site = SiteInfo()
+  site.ebayinfo = ebayinfo
+  site.put()
+
+def currentsite():
+  return SiteInfo.all().get()
+
+def getSiteInfo():
+  site = SiteInfo.all().get()
+  if (site):
+    return site
+  else:
+    site = SiteInfo()
+    return site
+
+def getCategoriesInfo():
+  site = getSiteInfo()
   stories = {}
   if site:
     supplier = getSupplier(site.mainshop) 
-    stories[supplier.name] = json.loads(supplier.data)
+    if(supplier):
+      stories[supplier.name] = json.loads(supplier.data)
   return stories
 
 def formatRID(name):
   return name.replace(" ", "_").upper().encode('ascii','ignore')
 
 class Supplier(db.Model):
-  name = db.StringProperty(required=True)
+  """ data is a json object.
+  data = {'id': XX,'email': XX,'logo':XX,
+    'categories': categories}
+  """
   data = db.TextProperty(default='{}')
+  name = db.StringProperty(required=True)
   def saveItem(self,iteminfo,overwrite=True):
     item = getItem(iteminfo['refid'])
     if (item):
@@ -84,7 +129,7 @@ class Supplier(db.Model):
     return Item.all().ancestor(self)
   def getCategoryItems(self,category):
     return Item.all().ancestor(self).filter("category =",category)
-  def getCategoryItems(self,category):
+  def getSndCategoryItems(self,category):
     return Item.all().ancestor(self).filter("category2 =",category)
   def getItem(self,key):
     return Item.get_by_id(key,parent=self)
@@ -100,14 +145,13 @@ class Supplier(db.Model):
   def getUnpublishedItems(self):
     return Item.all().ancestor(self).filter("ebayid =",None)
 
-
-
 def getCategoryItems(category):
   return Item.all().filter("category =",category)
 
 
 class ImageData(db.Model):
   image = db.BlobProperty(default=None)
+  small = db.BlobProperty(default=None)
   name = db.StringProperty(required=True) 
   idx = db.IntegerProperty(required=True)
   url = db.StringProperty(default=None)
@@ -124,6 +168,7 @@ class Item(db.Model):
   category2 = db.StringProperty(default='1')
   description = db.TextProperty(default="")
   specification = db.TextProperty(default="")
+  disable = db.BooleanProperty(default=True)
   ebayid = db.StringProperty(default="")
   picture = db.BlobProperty(default=None)
   ebaycategory = db.TextProperty(default=None)
@@ -137,6 +182,10 @@ class Item(db.Model):
       return obj
     except:
       return {}
+  def payment(self):
+    site = SiteInfo.all().get()
+    return site.paypal
+    
 
 def createDefaultItem(refid,suppliername="Anonymous"):
   item = getItem(refid)

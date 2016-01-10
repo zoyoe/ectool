@@ -23,7 +23,7 @@
     <ListingDuration>Days_30</ListingDuration>
     <ListingType>FixedPriceItem</ListingType>
     <PaymentMethods>PayPal</PaymentMethods>
-    <PayPalEmailAddress>zoyoeproject@gmail.com</PayPalEmailAddress>
+    <PayPalEmailAddress>{{ITEM.payment}}</PayPalEmailAddress>
     <PictureDetails>
       <GalleryType>Gallery</GalleryType>
     </PictureDetails>

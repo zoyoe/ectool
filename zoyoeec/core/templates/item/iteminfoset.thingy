@@ -2,53 +2,26 @@
 <div class="product-set">
   <div class="product-price">
     <span><!--span class="strike-through">$200.00</span-->${{ITEM.price}}</span>
+    <a href="javascript:zoyoe.cart.add('{{ITEM.refid}}','{{ITEM.name}}','{{ITEM.price}}')" class="btn pull-right btn-default btn-xs"><i class='fa fa-shopping-cart'></i>&nbsp;add to chart</a>
   </div><!--end product-price-->
-  <div class="product-rate clearfix">
-    <ul class="rating">
-      <li><i class="fa fa-star-o"></i></li>
-      <li><i class="fa fa-star-o"></i></li>
-      <li><i class="fa fa-star-o"></i></li>
-      <li><i class="fa fa-star-o"></i></li>
-      <li><i class="fa fa-star-o"></i></li>
-    </ul>
-    <span>0 Review(s)&nbsp;&nbsp;
-      <a href="#"><i class="icon-pencil"></i> Write a Review</a>
-      <a href="javascript:zoyoe.cart.add('{{ITEM.refid}}','{{ITEM.name}}','{{ITEM.price}}')" class="btn pull-right btn-default btn-xs"><i class='fa fa-shopping-cart'></i>&nbsp;add to chart</a>
-    </span>
-  </div><!--end product-inputs-->
   <div class="product-info">
-    <dl class="dl-horizontal">
-      <dt>Availability:</dt>
-      <dd>Available In Stock</dd>
+    <ul>
+    <li>Availability: Available In Stock</li>
 
-      <dt>Product Code:</dt>
-      <dd>{{ITEM.key.id}}</dd>
+    <li>Product Code: {{ITEM.refid}}</li>
 
-      <dt>Supplier Brand:</dt>
-      <dd>{{ITEM.parent.name}}</dd>
-
-      <dt>Review Points:</dt>
-      <dd>25 Points</dd>
-    </dl>
-  </div><!--end product-info-->
-  <div class="product-rate clearfix" style="padding-top:40px;">
-    <h4> More specification about this item:</h4>
-  </div>
-  <div class="product-info">
-    <dl class="dl-horizontal">
     {% for key in ITEM.getSpecification %}
-      <dt>{{key}}:</dt>
-      <dd>{{ITEM.getSpecification|hash:key}}</dd>
+      <li>{{key}}: {{ITEM.getSpecification|hash:key}}</li>
     {% endfor %}
-    </dl>
+    </ul>
   </div><!--end product-info-->
-  <div class="product-rate clearfix" style="padding-top:40px;">
-    <h4> More Product Info:</h4>
+  <div class="product-rate clearfix" style="padding-top:40px;clear:both;">
+    <h4> Product Info:</h4>
   </div>
   <div class="product-info">
     {{ITEM.description|safe}}
   </div>
-  <div class="product-rate clearfix" style="padding-top:40px;">
+  <div class="product-rate clearfix" style="padding-top:40px;clear:both;">
     <h4>For Ebay Users:</h4>
   </div>
   <div class="product-info">
