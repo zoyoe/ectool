@@ -116,13 +116,14 @@ zoyoe.cart.save = function(){
     });
 
 }
+
+/* FIXME: This is not implemented */
 zoyoe.cart.editreceipt = function(cell,key){
    $.ajax({
       url: "/retail/editreceipt/" + key + "/"
     }).done(function (data){
       $("#content .inner").html(zoyoe.ebay.xml2Str(data));
     });
-
 }
 
 zoyoe.cart.checkout = function(key){

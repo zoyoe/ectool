@@ -336,6 +336,28 @@ def remove(request,item):
   content = temp.render(context)
   return HttpResponse(content,mimetype = "text/xml")
 
+## AJAX --
+## FIXME : edit receipt is not well implemeneted
+## PLEASE MOVE IT TO RECEIPT module
+def editreceipt(request,key):
+  receipt = Receipt.get_by_id(int(key))
+  receiptitems = ReceiptItem.all().ancestor(receipt)
+  cart = {}
+  for item in receiptitems:
+    if item.iid in cart:
+      cart[item.iid]['amount'] += 1
+    else:
+      cart[item.iid] = {'id':item.iid,'description':item.description,'price':item.price,'amount':item.amount}
+  temp = loader.get_template('receipt.html')
+  invoice = '{}'
+  z = receipt.paypal
+  if(receipt.paypal):
+    invoice = getinvoice(request,receipt.paypal)
+  context = Context({'CART':cart.values(),'RECEIPT':receipt,'INVOICE':json.loads(invoice)})
+  content = temp.render(context)
+  return HttpResponse(content,mimetype = "text/xml")
+
+
 # Following are receipt related operators 
 
 # Created a receipt, this is called in save
@@ -375,24 +397,6 @@ def deletereceipt(request,key):
   else:
     return ZoyoeSuccess('Receipt not found')
 
-# So far we do not support receipt editing
-def editreceipt(request,key):
-  receipt = Receipt.get_by_id(int(key))
-  receiptitems = ReceiptItem.all().ancestor(receipt)
-  cart = {}
-  for item in receiptitems:
-    if item.iid in cart:
-      cart[item.iid]['amount'] += 1
-    else:
-      cart[item.iid] = {'id':item.iid,'description':item.description,'price':item.price,'amount':item.amount}
-  temp = loader.get_template('receipt.html')
-  invoice = '{}'
-  z = receipt.paypal
-  if(receipt.paypal):
-    invoice = getinvoice(request,receipt.paypal)
-  context = Context({'CART':cart.values(),'RECEIPT':receipt,'INVOICE':json.loads(invoice)})
-  content = temp.render(context)
-  return HttpResponse(content,mimetype = "text/xml")
 
 def checkoutcart(request):
   cart = request.session.get('cart',{})
@@ -574,16 +578,6 @@ def get(request):
 
 def builderror(request,error):
   request.session['error'] = error
-
-def shoppingcart(request):
-  suppliers = Supplier.all()
-  stories = {}
-  for supply in suppliers:
-    stories[supply.name] = json.loads(supply.data)
-  cart = request.session.get('cart',{})
-  context = Context({'STORIES':stories,'CART':cart.values()})
-  return (render_to_response("shoppingcart.html"
-    ,context,context_instance=RequestContext(request)))
 
 def billinginfo(request):
   stories = getCategoriesInfo()

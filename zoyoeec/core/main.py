@@ -39,19 +39,6 @@ def workspace(request):
   else:
     return HttpResponseRedirect('/admin/config/preference/')
 
-def products(request):
-  stories = getCategoriesInfo()
-  items = Item.all().filter("disable !=",True).fetch(100)
-  context = Context({'RETAIL': True,'ITEM_WIDTH':'200','STORIES':stories,'sellitems':items})
-  return (render_to_response("products/gallery.html",context,context_instance=RequestContext(request)))
-
-
-def allebayitems(request):
-  stories = getCategoriesInfo()
-  items = Item.all().filter("ebayid !=",None).filter("ebayid !=","")
-  context = Context({'RETAIL': True,'ITEM_WIDTH':'200','STORIES':stories,'sellitems':items})
-  return (render_to_response("admin/allebayitems.html",context,context_instance=RequestContext(request)))
-
 def items(request,shop,category):
   stories = getCategoriesInfo()
   lvl1 = "Category"

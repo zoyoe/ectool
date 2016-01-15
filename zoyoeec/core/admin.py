@@ -499,7 +499,7 @@ def deploy(request):
   site.mainshop = formatName(context['ebayinfo']['store'])
   site.put()
   saveSupplier(context['ebayinfo'])
-  return (render_to_response("insert.html",context,context_instance=RequestContext(request)))
+  return (render_to_response("admin/ebaydeploy.html",context,context_instance=RequestContext(request)))
 
 
 @zuser.authority_ebay
@@ -507,7 +507,7 @@ def deploy(request):
 def relistlist(request):
   context = {}
   context['itemlist'] = getinactivelist(request)
-  return (render_to_response("insert.html",context,context_instance=RequestContext(request)))
+  return (render_to_response("admin/ebaydeploy.html",context,context_instance=RequestContext(request)))
 
 @zuser.authority_item
 @ebay_view_prefix

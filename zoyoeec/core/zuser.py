@@ -12,25 +12,76 @@ from google.appengine.ext import db
 from google.appengine.api import users
 from google.appengine.api import namespace_manager
 
+from Crypto.Cipher import XOR
+import base64
+
+def encrypt(key, plaintext):
+  cipher = XOR.new(key)
+  return base64.b64encode(cipher.encrypt(plaintext))
+
+def decrypt(key, ciphertext):
+  cipher = XOR.new(key)
+  return cipher.decrypt(base64.b64decode(ciphertext))
+
+
 class UserInfo(db.Model):
   email = db.StringProperty(default='xgao@zoyoe.com')
   ebaytoken = db.TextProperty(default=None)
   authtoken = db.StringProperty(default="[]")
   history = db.TextProperty(default="{}")
 
-def getUser(email,createifnotexist):
+def __get_user(email,createifnotexist = False):
   user = UserInfo.all().filter("email =",email).get()
   if (not user and createifnotexist):
     user = UserInfo(email = email)
     user.put()
   return user
 
-def getCurrentUser():
+def getCurrentUser(request):
   user = users.get_current_user()
   if user:
-    return getUser(user.email(),True)
+    return __get_user(user.email(),True)
   else:
+    email = request.session.get("email")
+    if email:
+      return __get_user(email,False)
+    else:
+      return None
+
+def loginUser(request,email,password):
+  user = getCurrentUser(request)
+  if user:
+    return user
+  else:
+    user = __get_user(email)
+    if user:
+      pw = decrypt(email,user.password)
+      if pw == password:
+        user = None
+      else:
+        request.session["email"] = email
+    else:
+      user = None
+    return user
+
+def registerUser(request,email,password)
+    user = __get_user(email)
+    if user:
+      return None
+    else:
+      user = __get_user(email,True)
+      user.password = encrypt(email,password)
+      user.put()
+    return user
+
+def logoutUser(request):
+  user = users.get_current_user()
+  if user:
     return None
+  else:
+    user = getCurrentUser()
+    request.session["email"] = None
+    return user
 
 def checkAuthority(authority,user):
   if not user:
@@ -43,7 +94,7 @@ def checkAuthority(authority,user):
 
 def authority_login(handler):
   def rst_handler(request,*args,**kargs):
-    user = getCurrentUser()
+    user = getCurrentUser(request)
     if user:
       return handler(request,*args,**kargs)
     else:
@@ -52,7 +103,7 @@ def authority_login(handler):
 
 def authority_item(handler):
   def rst_handler(request,*args,**kargs):
-    user = getCurrentUser()
+    user = getCurrentUser(request)
     if user:
       if checkAuthority("item",user):
         return handler(request,*args,**kargs)
@@ -64,7 +115,7 @@ def authority_item(handler):
 
 def authority_ebay(handler):
   def rst_handler(request,*args,**kargs):
-    user = getCurrentUser()
+    user = getCurrentUser(request)
     if user:
       if checkAuthority("ebay",user):
         return handler(request,*args,**kargs)
@@ -76,7 +127,7 @@ def authority_ebay(handler):
 
 def authority_config(handler):
   def rst_handler(request,*args,**kargs):
-    user = getCurrentUser()
+    user = getCurrentUser(request)
     if user:
       if checkAuthority("config",user):
         return handler(request,*args,**kargs)

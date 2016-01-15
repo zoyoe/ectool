@@ -23,7 +23,6 @@ urlpatterns = patterns('core',
 # items view pages
   (r'^items/(?P<shop>[a-zA-Z\d_]+)/(?P<category>[a-zA-Z\d]+)/', 'main.items'),
   (r'^items/search/', 'retail.searchview'),
-# (r'^products/', 'main.products'),
 
 # some user specific pages
   (r'^user/viewhistory/','record.getItemHistoryResponse'),
@@ -87,7 +86,6 @@ urlpatterns = patterns('core',
   (r'^admin/addconfig/$', 'admin.addconfig'),
   (r'^admin/config/preference/$', 'admin.preference'),
   (r'^admin/config/ebay/$', 'admin.ebayconfig'),
-  (r'^admin/allebayitems/$', 'main.allebayitems'),
 
   (r'^json/categories/$', 'jsonapi.categories'),
   (r'^json/items/(?P<category>[a-zA-Z\d]+)/$', 'jsonapi.items'),
