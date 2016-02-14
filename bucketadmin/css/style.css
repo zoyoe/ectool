@@ -5751,3 +5751,12 @@ right: -1px;
 .sortable{
     min-height: 400px;;
 }
+
+
+/* added extra hight light stuff (zoyoe) */
+
+.highlight-yellow {
+    background:#f8d347;
+    border-radius:0px 4px 4px 0px;
+    -webkit-border-radius:0px 4px 4px 0px;
+}

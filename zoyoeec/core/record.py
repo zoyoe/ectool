@@ -22,7 +22,7 @@ def getItemResponse(request,item,stories):
     return retailError(request,"item not found")
 
 def recordItemHistory(request,item):
-  user = zuser.getCurrentUser()
+  user = zuser.getCurrentUser(request)
   if user:
     history = user.history
     if not history:
@@ -42,7 +42,7 @@ def recordItemHistory(request,item):
     user.put()
 
 def getItemHistory(request):
-  user = zuser.getCurrentUser()
+  user = zuser.getCurrentUser(request)
   rslt = []
   if user:
     history = user.history

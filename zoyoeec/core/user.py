@@ -7,10 +7,10 @@ from google.appengine.ext import db
 import random,json
 from retailtype import *
 import record
-from google.appengine.api import users
+import zuser
 
 def user(request):
-  user = users.get_current_user()
+  user = zuser.getCurrentUser(request)
   return {'user':user}
 
 def info(request):
@@ -31,3 +31,4 @@ def info(request):
     cart = {}
 
   return {'CART':cart.values(),'HISTORY':history, 'ERROR':error, 'FOOTER':extra,'ANALYTIC':analytic,'LOGO':logourl}
+

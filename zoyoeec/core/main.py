@@ -11,7 +11,7 @@ from retailtype import getCategoryItems,ShopInfo,getSiteInfo,getCategoriesInfo
 from google.appengine.ext import db
 from google.appengine.api import users,namespace_manager
 from page import *
-import zuser,record,random,json
+import zuser,record,random,json,error
 
 application = django.core.handlers.wsgi.WSGIHandler()
 
@@ -39,14 +39,78 @@ def workspace(request):
   else:
     return HttpResponseRedirect('/admin/config/preference/')
 
+def logout(request):
+  user = zuser.logoutUser(request)
+  return HttpResponseRedirect('/')
+
+def login(request):
+  if (request.method == "POST"):
+    if('email' in request.POST and 'password' in request.POST):
+      email = request.POST['email']
+      password = request.POST['password']
+      user = zuser.loginUser(request,email,password)
+      if user:
+        if ('requesturl' in request.POST):
+          requesturl = request.POST['requesturl']
+          return HttpResponseRedirect(zuser.decrypt('url',requesturl));
+        return error.ZoyoeSuccess("Success")
+      else:
+        if ('requesturl' in request.POST):
+          requesturl = request.POST['requesturl']
+          error.builderror(request,"User not exist or password not correct")
+          return HttpResponseRedirect("/login/?requesturl=" + requesturl);
+        else:
+          return error.ZoyoeError("User not exist or password not correct")
+    return error.ZoyoeError("email or password not provided")
+  else:
+    context = {};
+    if ('requesturl' in request.GET):
+      context['requesturl'] = request.GET['requesturl']
+    return (render_to_response("zoyoe/login.html",context,context_instance=RequestContext(request)))
+
+def register(request):
+  if (request.method == "POST"):
+    if('email' in request.POST and 'password' in request.POST):
+      email = request.POST['email']
+      password = request.POST['password']
+      user = zuser.registerUser(request,email,password)
+      if user:
+        if ('requesturl' in request.GET):
+          requesturl = request.GET['requesturl']
+          return HttpResponseRedirect(zuser.decrypt('url',requesturl));
+        else:
+          return HttpResponseRedirect("/");
+## Need to provide more information of register 
+#        return error.ZoyoeSuccess("Success")
+######
+      else:
+        return error.ZoyoeError("User already exist.")
+    return error.ZoyoeError("email or password not provided")
+  else:
+    user = zuser.getCurrentUser(request)
+    if not user:
+      if ('requesturl' in request.GET):
+        context = {}
+        context['requesturl'] = request.GET['requesturl']
+      return (render_to_response("zoyoe/register.html",context,context_instance=RequestContext(request)))
+    else:
+      if ('requesturl' in request.GET):
+        requesturl = request.GET['requesturl']
+        return HttpResponseRedirect(zuser.decrypt('url',requesturl));
+      else:
+        return HttpResponseRedirect("/");
+
 def items(request,shop,category):
   stories = getCategoriesInfo()
   lvl1 = "Category"
   lvl2 = "Gallery"
-  for c in stories[shop]:
-    if (category in stories[shop][c]['children']):
-      lvl1 = stories[shop][c]['name']
-      lvl2 = stories[shop][c]['children'][category]['name']
+  if (shop in stories):
+    for c in stories[shop]:
+      if (category in stories[shop][c]['children']):
+        lvl1 = stories[shop][c]['name']
+        lvl2 = stories[shop][c]['children'][category]['name']
+  else:
+    return error.ZoyoeError("category does not exist")
   dict = {'SHOP':shop,'ITEM_WIDTH':'200','STORIES':stories,'PATH':lvl1,'CATEGORY':lvl2}
   query = getCategoryItems(category).filter("disable ==",False)
   myPagedQuery = PagedQuery(query, 12)

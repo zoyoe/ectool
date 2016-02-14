@@ -3,6 +3,7 @@
   <RequesterCredentials>
     <eBayAuthToken>{{token}}</eBayAuthToken>
   </RequesterCredentials>
+  <DetailLevel>ReturnAll</DetailLevel>
   <OrderRole>Seller</OrderRole>
   <OrderStatus>Completed</OrderStatus>
   <WarningLevel>High</WarningLevel>

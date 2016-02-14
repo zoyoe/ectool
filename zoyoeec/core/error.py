@@ -7,6 +7,8 @@ from StringIO import StringIO
 def returnError(error):
   return HttpResponse("<?xml version='1.0' encoding='utf-8'?><ZoyoeError>" + error + "</ZoyoeError>",mimetype="text/xml")
 
+def ZoyoeError(error):
+  return HttpResponse("<?xml version='1.0' encoding='utf-8'?><ZoyoeError>" + error + "</ZoyoeError>",mimetype="text/xml")
 
 def ZoyoeSuccess(success):
   return HttpResponse("<?xml version='1.0' encoding='utf-8'?><ZoyoeSuccess>" + success + "</ZoyoeSuccess>",mimetype="text/xml")
@@ -35,3 +37,6 @@ def authorityError(request,error):
   context = Context({'ERROR':error,'STORIES':stories})
   return (render_to_response("error/authorityerror.html"
     ,context,context_instance=RequestContext(request)))
+
+def builderror(request,error):
+  request.session['error'] = error

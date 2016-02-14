@@ -93,11 +93,11 @@
               <i class="caret"></i>
             </a>
             <ul class="dropdown-menu extended logout">
-                {% if not user %}
-                <li><a href="{{user|loginurl:request}}"><i class="fa fa-key"></i> google login</a></li>
-                {% else %}
-                <li><a href="{{user|logouturl:request}}"><i class="fa fa-key"></i> logout </a></li>
-                {% endif %}
+            {% if not user %}
+                <li><a href="{{user|loginurl:request}}"><i class="fa fa-user"></i> Sign in </a></li>
+            {% else %}
+                <li><a href="{{user|logouturl:request}}"><i class="fa fa-mail-forward"></i> Logout </a></li>
+            {% endif %}
             </ul>
         </li>
         <!-- user login dropdown end -->

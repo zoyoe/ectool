@@ -3,28 +3,108 @@
 
 
 {% block title %}
-<h5><i class="fa fa-book"></i>Manage Ebay Order
-</h5>
+<div class="col-md-12">
+  <ul class="breadcrumbs-alt">
+    <li>
+      <a href="#">Admin</a>
+    </li>
+    <li><a class="active" href="#">Manage Ebay Delivery</a>
+    </li>
 
-<div class="btn-group">
-<a id="dlink"  style="display:none;"></a>
-<input type="button" class="btn btn-default btn-xs" onclick="tableToExcel('orderlist', 'orderlist', 'orderlist.xls')" value="Export to Excel">
+  </ul>
 </div>
 {% endblock %}
 
 {% block head %}
-<div class="form-horizontal caption">
-  {% csrf_token %}
-  <div class="form-group">
-    <label class="col-sm-4 control-label">select date: </label>
-    <div class="col-sm-8">
-      <input id="datepicker" type="text" name="date" class="form-control">
+
+<a id="dlink"  style="display:none;"></a>
+<div class="col-lg-12">
+  <div class = "panel ">
+    <div class="panel-heading">Delivery Filter
+    </div>
+    <div class="panel-body">
+      <div class="form-horizontal">
+        <div class="form-group">
+          <label class="col-sm-2 control-label">Status: </label>
+          <div class="col-sm-2">
+             <input type="button" class="btn btn-default btn-xs" onclick="tableToExcel('pick_table', 'pick_table', 'orderlist.xls')" value="Export to Excel">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-horizontal caption">
+      {% csrf_token %}
+        <div class="form-group">
+          <label class="col-sm-2 control-label">select date: </label>
+          <div class="col-sm-2">
+            <input id="datepicker" type="text" name="date" class="form-control">
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<div id="table-container" style="overflow-x:scroll">
+
+<div class="col-lg-6">
+  <div class = "panel ">
+    <div class="panel-heading">
+        Order Details
+    </div>
+    <div class="panel-body">
+      <div class="table-responsive" id="table-container" style="overflow-x:scroll">
 {{ORDERS|safe}}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="col-lg-6">
+  <div class = "panel ">
+    <div class="panel-heading">
+        Order Details
+    </div>
+    <div class="panel-body">
+      <div class="table-responsive" id="table-picker" style="overflow-x:scroll">
+ <table id='pick_table' style="width:2000px;" class='table'>
+   <thead style="display:none">
+    <th>CNSGMT_ID</th>
+    <th>CONSIGNMENT_NUMBER</th>
+    <th>POST_RG_TO_ACCT</th>
+    <th>CHRG_CODE</th>
+    <th>MERCHANT_CNSGNEE_CODE</th>
+    <th>CNSGNEE_NAME</th>
+    <th>CNSGNEE_BUS_NAME</th>
+    <th>CNSGNEE_ADDR_LINE1</th>
+    <th>CNSGNEE_SUBURB</th>
+    <th>CNSGNEE_STATE_CODE</th>
+    <th>CNSGNEE_PCODE</th>
+    <th>CNSGNEE_CNTRY_CODE</th>
+    <th>CNSGNEE_PHONE_NBR</th>
+    <th>IS_PHONE_PRNT_REQD</th>
+    <th>CNSGNEE_FAX_NBR</th>
+    <th>DELIVY_INSTRN</th>
+    <th>IS_SIGNTR_REQD</th>
+<!--
+    <th>IS_PART_DELIVY</th>
+    <th>U_CMNTS</th>
+    <th>ADD_TO_ADDRESS_BOOK</th>
+    <th>CTC_AMT</th>
+    <th>XREF</th>
+    <th>IS_REF_PRINT_REQD</th>
+    <th>REF2</th>
+    <th>IS_REF2_PRINT_REQD</th>
+    <th>CHRG_BCK_ACCT</th>
+    <th>IS_RECURRG_CNSGMT</th>
+    <th>RTN_NAME</th>
+-->
+   </thead>
+   <tbody>
+   </tbody>
+ </table>
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
 
@@ -61,10 +141,19 @@ $(function() {
           'day' : en.currentDay}
       }).done(function (data){
           $('#table-container').html(data);
+          $('#select_table tr').click(function() {
+            zoyoe.ebay.picktransaction($(this),$('#pick_table tbody'));
+          });
       });
     }
   });
+
+
+  $('#select_table tr').click(function() {
+    zoyoe.ebay.picktransaction($(this),$('#pick_table tbody'));
+  });
 });
+
 
 </script>
 {% endblock %}

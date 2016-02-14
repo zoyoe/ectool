@@ -14,12 +14,22 @@ from google.appengine.api import urlfetch
 from zuser import *
 
 
-def retail(request):
-  stories = getCategoriesInfo()
-  fliers = ShopInfo.all().filter("type =","category").order("name")
-  context = Context({'STORIES':stories,'FLIERS':fliers})
-  cover_path = getSiteInfo().gettemplate("cover.html");
-  return (render_to_response(cover_path,context,context_instance=RequestContext(request)))
+def formatName(name):
+  return name.replace(" ", "_")
+
+# Save an ebay supplier into google datastore 
+def saveSupplier(ebayinfo):
+  supplier = getSupplierFromEbayInfo(ebayinfo)
+  if supplier: 
+    supplier.data = json.dumps(ebayinfo['categories'])
+    supplier.put()
+    return supplier
+  elif ebayinfo:
+    supplier = Supplier(name = formatName(ebayinfo['store']),data=json.dumps(ebayinfo['categories']))
+    supplier.put()
+    return supplier
+  else:
+    return None
 
 def getSupplierFromEbayInfo(ebayinfo):
   if ebayinfo:
@@ -34,6 +44,17 @@ def getSupplierByName(name):
   supplier = suppliers.get()
   return supplier
 
+
+
+@require_login
+def retail(request):
+  stories = getCategoriesInfo()
+  fliers = ShopInfo.all().filter("type =","category").order("name")
+  context = Context({'STORIES':stories,'FLIERS':fliers})
+  cover_path = getSiteInfo().gettemplate("cover.html");
+  return (render_to_response(cover_path,context,context_instance=RequestContext(request)))
+
+## FIXME: Dont remember #
 def matchjson(request):
   ret = {}
   if ('term' in request.GET):
@@ -57,6 +78,7 @@ def searchjson(request):
     return HttpResponse(json.dumps(items),mimetype = "text/plain")
   return HttpResponse('[]',mimetype = "text/plain")
 
+@zuser.require_login
 def searchview(request):
   index = search.Index(name="itemindex")
   items = []
@@ -73,22 +95,6 @@ def searchview(request):
   return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
 
 
-def formatName(name):
-  return name.replace(" ", "_")
-
-# Save an ebay supplier into google datastore 
-def saveSupplier(ebayinfo):
-  supplier = getSupplierFromEbayInfo(ebayinfo)
-  if supplier: 
-    supplier.data = json.dumps(ebayinfo['categories'])
-    supplier.put()
-    return supplier
-  elif ebayinfo:
-    supplier = Supplier(name = formatName(ebayinfo['store']),data=json.dumps(ebayinfo['categories']))
-    supplier.put()
-    return supplier
-  else:
-    return None
 
 # Following are two helping functions to help encoding price 
 class Price:
@@ -293,6 +299,16 @@ def buildinvoice(receipt,receiptitems):
 """
 FIXME: A very rough implementation of adding something into your cart 
 """
+def get(request):
+  cart = request.session.get('cart',{})
+  if not cart:
+    cart = {}
+  temp_path = currentsite().gettemplate("cartdisplay.html");
+  temp = loader.get_template(temp_path)
+  context = Context({'CART':cart.values()})
+  content = temp.render(context)
+  return HttpResponse(content,mimetype = "text/xml")
+
 def add(request):
   item = request.GET['id']
   token = ebay.getToken(request)
@@ -397,7 +413,7 @@ def deletereceipt(request,key):
   else:
     return ZoyoeSuccess('Receipt not found')
 
-
+@require_login
 def checkoutcart(request):
   cart = request.session.get('cart',{})
   request.session['cart'] = {}
@@ -413,7 +429,7 @@ def checkoutcart(request):
     "postal_code":request.POST["postal_code"],
     "country_code": request.POST["country_code"]
     })
-    receipt.zuser = getCurrentUser()
+    receipt.zuser = getCurrentUser(request)
     for key in cart:
       item = cart[key]
       obj = ReceiptItem(parent=receipt,iid= item['id'],description=item['description'],amount=int(item['amount']),price=float(item['price']))
@@ -514,6 +530,7 @@ def sendpaypalinvoice(request,key):
   else: 
     return retailError(request,json.dumps(invoice))
 
+## This is not a view function , it is called by used in receipts 
 def receiptsearch(request):
   # Here we are going to prepare for the saved billing info
   temp_path = currentsite().gettemplate("receiptsearch.html");
@@ -523,9 +540,9 @@ def receiptsearch(request):
   builderror(request,content)
   return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
 
-
+@require_login
 def receipts(request):
-  user = getCurrentUser()
+  user = getCurrentUser(request)
   if (user):
       receipts = user.receipt_set
       stories = getCategoriesInfo()
@@ -535,10 +552,15 @@ def receipts(request):
   else:
       return receiptsearch(request)
 
-
+@require_login
 def receiptview(request):
-  key = request.GET['key']
-  receipt = Receipt.get_by_id(int(key))
+  receipt = None
+  if ('key' in request.GET):
+    key = request.GET['key']
+    try:
+      receipt = Receipt.get_by_id(int(key))
+    except ValueError:
+      pass
   invoice = None
   if not receipt:
     return retailError(request,"Receipt not exist.")
@@ -566,19 +588,7 @@ def receiptview(request):
   return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
-def get(request):
-  cart = request.session.get('cart',{})
-  if not cart:
-    cart = {}
-  temp_path = currentsite().gettemplate("cartdisplay.html");
-  temp = loader.get_template(temp_path)
-  context = Context({'CART':cart.values()})
-  content = temp.render(context)
-  return HttpResponse(content,mimetype = "text/xml")
-
-def builderror(request,error):
-  request.session['error'] = error
-
+@require_login
 def billinginfo(request):
   stories = getCategoriesInfo()
   cart = request.session.get('cart',{})

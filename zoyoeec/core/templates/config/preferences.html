@@ -36,12 +36,52 @@
 {% endfor %}
   </div>
 </div>
+
+<form id='add-config' action="/admin/addconfig/" method='POST'>
+<div class = "panel">
+  <div class="panel-heading">
+    New Specification:
+    <button class="btn btn-xs pull-right btn-danger"><i class="fa fa-cogs"></i>&nbsp;submit</button>
+  </div>
+  <div class="panel-body" id='specification'>{{ITEM.description|safe}}
+      <div class="form-horizontal caption">
+      {% csrf_token %}
+      <input type="text" name="setting" value="ebay" style="display:none">
+      <div class="form-group">
+       <label class="col-lg-2 control-label">title: </label>
+       <div class="col-lg-10">
+        <input type="text" id="title" name="title" class="form-control">
+       </div>
+      </div>
+      <div class="form-group">
+       <label class="col-lg-2 control-label">type: </label>
+       <div class="col-lg-10">
+        <select name="type" class="form-control">
+         <option value="ebay">Ebay</option>
+         <option value="footer">Footer</option>
+         <option value="extra">Extra</option>
+        </select>
+       </div>
+      </div>
+      <div class="form-group">
+       <label class="col-lg-2 control-label">content: </label>
+       <div class="col-lg-10">
+        <textarea name="content" id="content" class="form-control"></textarea>
+       </div>
+      </div>
+      </div>
+  </div>
+  </form>
+
+
 </section>
+
 <section class="col-lg-5 col-md-5">
 {% include "config/config.thingy" with title="analytic" category="extra" form="config-form" content=ANALYTIC %}
 {% include "config/config.thingy" with title="paypal" category="private" form="config-form" content=SITEINFO.paypal %}
 {% include "config/config.thingy" with title="template" category="private" form="config-form" content=SITEINFO.template %}
 {% include "config/config.thingy" with title="published" datatype="boolean" category="private" form="config-form" content=SITEINFO.published %}
+{% include "config/config.thingy" with title="requirelogin" datatype="boolean" category="private" form="config-form" content=SITEINFO.requirelogin%}
 </section>
 
 

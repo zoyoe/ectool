@@ -34,6 +34,7 @@ class SiteInfo(db.Model):
   """ whether this site has been published on www.zoyoe.com
   """
   published = db.BooleanProperty(default=False)
+  requirelogin = db.BooleanProperty(default=False)
   type = db.StringProperty()
   siteinfo = db.TextProperty(default=None)
   ebayinfo = db.TextProperty(default=None)

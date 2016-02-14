@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>zoyoe</title>
+
+    <!--IE Compatibility modes-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!--Mobile first-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="http://fonts.googleapis.com/css?family=Cuprum" rel="stylesheet" type="text/css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="/static/bucketadmin/bs3/css/bootstrap.min.css">
+
+    {% block extracss %}
+    {% endblock %}
+     <!-- Font Awesome -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
+
+    <link href="/static/bucketadmin/css/bootstrap-reset.css" rel="stylesheet">
+    <link href="/static/bucketadmin/css/style.css" rel="stylesheet">
+    <link href="/static/bucketadmin/css/style-responsive.css" rel="stylesheet">
+    <link href="/static/bucketadmin/css/clndr.css" rel="stylesheet">
+
+</head>
+
+  <body class="login-body">
+    <div class="container">
+
+      <form class="form-signin" method="POST" action="/register/">
+        {% csrf_token %}
+        <h2 class="form-signin-heading">Register Now </h2>
+        <div class="login-wrap">
+            <div class="user-login-info">
+                <input name="email" type="text" class="form-control" placeholder="User ID" autofocus>
+                <input name="password" type="password" class="form-control" placeholder="Password">
+                <input name="passowrdcheck" type="password" class="form-control" placeholder="Confirm Password">
+            </div>
+            <button class="btn btn-lg btn-login btn-block" type="submit">Submit</button>
+
+            <div class="registration">
+                Already have an account ?
+                <a class="" href="/login/?requesturl={{requesturl}}">
+                    Sign in
+                </a>
+            </div>
+
+        </div>
+      </form>
+
+    </div>
+
+
+
+    <!-- Placed js at the end of the document so the pages load faster -->
+
+    <!--Core js-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="/static/bucketadmin/bs3/js/bootstrap.min.js"></script>
+    <script src="/static/bucketadmin/js/scripts.js"></script>
+
+  </body>
+</html>

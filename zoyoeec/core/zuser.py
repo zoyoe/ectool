@@ -29,6 +29,8 @@ class UserInfo(db.Model):
   ebaytoken = db.TextProperty(default=None)
   authtoken = db.StringProperty(default="[]")
   history = db.TextProperty(default="{}")
+  password = db.TextProperty(default="")
+  oauth = db.BooleanProperty(default=False)
 
 def __get_user(email,createifnotexist = False):
   user = UserInfo.all().filter("email =",email).get()
@@ -40,7 +42,11 @@ def __get_user(email,createifnotexist = False):
 def getCurrentUser(request):
   user = users.get_current_user()
   if user:
-    return __get_user(user.email(),True)
+    user =  __get_user(user.email(),True)
+    if (user and user.oauth == False):
+      user.oauth = True
+      user.put()
+    return user
   else:
     email = request.session.get("email")
     if email:
@@ -56,7 +62,7 @@ def loginUser(request,email,password):
     user = __get_user(email)
     if user:
       pw = decrypt(email,user.password)
-      if pw == password:
+      if pw != password:
         user = None
       else:
         request.session["email"] = email
@@ -64,7 +70,7 @@ def loginUser(request,email,password):
       user = None
     return user
 
-def registerUser(request,email,password)
+def registerUser(request,email,password):
     user = __get_user(email)
     if user:
       return None
@@ -79,7 +85,7 @@ def logoutUser(request):
   if user:
     return None
   else:
-    user = getCurrentUser()
+    user = getCurrentUser(request)
     request.session["email"] = None
     return user
 
@@ -100,6 +106,18 @@ def authority_login(handler):
     else:
       return loginError(request,"Please login with your google account continue");
   return rsthandler
+
+def require_login(handler):
+  def rst_handler(request,*args,**kargs):
+    site = getSiteInfo()
+    if site.requirelogin:
+      user = getCurrentUser(request)
+      if not user:
+        absoluteurl = request.build_absolute_uri()
+        return HttpResponseRedirect("/login/?requesturl=" + encrypt("url",absoluteurl))
+    return handler(request,*args,**kargs)
+  return rst_handler
+
 
 def authority_item(handler):
   def rst_handler(request,*args,**kargs):

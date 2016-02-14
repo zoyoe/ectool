@@ -9,7 +9,6 @@ from ebayapi.api import *
 from ebayapi import api as ebayapi
 from retail import Supplier,ShopInfo,getSupplierFromEbayInfo
 import retailtype
-from google.appengine.api import users
 from error import *
 from lxml import etree 
 import urllib, random, json, datetime
@@ -116,7 +115,7 @@ def getToken(request):
   if (not 'ebayinfo' in request.session) or (not request.session['ebayinfo']):
     request.session['ebayinfo'] =  {}
   ebayinfo = request.session.get('ebayinfo',{})
-  user = users.get_current_user()
+  user = zuser.getCurrentUser(request)
 
 # we are going to fetch the token if it does not exist yet
   token = ""
@@ -142,7 +141,7 @@ def getToken(request):
         logging.info("Can not get token from ebay id:" + token)
     if (not token): # can not get token from session
       if user:
-        usr = zuser.getUser(user.email(),True)
+        usr = user
         if (usr and usr.ebaytoken):
           token = usr.ebaytoken
   # By the above computation we have tried to get the token
@@ -154,7 +153,7 @@ def getToken(request):
 
   # so far we might need to update the token of the current user 
   if user:
-    usr = zuser.getUser(user.email(),False)
+    usr = user
     if (usr):
       usr.ebaytoken = token
       usr.put()
@@ -237,7 +236,7 @@ def ebayorders(request):
   ft = ft.strftime("%Y-%m-%dT%H:%M:%S.000Z")
   xml_doc = GetOrders(token,ft,tt)
   xml_doc = etree.parse(StringIO(xml_doc))
-  xslt = GetXSLT(Context({}),'xslt/OrdersTable.xslt')
+  xslt = GetXSLT(Context({}),'xslt/OrdersTableSelect.xslt')
   rst = etree.tostring(xslt(xml_doc.getroot()))
   context = Context({"ORDERS":rst})
   return (render_to_response("ebayorders.html",context,context_instance=RequestContext(request)))
@@ -254,7 +253,7 @@ def ebayordersajax(request):
   ft = ft.strftime("%Y-%m-%dT%H:%M:%S.000Z")
   xml_doc = GetOrders(token,ft,tt)
   xml_doc = etree.parse(StringIO(xml_doc))
-  xslt = GetXSLT(Context({}),'xslt/OrdersTable.xslt')
+  xslt = GetXSLT(Context({}),'xslt/OrdersTableSelect.xslt')
   rst = etree.tostring(xslt(xml_doc.getroot()))
   return HttpResponse(rst)
 

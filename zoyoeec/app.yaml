@@ -29,6 +29,8 @@ libraries:
   version: latest
 - name: PIL
   version: latest
+- name: pycrypto
+  version: "2.6"
 
 env_variables:
   DJANGO_SETTINGS_MODULE : 'core.settings'

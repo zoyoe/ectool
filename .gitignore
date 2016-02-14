@@ -33,3 +33,6 @@
 
 # PYC files
 *.pyc
+
+# MAC DS_Store
+.DS_Store

@@ -26,8 +26,8 @@ class AdminAction(db.Model):
   action = db.StringProperty(required = True)
   target = db.StringProperty(required = True)
 
-def registerAdminAction(action,target):
-  user = zuser.getCurrentUser()
+def registerAdminAction(request,action,target):
+  user = zuser.getCurrentUser(request)
   action = AdminAction(action = action,target=target,parent=user)
   action.put()
 
@@ -198,7 +198,7 @@ def itemimage(request,shop,key):
 
 @zuser.authority_item
 def saveitem(request,shop,key):
-  registerAdminAction("saveitem",shop+"/"+key)
+  registerAdminAction(request,"saveitem",shop+"/"+key)
   item = Item.get_by_id(int(key),parent = getSupplier(shop))
   if(item):
     item.name = request.POST['name']
@@ -320,7 +320,7 @@ def rescale(img_data, width, height, halign='middle', valign='middle'):
 
 @zuser.authority_item
 def blobimage(request,shop,key,index='0'):
-  registerAdminAction("blobimage",shop+"/"+key)
+  registerAdminAction(request,"blobimage",shop+"/"+key)
   #file = request.FILES['image'].read()
   #type = request.FILES['image'].content_type
   #image = request.FILES['image'].content_type_extra
@@ -347,7 +347,7 @@ def blobimage(request,shop,key,index='0'):
 @zuser.authority_ebay
 @ebay_view_prefix
 def exporttoebay(request,shop,key):
-  registerAdminAction("ebayexport",shop+"/"+key)
+  registerAdminAction(request,"ebayexport",shop+"/"+key)
   token = ebay.getToken(request)
   item = Item.get_by_id(int(key),parent = getSupplier(shop))
   if item:
@@ -370,7 +370,7 @@ def exporttoebay(request,shop,key):
 @zuser.authority_ebay
 @ebay_view_prefix
 def relisttoebay(request,shop,key):
-  registerAdminAction("ebayrelist",shop+"/"+key)
+  registerAdminAction(request,"ebayrelist",shop+"/"+key)
   info = ebay.getEbayInfo(request)
   item = Item.get_by_id(int(key),parent = getSupplier(shop))
   if item:
@@ -383,7 +383,7 @@ def relisttoebay(request,shop,key):
 def importfromebay(ebayinfo,itemid):
   (rslt,item) = format(ebayinfo,itemid)
   if item:
-    registerAdminAction("ebaydepoly",item.parent().name+"/"+str(item.key().id()))
+    registerAdminAction(request,"ebaydepoly",item.parent().name+"/"+str(item.key().id()))
     return rslt
   else:
     return rslt
@@ -391,7 +391,7 @@ def importfromebay(ebayinfo,itemid):
 
 @ebay_view_prefix
 def syncwithebay(request,shop,key):
-  registerAdminAction("ebayexport",shop+"/"+key)
+  registerAdminAction(request,"ebayexport",shop+"/"+key)
   info = ebay.getEbayInfo(request)
   item = Item.get_by_id(int(key),parent = getSupplier(shop))
   if item:

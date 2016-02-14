@@ -9,6 +9,7 @@ zoyoe.cart = {}
 zoyoe.order = {}
 zoyoe.image = {}
 zoyoe.config = {}
+zoyoe.deliver = {}
 
 /* You need a post form to do it properly */
 zoyoe.config.delete = function(fid,title){
@@ -231,6 +232,7 @@ zoyoe.cart.add = function(id,dscp,value){
           $("#cart-result").html(zoyoe.ebay.xml2Str(data));
         } 
         /* This is only for debuging purpose, we will using jGrow instead 
+        */
         zoyoe.cart.dialog = new BootstrapDialog({
          title: "<i class='fa fa-shopping-cart'></i>&nbsp;Item added to Shopping cart",
          message: zoyoe.ebay.xml2Str(data),
@@ -239,7 +241,6 @@ zoyoe.cart.add = function(id,dscp,value){
             }]
          });
          zoyoe.cart.dialog.open(); 
-         */
          $.jGrowl("Item " + id + " added into cart.",{theme:'growl-success',sticky:true});
       }
 
@@ -511,7 +512,26 @@ zoyoe.ebay.relistall = function(){
      this.relistCell(inputlist[i]);
    }
 }
+zoyoe.ebay.picktransaction = function(tr,table){
+  if (!zoyoe.ebay.transactions){
+    zoyoe.ebay.transactions = {};
+  }
+  var tid = tr.find('td.DELIVY_INSTRN').html().split(";")[0];
+  if (zoyoe[tid]){
+    zoyoe[tid].remove();
+    zoyoe[tid] = null;
+    tr.removeClass("highlight-yellow");
+  }else{
+    zoyoe[tid] = tr.clone();
+    tr.addClass("highlight-yellow");
+    table.append(zoyoe[tid]);
+  }
+  return;
+}
 
+
+
+/* following functions are not used at the moment */
 zoyoe.item = function (iid, centre_top, centre_left, radius) {
     this.centre_top = centre_top;
     this.centre_left = centre_left;

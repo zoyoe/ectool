@@ -1,0 +1,78 @@
+{% load hash_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>zoyoe</title>
+
+    <!--IE Compatibility modes-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!--Mobile first-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="http://fonts.googleapis.com/css?family=Cuprum" rel="stylesheet" type="text/css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="/static/bucketadmin/bs3/css/bootstrap.min.css">
+
+    {% block extracss %}
+    {% endblock %}
+     <!-- Font Awesome -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
+
+    <link href="/static/bucketadmin/css/bootstrap-reset.css" rel="stylesheet">
+    <link href="/static/bucketadmin/css/style.css" rel="stylesheet">
+    <link href="/static/bucketadmin/css/style-responsive.css" rel="stylesheet">
+    <link href="/static/bucketadmin/css/clndr.css" rel="stylesheet">
+
+</head>
+
+  <body class="login-body">
+    <div class="container">
+
+      <form class="form-signin" action="/login/" method="post">
+        {% csrf_token %}
+        <h2 class="form-signin-heading">Sign In</h2>
+        <div class="login-wrap">
+            <div class="user-login-info">
+                {% if requesturl %}
+                <input type="hidden" name="requesturl" value="{{requesturl}}" >
+                {% endif %}
+                <input name="email" type="text" class="form-control" placeholder="User ID" autofocus>
+                <input name="password" type="password" class="form-control" placeholder="Password">
+            </div>
+            <label class="checkbox">
+                <input type="checkbox" value="remember-me"> Remember me
+                <span class="pull-right">
+                    <a data-toggle="modal" href="#myModal"> Forgot Password?</a>
+
+                </span>
+            </label>
+            <button class="btn btn-lg btn-login btn-block" type="submit">Sign in</button>
+            <a href="{{user|googleloginurl:requesturl}}" class="btn btn-sc btn-block"><img src="/static/img/btn_google_signin_dark_normal_web.png"></img></a>
+
+            <div class="registration">
+                Don't have an account yet?
+                <a class="" href="/register/?requesturl={{requesturl}}">
+                    Create an account
+                </a>
+            </div>
+
+        </div>
+
+
+      </form>
+
+    </div>
+
+
+
+    <!-- Placed js at the end of the document so the pages load faster -->
+
+    <!--Core js-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="/static/bucketadmin/bs3/js/bootstrap.min.js"></script>
+    <script src="/static/bucketadmin/js/scripts.js"></script>
+
+  </body>
+</html>
