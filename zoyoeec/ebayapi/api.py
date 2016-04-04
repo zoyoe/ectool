@@ -51,7 +51,7 @@ def FullHeadCurrent(head):
   return head
 
 def GetEbayReply(headers,content):
-  conn = httplib.HTTPSConnection(current_app['api_host'])
+  conn = httplib.HTTPSConnection(current_app['api_host'],timeout=20)
   conn.request("POST",current_app['api_uri'],content,headers)
   response = conn.getresponse()
   data = response.read()

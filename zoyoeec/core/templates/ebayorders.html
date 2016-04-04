@@ -16,55 +16,106 @@
 {% endblock %}
 
 {% block head %}
-
 <a id="dlink"  style="display:none;"></a>
+<div ng-app="ebayDeliver">
+<div class="col-md-12">
+<nav class="navbar navbar-inverse" role="navigation">
+  <div class="collapse navbar-collapse navbar-ex1-collapse">
+    {% for date in ORDER_GROUP %}
+    <div ng-controller="order-{{date.day}}-{{date.month}}-{{date.year}}">
+    {% verbatim angular %}
+    <ul class="nav navbar-nav">
+      <li><a href="javascript:">{{ orders.length }} items total</a></i>
+      <li><a href="javascript:tableToExcel('pick_table', 'pick_table', 'orderlist.xls');">export to excel </a></i>
+    </ul>
+    {% endverbatim angular %}
+    {% endfor %}
+    <div ng-controller="packing-list">
+    {% verbatim angular %}
+    <ul class="nav navbar-nav navbar-right">
+      <li><a href="javascript:">{{ orders.length }} items selected</a></i>
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+          <i class="caret"></i>
+        </a>
+        <ul style="width:300px;font-size:8pt;" class="dropdown-menu">
+        <li ng-repeat="x in orders" class="list-group-item">
+          <div style="clear:both;height:60px;" ng-repeat="y in x.DELIVY_INSTRN.transactions">
+          <img style="float:left;width:50px" ng-src="/image/item/{{y.sku}}/?sc=" alt="male">
+          <span>{{y.title}}</span>
+          </div>
+        </li>
+        </ul>
+      </li>
+    </ul>
+    {% endverbatim angular %}
+    </div>
+  </div>
+</nav>
+</div>
+
+
 <div class="col-lg-12">
-  <div class = "panel ">
-    <div class="panel-heading">Delivery Filter
-    </div>
-    <div class="panel-body">
-      <div class="form-horizontal">
-        <div class="form-group">
-          <label class="col-sm-2 control-label">Status: </label>
-          <div class="col-sm-2">
-             <input type="button" class="btn btn-default btn-xs" onclick="tableToExcel('pick_table', 'pick_table', 'orderlist.xls')" value="Export to Excel">
-          </div>
-        </div>
-      </div>
-
-      <div class="form-horizontal caption">
-      {% csrf_token %}
-        <div class="form-group">
-          <label class="col-sm-2 control-label">select date: </label>
-          <div class="col-sm-2">
-            <input id="datepicker" type="text" name="date" class="form-control">
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<div class="col-lg-6">
-  <div class = "panel ">
+  {% for date in ORDER_GROUP %}
+  <div class = "panel" ng-cloak ng-controller="order-{{date.day}}-{{date.month}}-{{date.year}}">
     <div class="panel-heading">
-        Order Details
+       {{date}} 
+      <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+            filters <i class="caret"></i>
+          </a>
+          <ul style="width:300px;font-size:8pt;" class="dropdown-menu">
+            <li><a href="javascript:"><input style="display:inline;" ng-model="config.undeliveredonly" type="checkbox"></input> show underlivered only</a></li>
+            <li><a href="javascript:"><input style="display:inline;" ng-model="config.pickedonly" type="checkbox"></input> show picked only</a></li>
+          </ul>
+        </li>
+      </ul>
     </div>
     <div class="panel-body">
-      <div class="table-responsive" id="table-container" style="overflow-x:scroll">
-{{ORDERS|safe}}
-      </div>
+      <div loading-indicator></div>
+      <ul class="list-group">
+        {% verbatim angular %}
+        <li ng-class="{'list-group-item-warning': !x.IS_SHIPPED && !x.IN_PACKING_LIST,'list-group-item-success': !x.IS_SHIPPED && x.IN_PACKING_LIST}" 
+            class="list-group-item" ng-repeat="x in orders | filter : take">
+          <button ng-if="!x.IS_SHIPPED && !x.IN_PACKING_LIST" ng-click="pickorder(x)" class="pull-right btn btn-sc btn-primary">Add to Packing List</button>
+          <button ng-if="!x.IS_SHIPPED && x.IN_PACKING_LIST" ng-click="removeorder(x)" class="pull-right btn btn-sc btn-primary">Remove from Packing List</button>
+          name: {{x.CNBSGNEE_NAME}},
+          phone number: {{x.CNSGNEE_PHONE_NBR}}</br>
+          <p>
+          address: {{x.CNSGNEE_ADDR_LINE1}},
+          {{x.CNSGNEE_SUBURB}}, {{x.CNSGNEE_STATE_PCODE}}, {{x.CNSGNEE_CNTRY_CODE}}.
+          created time: {{x.CREATE_TIME}}
+          </p>
+          <div class="row prd-row" ng-repeat="y in x.DELIVY_INSTRN.transactions">
+            <div class="col-md-4">
+              <div class="prd-img">
+                <img style="width:100px" ng-src="/image/item/{{y.sku}}/?sc=" alt="male">
+              </div>
+            </div>
+            <div class="col-md-8">
+              <h1>{{y.sku}} * {{y.quantity}}</h1>
+              <p class="normal">{{y.title}}</p>
+              <p class="terques">more info</p>
+            </div>
+          </div>
+         </ul>
+        </li>
+        {% endverbatim angular %}
+      </ul>
     </div>
   </div>
+  {% endfor %}
 </div>
-<div class="col-lg-6">
+<div class="col-lg-12" >
   <div class = "panel ">
     <div class="panel-heading">
         Order Details
     </div>
     <div class="panel-body">
       <div class="table-responsive" id="table-picker" style="overflow-x:scroll">
+
+        {% verbatim angular %}
  <table id='pick_table' style="width:2000px;" class='table'>
    <thead style="display:none">
     <th>CNSGMT_ID</th>
@@ -98,9 +149,29 @@
     <th>RTN_NAME</th>
 -->
    </thead>
-   <tbody>
+   <tbody ng-controller="packing-list" >
+    <tr ng-repeat="order in orders">
+     <td class="CNSGMT_ID">C</td><!-- CNSGMT_ID -->
+     <td class="CONSIGNMENG_NUMBER"></td>
+     <td class="POST_RG_TO_ACCT"></td><!-- POST_RG_TO_ACCT -->
+     <td class="CHRG_CODE">7I55</td>
+     <td class="MERCHANT_CNSGNEE_CODE"></td>
+     <td class="CNBSGNEE_NAME">{{order.CNBSGNEE_NAME}}</td> <!-- CNBSGNEE_NAME -->
+     <td class="CNSGNEE_BUS_NAME"></td>
+     <td class="CNSGNEE_ADDR_LINE1">{{order.CNSGNEE_ADDR_LINE1}}</td>
+     <td class="CNSGNEE_SUBURB">{{order.CNSGNEE_SUBURB}}</td>
+     <td class="CNSGNEE_STATE_CODE">{{order.CNSGNEE_STATE_CODE}}</td>
+     <td class="CNSGNEE_STATE_PCODE">{{order.CNSGNEE_STATE_PCODE}}</td>
+     <td class="CNSGNEE_CNTRY_CODE">{{order.CNSGNEE_CNTRY_CODE}}</td>
+     <td class="CNSGNEE_PHONE_NBR">{{order.CNSGNEE_PHONE_NBR}}</td>
+     <td class="IS_PHONE_PRNT_REQD"></td><!-- RD-->
+     <td class="CNSGNEE_FAX_NBR"></td><!-- RD--> 
+     <td class="DELIVY_INSTRN">{{order.DELIVY_INSTRN.order_id}}</td>
+     <td class="IS_SIGNTR_REQD">True</td>
+    </tr>
    </tbody>
  </table>
+        {% endverbatim angular %}
       </div>
     </div>
   </div>
@@ -114,46 +185,98 @@
 
 {% block dialogfirst %}
 <script>
-var tableToExcel = (function () {
-        var uri = 'data:application/vnd.ms-excel;base64,'
-        , template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>'
-        , base64 = function (s) { return window.btoa(unescape(encodeURIComponent(s))) }
-        , format = function (s, c) { return s.replace(/{(\w+)}/g, function (m, p) { return c[p]; }) }
-        return function (table, name, filename) {
-            if (!table.nodeType) table = document.getElementById(table)
-            var ctx = { worksheet: name || 'Worksheet', table: table.innerHTML }
+  var tableToExcel = (function () {
+    var uri = 'data:application/vnd.ms-excel;base64,'
+       , template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>'
+       , base64 = function (s) { return window.btoa(unescape(encodeURIComponent(s))) }
+       , format = function (s, c) { return s.replace(/{(\w+)}/g, function (m, p) { return c[p]; }) }
+       return function (table, name, filename) {
+           if (!table.nodeType) table = document.getElementById(table)
+           var ctx = { worksheet: name || 'Worksheet', table: table.innerHTML }
+           document.getElementById("dlink").href = uri + base64(format(template, ctx));
+           document.getElementById("dlink").download = filename;
+           document.getElementById("dlink").click();
+       }
+  })();
+  var app = angular.module("ebayDeliver", []);
 
-            document.getElementById("dlink").href = uri + base64(format(template, ctx));
-            document.getElementById("dlink").download = filename;
-            document.getElementById("dlink").click();
-
+  app.config(function($httpProvider) {
+    $httpProvider.interceptors.push(function($q, $rootScope) {
+      return {
+        'request': function(config) {
+          $rootScope.$broadcast('loading-started');
+          return config || $q.when(config);
+        },
+        'response': function(response) {
+          $rootScope.$broadcast('loading-complete');
+          return response || $q.when(response);
         }
-    })()
-$(function() {
-  $( "#datepicker" ).datepicker({
-    onSelect : function(dstr,en) {
-      var correct_format;
-      var url = "/orders/ebayajax/";
-      $.ajax({
-        url: url,
-        data:{'year' : en.currentYear,
-          'month' : en.currentMonth + 1,
-          'day' : en.currentDay}
-      }).done(function (data){
-          $('#table-container').html(data);
-          $('#select_table tr').click(function() {
-            zoyoe.ebay.picktransaction($(this),$('#pick_table tbody'));
-          });
-      });
-    }
+      };
+    });
+  });
+  app.directive("loadingIndicator", function() {
+     return {
+         restrict : "A",
+         template: "<div>Loading...</div>",
+         link : function(scope, element, attrs) {
+             scope.$on("loading-started", function(e) {
+                 element.css({"display" : ""});
+             });
+             scope.$on("loading-complete", function(e) {
+                 element.css({"display" : "none"});
+             });
+         }
+     };
   });
 
-
-  $('#select_table tr').click(function() {
-    zoyoe.ebay.picktransaction($(this),$('#pick_table tbody'));
+  var packinglist= [];
+  {% for date in ORDER_GROUP %}
+  app.controller("order-{{date.day}}-{{date.month}}-{{date.year}}", function($scope,$http) {
+     var req = {
+       method: 'GET',
+       url: "/orders/ebayajax/",
+       params: {"year" : "{{date.year}}",
+         "month" : "{{date.month}}",
+         "day" : "{{date.day}}"
+       },
+       transformResponse: undefined
+     };
+     $scope.date = '{{date}}';
+     $scope.config = {};
+     $scope.config.undeliveredonly = false;
+     $scope.config.pickedonly = false;
+     $http(req).then(function(response) {
+       var data = JSON.parse(response.data);
+       $scope.orders = JSON.parse(response.data);
+     },function error(resp){
+       alert("time out");
+     });
+     $scope.pickorder = function(order){
+       order.IN_PACKING_LIST = true;
+       packinglist.push(order);
+     }
+     $scope.removeorder = function(order){
+       var index = packinglist.indexOf(order);
+       if (index > -1) {
+         packinglist.splice(index, 1);
+         order.IN_PACKING_LIST = false;
+       }
+     }
+     $scope.take = function(actual,index,array){
+       var ret = true;
+       if ($scope.config.undeliveredonly){
+         ret = ret && (!actual.IS_SHIPPED);
+       }
+       if ($scope.config.pickedonly){
+         ret = ret && actual.IN_PACKING_LIST;
+       }
+       return ret;
+     }
   });
-});
-
+  {% endfor %}
+  app.controller("packing-list", function($scope) {
+    $scope.orders = packinglist;
+  });
 
 </script>
 {% endblock %}

@@ -22,12 +22,15 @@ def getEbayInfo(request):
   else:
     return {}
 
+def getTokenFromEbayInfo(ebayinfo):
+   return ebayinfo['token']
+
 def ebay_ajax_prefix(handler):
   def rst_handler(request,*args,**kargs):
     token = getToken(request)
     if token:
       ebayinfo = getEbayInfo(request)
-      return handler(ebayinfo,*args,**kargs)
+      return handler(request,ebayinfo,*args,**kargs)
     else:
       return returnError("Not authorised")
   return rst_handler
@@ -229,32 +232,25 @@ def getToken(request):
 ####
 @ebay_view_prefix
 def ebayorders(request):
-  token = getToken(request) 
   tt = datetime.datetime.utcnow()
-  ft = tt - datetime.timedelta(hours=24)
-  tt = tt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
-  ft = ft.strftime("%Y-%m-%dT%H:%M:%S.000Z")
-  xml_doc = GetOrders(token,ft,tt)
-  xml_doc = etree.parse(StringIO(xml_doc))
-  xslt = GetXSLT(Context({}),'xslt/OrdersTableSelect.xslt')
-  rst = etree.tostring(xslt(xml_doc.getroot()))
-  context = Context({"ORDERS":rst})
+  context = Context({"ORDER_GROUP":[tt]})
   return (render_to_response("ebayorders.html",context,context_instance=RequestContext(request)))
 
-@ebay_view_prefix
-def ebayordersajax(request):
-  token = getToken(request) 
+@ebay_ajax_prefix
+def ebayordersajax(request,ebayinfo):
+  token = getTokenFromEbayInfo(ebayinfo) 
   year = request.GET['year']
   month = request.GET['month']
   day = request.GET['day']
   tt = datetime.datetime(year=int(year),month=int(month),day=int(day))
-  ft = tt - datetime.timedelta(hours=24)
+  ft = tt - datetime.timedelta(hours=120)
   tt = tt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
   ft = ft.strftime("%Y-%m-%dT%H:%M:%S.000Z")
-  xml_doc = GetOrders(token,ft,tt)
-  xml_doc = etree.parse(StringIO(xml_doc))
-  xslt = GetXSLT(Context({}),'xslt/OrdersTableSelect.xslt')
-  rst = etree.tostring(xslt(xml_doc.getroot()))
+  xml_doc_str = GetOrders(token,ft,tt)
+  xml_doc = etree.parse(StringIO(xml_doc_str))
+  xslt = GetXSLT(Context({}),'xslt/EbayOrdersJSON.xslt')
+  xrst = xslt(xml_doc)
+  rst = unicode(xrst)
   return HttpResponse(rst)
 
 

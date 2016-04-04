@@ -90,6 +90,10 @@ urlpatterns = patterns('core',
   (r'^admin/config/preference/$', 'admin.preference'),
   (r'^admin/config/ebay/$', 'admin.ebayconfig'),
 
+# resource stuff
+  (r'^image/item/(?P<itemid>[a-zA-Z\d_\-\.]+)/$', 'admin.fetchimagebyrid'),
+
+# json stuff
   (r'^json/categories/$', 'jsonapi.categories'),
   (r'^json/items/(?P<category>[a-zA-Z\d]+)/$', 'jsonapi.items'),
   (r'^json/item/(?P<itemid>[a-zA-Z\d\-\.]+)/$', 'jsonapi.item'),
@@ -106,4 +110,5 @@ urlpatterns = patterns('core',
   (r'^admin/checkitems/$', 'retailtype.checkrid'),
   (r'^admin/checkindex/$', 'retailtype.resetIndex'),
   (r'^admin/cleanitems/$', 'admin.cleanitems'),
+  (r'^admin/fixsupplier/$', 'admin.fixsupplier'),
 )

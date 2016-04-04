@@ -54,6 +54,20 @@ class EscapeNode(template.Node):
 
 register.tag("fullescape",do_fullescape)
 
+def do_anjular(parser,token):
+  nodelist = parser.parse(('endanjular',))
+  parser.delete_first_token()
+  return AnjularNode(nodelist.render(template.Context()))
+
+class AnjularNode(template.Node):
+  def __init__(self,content):
+    self.content = content
+  def render(self,context):
+    return self.content
+
+register.tag("anjular",do_anjular)
+
+
 @register.simple_tag()
 def multiply(qty, unit_price, *args, **kwargs):
     # you would need to do any localization of the result here

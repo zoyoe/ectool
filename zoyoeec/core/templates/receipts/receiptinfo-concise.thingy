@@ -1,0 +1,27 @@
+{% load hash_filters %}
+<table class="table">
+  <thead>
+    <tr>
+      <th><span>Image</span></th>
+      <th class="desc"><span>Descraption</span></th>
+      <th><span>Quantity</span></th>
+      <th><span>Unit Price</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in CART %}
+    <tr>
+      <td>
+        <a href="#"><img src="{{item|hash:"galleryurl"}}" alt=""></img></a>
+      </td>
+      <td class="desc">
+        {{item|hash:"description"}}
+      </td>
+      <td class="quantity">{{item|hash:"amount"}}</td>
+      <td class="total-price">
+        ${{item|hash:"price"}}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

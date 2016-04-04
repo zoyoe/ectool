@@ -53,15 +53,11 @@ def unpublisheditems(request,shop):
     return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
 
 
-
 @zuser.authority_item
 def ebayitems(request,shop):
   supplier = getSupplier(shop)
   dict = {'SHOP':shop,'ITEM_WIDTH':'200'}
   if (supplier):
-    #dict['sellitems'] = pageItems(supplier.getEbayItems(),
-    #    dict,"/admin/items/"+shop+"/",request)
-
     dict['sellitems'] = supplier.getEbayItems()
     context = Context(dict)
     return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
@@ -173,6 +169,39 @@ def deleteitem(request,shop,key):
   return HttpResponseRedirect('/admin/items/'+shop)
 
 @zuser.authority_item
+def fetchimagebyrid(request,itemid):
+  picture = None
+  item = getItem(itemid)
+  if item:
+    image = item.getImage(0)
+    if image:
+      if ("sc" in request.GET):
+         if image.small:
+            picture = image.small
+         elif image.image:
+            image.small = createsc(image.image)
+            try:
+              image.put()
+            except RequestTooLargeError:
+              pic = rescale(image.image,600,600)
+              image.image = pic
+              image.put()
+              del pic
+            picture = image.small
+         else:
+            picture = None
+      else:
+         picture = image.image
+    else:
+      picture = None
+  else:
+    picture = None
+  if picture:
+    return HttpResponse(picture, mimetype="image/jpeg")
+  else:
+    return  HttpResponseRedirect('/static/res/picnotfound.jpg')
+
+@zuser.authority_item
 def itemimage(request,shop,key):
   suppliers = Supplier.all()
   stories = {}
@@ -181,10 +210,6 @@ def itemimage(request,shop,key):
     stories[supply.name] = json.loads(supply.data)
   item = Item.get_by_id(int(key),parent = getSupplier(shop))
   if(item):
-    upload_url = blobstore.create_upload_url('/admin/blobimage/'+ shop + "/" + key +"/0/")
-    upload_url1 = blobstore.create_upload_url('/admin/blobimage/'+ shop + "/" + key +"/1/")
-    upload_url2 = blobstore.create_upload_url('/admin/blobimage/'+ shop + "/" + key +"/2/")
-    upload_url3 = blobstore.create_upload_url('/admin/blobimage/'+ shop + "/" + key +"/3/")
     upload_url = '/admin/blobimage/'+ shop + "/" + key +"/0/"
     upload_url1 = '/admin/blobimage/'+ shop + "/" + key +"/1/"
     upload_url2 = '/admin/blobimage/'+ shop + "/" + key +"/2/"
@@ -380,7 +405,7 @@ def relisttoebay(request,shop,key):
   return (returnError("item not find or not exists in ebay"))
 
 @ebay_ajax_prefix
-def importfromebay(ebayinfo,itemid):
+def importfromebay(request,ebayinfo,itemid):
   (rslt,item) = format(ebayinfo,itemid)
   if item:
     registerAdminAction(request,"ebaydepoly",item.parent().name+"/"+str(item.key().id()))
@@ -410,7 +435,9 @@ def clean(request):
   return HttpResponse("over")
 
 
-
+# Fix urls for ImageData
+#
+#
 def checkurl(request):
   imgs = ImageData.all()
   for img in imgs:

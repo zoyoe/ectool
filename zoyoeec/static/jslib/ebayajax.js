@@ -143,7 +143,7 @@ zoyoe.cart.checkout = function(key){
 
 }
 
-zoyoe.cart.showd = false;
+zoyoe.cart.showed = false;
 zoyoe.cart.show = function(){
   zoyoe.cart.showed = !zoyoe.cart.showed;
   if (zoyoe.cart.showed){
@@ -359,6 +359,10 @@ zoyoe.ebay.syncToCell = function(shop,id,cell){
      });
 }
 
+/* EBay Integration
+   relistToCell: Relist an zoyoe item to ebay
+   calling rest api: admin/relisttoebay/shop/id/
+*/
 zoyoe.ebay.relistToCell = function(shop,id,cell){
    $(cell).html("<button type='button' class='btn btn-primary btn-sm'><i class='fa fa-refresh'></i>loading...</button>");
    $(cell).addClass('loadingbg');
@@ -467,7 +471,12 @@ zoyoe.ebay.fitspec = function(table) {
 }
 
 zoyoe.ebay.parsespec = function(table,value){
-  var spec = JSON.parse(value);
+  var spec = {};
+  try{ 
+      var spec = JSON.parse(value);
+  }catch(err){
+      zoyoe.error.show("illegale item specification");
+  }
   table.find('tr').each(function(i){
       var th = this.getElementsByTagName("th")[0];
       var td = this.getElementsByTagName("td")[0];
@@ -512,24 +521,6 @@ zoyoe.ebay.relistall = function(){
      this.relistCell(inputlist[i]);
    }
 }
-zoyoe.ebay.picktransaction = function(tr,table){
-  if (!zoyoe.ebay.transactions){
-    zoyoe.ebay.transactions = {};
-  }
-  var tid = tr.find('td.DELIVY_INSTRN').html().split(";")[0];
-  if (zoyoe[tid]){
-    zoyoe[tid].remove();
-    zoyoe[tid] = null;
-    tr.removeClass("highlight-yellow");
-  }else{
-    zoyoe[tid] = tr.clone();
-    tr.addClass("highlight-yellow");
-    table.append(zoyoe[tid]);
-  }
-  return;
-}
-
-
 
 /* following functions are not used at the moment */
 zoyoe.item = function (iid, centre_top, centre_left, radius) {

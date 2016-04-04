@@ -402,7 +402,7 @@ def receipt(request,key):
       cart[item.iid]['amount'] += 1
     else:
       cart[item.iid] = {'id':item.iid,'description':item.description,'price':item.price,'amount':item.amount}
-  temp = loader.get_template('receiptinfo.html')
+  temp = loader.get_template('receipts/receiptinfo-concise.thingy')
   context = Context({'CART':cart.values()})
   content = temp.render(context)
   return HttpResponse(content,mimetype = "text/xml")
