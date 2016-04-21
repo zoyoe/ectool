@@ -4,6 +4,24 @@
   xmlns:ebay="urn:ebay:apis:eBLBaseComponents"
   xmlns:xs ="http://www.w3.org/2001/XMLSchema">
 <xsl:output method="text" encoding="utf-8" omit-xml-declaration="yes" indent="yes"/>
+<xsl:template name="escapeTitle">
+  <xsl:param name="pText" select="ebay:Item/ebay:Title"/>
+
+  <xsl:if test="string-length($pText) >0">
+   <xsl:value-of select=
+    "substring-before(concat($pText, '&quot;'), '&quot;')"/>
+
+   <xsl:if test="contains($pText, '&quot;')">
+    <xsl:text>\"</xsl:text>
+
+    <xsl:call-template name="escapeTitle">
+      <xsl:with-param name="pText" select=
+      "substring-after($pText, '&quot;')"/>
+    </xsl:call-template>
+   </xsl:if>
+  </xsl:if>
+</xsl:template>
+
 <xsl:template match="/">
 <xsl:for-each select="//ebay:OrderArray">[
  <xsl:for-each select="./ebay:Order"> 
@@ -20,7 +38,7 @@
        "transactions":[
        <xsl:for-each select="./ebay:TransactionArray/ebay:Transaction"> 
          {"sku":"<xsl:value-of select="ebay:Item/ebay:SKU"/>",
-          "title":"<xsl:value-of select="ebay:Item/ebay:Title"/>",
+          "title":"<xsl:call-template name="escapeTitle"/>",
           "ebayid":"<xsl:value-of select="ebay:Item/ebay:ItemID"/>",
           "quantity":"<xsl:value-of select="ebay:QuantityPurchased"/>"}
          <xsl:if test="position() != last()"><xsl:text>,</xsl:text></xsl:if>

@@ -14,6 +14,26 @@
     <PrimaryCategory>
       <CategoryID>{{ITEM.ebaycategory}}</CategoryID>
     </PrimaryCategory>
+
+    <ProductListingDetails>
+      <BrandMPN>
+        <Brand>Unbranded</Brand>
+        <MPN>Does Not Apply</MPN>
+      </BrandMPN>
+      <UPC>Does Not Apply</UPC>
+    </ProductListingDetails>
+    <ItemSpecifics>
+      <NameValueList>
+         <Name>Brand</Name>
+         <Value>Unbranded</Value>
+      </NameValueList>
+      <NameValueList>
+         <Name>MPN</Name>
+         <Value>Does Not Apply</Value>
+      </NameValueList>
+    </ItemSpecifics>
+
+
     <StartPrice>{{ITEM.price}}</StartPrice>
     <CategoryMappingAllowed>true</CategoryMappingAllowed>
     <ConditionID>1000</ConditionID>

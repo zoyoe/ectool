@@ -23,15 +23,15 @@
   <div class="collapse navbar-collapse navbar-ex1-collapse">
     {% for date in ORDER_GROUP %}
     <div ng-controller="order-{{date.day}}-{{date.month}}-{{date.year}}">
-    {% verbatim angular %}
+    {% angular %}
     <ul class="nav navbar-nav">
       <li><a href="javascript:">{{ orders.length }} items total</a></i>
       <li><a href="javascript:tableToExcel('pick_table', 'pick_table', 'orderlist.xls');">export to excel </a></i>
     </ul>
-    {% endverbatim angular %}
+    {% endangular %}
     {% endfor %}
     <div ng-controller="packing-list">
-    {% verbatim angular %}
+    {% angular %}
     <ul class="nav navbar-nav navbar-right">
       <li><a href="javascript:">{{ orders.length }} items selected</a></i>
       <li class="dropdown">
@@ -48,7 +48,7 @@
         </ul>
       </li>
     </ul>
-    {% endverbatim angular %}
+    {% endangular %}
     </div>
   </div>
 </nav>
@@ -61,6 +61,9 @@
     <div class="panel-heading">
        {{date}} 
       <ul class="nav navbar-nav navbar-right">
+        <li>
+            <input style="margin-top:10px;" type="text" ng-model="config.text" class="form-control search" placeholder=" Search"></input>
+        </li>
         <li class="dropdown">
           <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
             filters <i class="caret"></i>
@@ -75,12 +78,13 @@
     <div class="panel-body">
       <div loading-indicator></div>
       <ul class="list-group">
-        {% verbatim angular %}
+        {% angular %}
         <li ng-class="{'list-group-item-warning': !x.IS_SHIPPED && !x.IN_PACKING_LIST,'list-group-item-success': !x.IS_SHIPPED && x.IN_PACKING_LIST}" 
             class="list-group-item" ng-repeat="x in orders | filter : take">
           <button ng-if="!x.IS_SHIPPED && !x.IN_PACKING_LIST" ng-click="pickorder(x)" class="pull-right btn btn-sc btn-primary">Add to Packing List</button>
           <button ng-if="!x.IS_SHIPPED && x.IN_PACKING_LIST" ng-click="removeorder(x)" class="pull-right btn btn-sc btn-primary">Remove from Packing List</button>
-          name: {{x.CNBSGNEE_NAME}},
+          name: {{x.CNBSGNEE_NAME}},</br>
+          order id: {{x.DELIVY_INSTRN.order_id}},
           phone number: {{x.CNSGNEE_PHONE_NBR}}</br>
           <p>
           address: {{x.CNSGNEE_ADDR_LINE1}},
@@ -101,7 +105,7 @@
           </div>
          </ul>
         </li>
-        {% endverbatim angular %}
+        {% endangular %}
       </ul>
     </div>
   </div>
@@ -115,7 +119,7 @@
     <div class="panel-body">
       <div class="table-responsive" id="table-picker" style="overflow-x:scroll">
 
-        {% verbatim angular %}
+        {% angular %}
  <table id='pick_table' style="width:2000px;" class='table'>
    <thead style="display:none">
     <th>CNSGMT_ID</th>
@@ -126,6 +130,9 @@
     <th>CNSGNEE_NAME</th>
     <th>CNSGNEE_BUS_NAME</th>
     <th>CNSGNEE_ADDR_LINE1</th>
+    <th>CNSGNEE_ADDR_LINE2</th>
+    <th>CNSGNEE_ADDR_LINE3</th>
+    <th>CNSGNEE_ADDR_LINE4</th>
     <th>CNSGNEE_SUBURB</th>
     <th>CNSGNEE_STATE_CODE</th>
     <th>CNSGNEE_PCODE</th>
@@ -154,11 +161,14 @@
      <td class="CNSGMT_ID">C</td><!-- CNSGMT_ID -->
      <td class="CONSIGNMENG_NUMBER"></td>
      <td class="POST_RG_TO_ACCT"></td><!-- POST_RG_TO_ACCT -->
-     <td class="CHRG_CODE">7I55</td>
+     <td class="CHRG_CODE">7C55</td>
      <td class="MERCHANT_CNSGNEE_CODE"></td>
      <td class="CNBSGNEE_NAME">{{order.CNBSGNEE_NAME}}</td> <!-- CNBSGNEE_NAME -->
      <td class="CNSGNEE_BUS_NAME"></td>
      <td class="CNSGNEE_ADDR_LINE1">{{order.CNSGNEE_ADDR_LINE1}}</td>
+     <td class="CNSGNEE_ADDR_LINE2"></td>
+     <td class="CNSGNEE_ADDR_LINE3"></td>
+     <td class="CNSGNEE_ADDR_LINE4"></td>
      <td class="CNSGNEE_SUBURB">{{order.CNSGNEE_SUBURB}}</td>
      <td class="CNSGNEE_STATE_CODE">{{order.CNSGNEE_STATE_CODE}}</td>
      <td class="CNSGNEE_STATE_PCODE">{{order.CNSGNEE_STATE_PCODE}}</td>
@@ -171,7 +181,7 @@
     </tr>
    </tbody>
  </table>
-        {% endverbatim angular %}
+        {% endangular %}
       </div>
     </div>
   </div>
@@ -245,6 +255,7 @@
      $scope.config = {};
      $scope.config.undeliveredonly = false;
      $scope.config.pickedonly = false;
+     $scope.config.text = "";
      $http(req).then(function(response) {
        var data = JSON.parse(response.data);
        $scope.orders = JSON.parse(response.data);
@@ -269,6 +280,11 @@
        }
        if ($scope.config.pickedonly){
          ret = ret && actual.IN_PACKING_LIST;
+       }
+       if($scope.config.text){
+         if(!(actual.DELIVY_INSTRN.order_id.indexOf($scope.config.text) > -1)){
+           ret = false;
+         }
        }
        return ret;
      }

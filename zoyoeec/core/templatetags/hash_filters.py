@@ -59,14 +59,30 @@ def do_anjular(parser,token):
   parser.delete_first_token()
   return AnjularNode(nodelist.render(template.Context()))
 
-class AnjularNode(template.Node):
-  def __init__(self,content):
-    self.content = content
-  def render(self,context):
-    return self.content
+class AngularNode(template.Node):
+  def __init__(self, text):
+      self.text = text
+  def render(self, context):
+      return self.text
 
-register.tag("anjular",do_anjular)
 
+@register.tag
+def angular(parser, token):
+    text = []
+    while 1:
+        token = parser.tokens.pop(0)
+        if token.contents == 'endangular':
+            break
+        if token.token_type == template.TOKEN_VAR:
+            text.append('{{')
+        elif token.token_type == template.TOKEN_BLOCK:
+            text.append('{%')
+        text.append(token.contents)
+        if token.token_type == template.TOKEN_VAR:
+            text.append('}}')
+        elif token.token_type == template.TOKEN_BLOCK:
+            text.append('%}')
+    return AngularNode(''.join(text))
 
 @register.simple_tag()
 def multiply(qty, unit_price, *args, **kwargs):
