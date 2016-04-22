@@ -70,7 +70,7 @@ def getItemHistoryResponse(request):
     dict = {'SHOP':'Items you recently viewed','STORIES':stories,'PATH':lvl1,'CATEGORY':""}
     dict['sellitems'] = items
     context = Context(dict)
-    temp_path = currentsite().gettemplate("products.html");
+    temp_path = currentSite().gettemplate("products.html");
     return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
   else:
     return userError(request,"Your have not signed in")

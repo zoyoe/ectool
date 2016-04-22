@@ -221,7 +221,7 @@ def getToken(request):
         logging.info("Can not find shopinfo in ebayinfo:" + store)
         return None
     request.session['ebayinfo'] = ebayinfo
-    setebayinfo(json.dumps(ebayinfo))
+    currentSite().setebayinfo(json.dumps(ebayinfo))
     return ebayinfo['token']
   else:
     return None  

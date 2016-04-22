@@ -91,7 +91,7 @@ def searchview(request):
         items.append(item)
   stories = getCategoriesInfo()
   context = Context({'RETAIL': True,'ITEM_WIDTH':'200','STORIES':stories,'sellitems':items})
-  temp_path = currentsite().gettemplate("products.html");
+  temp_path = currentSite().gettemplate("products.html");
   return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
 
 
@@ -303,7 +303,7 @@ def get(request):
   cart = request.session.get('cart',{})
   if not cart:
     cart = {}
-  temp_path = currentsite().gettemplate("cartdisplay.html");
+  temp_path = currentSite().gettemplate("cartdisplay.html");
   temp = loader.get_template(temp_path)
   context = Context({'CART':cart.values()})
   content = temp.render(context)
@@ -333,7 +333,7 @@ def add(request):
     galleryurl = itemobj.galleryurl
     cart[item] = {"id":item,"description":dscp,"price":value,'amount':1,"galleryurl":galleryurl}
   request.session['cart'] = cart
-  temp_path = currentsite().gettemplate("cart.thingy");
+  temp_path = currentSite().gettemplate("cart.thingy");
   temp = loader.get_template(temp_path)
   context = Context({'CART':cart.values()})
   content = temp.render(context)
@@ -346,7 +346,7 @@ def remove(request,item):
   if item in cart:
     del cart[item]
   request.session['cart'] = cart
-  temp_path = currentsite().gettemplate("cart.thingy");
+  temp_path = currentSite().gettemplate("cart.thingy");
   temp = loader.get_template(temp_path)
   context = Context({'CART':cart.values()})
   content = temp.render(context)
@@ -533,7 +533,7 @@ def sendpaypalinvoice(request,key):
 ## This is not a view function , it is called by used in receipts 
 def receiptsearch(request):
   # Here we are going to prepare for the saved billing info
-  temp_path = currentsite().gettemplate("receiptsearch.html");
+  temp_path = currentSite().gettemplate("receiptsearch.html");
   temp = loader.get_template(temp_path)
   context = Context({})
   content = temp.render(context)
@@ -547,7 +547,7 @@ def receipts(request):
       receipts = user.receipt_set
       stories = getCategoriesInfo()
       context = Context({'receipts':receipts,'STORIES':stories})
-      temp_path = currentsite().gettemplate("userreceipts.html");
+      temp_path = currentSite().gettemplate("userreceipts.html");
       return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
   else:
       return receiptsearch(request)
@@ -584,7 +584,7 @@ def receiptview(request):
   # Here we are going to prepare for the saved billing info
   stories = getCategoriesInfo()
   context = Context({'address':address,'INVOICE':invoice,'RECEIPT':receipt,'STORIES':stories,'CART':cart.values()})
-  temp_path = currentsite().gettemplate("receiptview.html");
+  temp_path = currentSite().gettemplate("receiptview.html");
   return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
@@ -597,7 +597,7 @@ def billinginfo(request):
     item = cart[key]
     total += float(item['price']) * item['amount']
   context = Context({'STORIES':stories,'TOTAL':total,'CART':cart.values()})
-  temp_path = currentsite().gettemplate("billinginfo.html");
+  temp_path = currentSite().gettemplate("billinginfo.html");
   return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 

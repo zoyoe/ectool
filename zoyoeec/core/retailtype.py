@@ -19,7 +19,6 @@ class SiteInfo(db.Model):
   """ site logo, it should be a must if site is published
       but we do not enforce it at the moment
   """
-
   logo = db.BlobProperty(default=None)
 
   """ the mainshop is a pseudo supplier that
@@ -34,11 +33,21 @@ class SiteInfo(db.Model):
   """ whether this site has been published on www.zoyoe.com
   """
   published = db.BooleanProperty(default=False)
+
+  """ whether the retail part of this site requires login
+  """
   requirelogin = db.BooleanProperty(default=False)
+
   type = db.StringProperty()
   siteinfo = db.TextProperty(default=None)
   ebayinfo = db.TextProperty(default=None)
+
+  """ paypal account used to receive funds for this site
+  """
   paypal = db.TextProperty(default=None)
+
+  """ templatename for the retail part of this site
+  """
   template = db.StringProperty(default=None)
 
   """ return the template path regarding certain file name
@@ -49,14 +58,11 @@ class SiteInfo(db.Model):
     else:
       return "default/" + name 
 
-def setebayinfo(ebayinfo):
-  site = SiteInfo.all().get()
-  if not site:
-    site = SiteInfo()
-  site.ebayinfo = ebayinfo
-  site.put()
+  def setebayinfo(ebayinfo):
+    self.ebayinfo = ebayinfo
+    self.put()
 
-def currentsite():
+def currentSite():
   return SiteInfo.all().get()
 
 def getSiteInfo():
@@ -220,6 +226,9 @@ class ShopInfo(db.Model):
   content = db.TextProperty(required=True)
   type = db.StringProperty(default="")
 
+
+# Follwing are helper functions
+
 def getItem(rid):
   formatrid = formatRID(rid)
   supplier = db.GqlQuery("SELECT * FROM Item WHERE refid = :1",formatrid)
@@ -249,6 +258,9 @@ def indexItem(item):
     return document
   except search.Error:
     return None
+
+
+# Schema updating functions
 
 def checkrid(request):
   items = Item.all()

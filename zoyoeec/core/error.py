@@ -16,7 +16,7 @@ def ZoyoeSuccess(success):
 def retailError(request,error,url="/retail/receiptview/"):
   stories = getCategoriesInfo()
   context = Context({'ERROR':error,'URL':url,'STORIES':stories})
-  temp_path = currentsite().gettemplate("error.html");
+  temp_path = currentSite().gettemplate("error.html");
   return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
