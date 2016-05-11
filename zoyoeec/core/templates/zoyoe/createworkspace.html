@@ -1,3 +1,4 @@
+{% load hash_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,23 +19,23 @@
     {% endblock %}
      <!-- Font Awesome -->
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
-
-    <link href="/static/bucketadmin/css/bootstrap-reset.css" rel="stylesheet">
     <link href="/static/bucketadmin/css/style.css" rel="stylesheet">
-    <link href="/static/bucketadmin/css/style-responsive.css" rel="stylesheet">
-    <link href="/static/bucketadmin/css/clndr.css" rel="stylesheet">
 
 </head>
 
-  <body class="login-body">
+  <body  ng-app="createWorkSpaceApp" ng-controller="createWorkSpaceController" class="login-body">
 
     <div class="container">
 
-      <form class="form-signin" action="index.html">
+      <form name="CWSForm" class="form-signin" ng-submit="submitForm(CWSForm.$valid)" novalidate>
         <h2 class="form-signin-heading">create work space</h2>
         <div class="login-wrap">
             <div class="user-login-info">
-                <input type="text" class="form-control" placeholder="workspace name" autofocus/>
+                {% csrf_token %}
+                <input name="name" type="text" class="form-control" placeholder="workspace name" autofocus required/>
+                <input name="email" ng-model="email" type="text" class="form-control" placeholder="admin account email" required ng-pattern="/^[a-z]+[a-z0-9._]+@[a-z]+\.[a-z.]{2,5}$/">
+                <input name="password" ng-model="password" type="password" ng-minlength="3" ng-maxlength="8" class="form-control" placeholder="Password">
+                <input name="passowrdcheck" ng-model="passwordcheck" type="password" ng-minlength="3" ng-maxlength="8" class="form-control" placeholder="Confirm Password">
             </div>
             <label class="checkbox">
                 <input type="checkbox" value="accept"/>I accept the terms and conditions of use
@@ -46,31 +47,7 @@
                     terms and conditions of use
                 </a>
             </div>
-
         </div>
-
-          <!-- Modal -->
-          <div aria-hidden="true" aria-labelledby="myModalLabel" role="dialog" tabindex="-1" id="myModal" class="modal fade">
-              <div class="modal-dialog">
-                  <div class="modal-content">
-                      <div class="modal-header">
-                          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                          <h4 class="modal-title">Forgot Password ?</h4>
-                      </div>
-                      <div class="modal-body">
-                          <p>Enter your e-mail address below to reset your password.</p>
-                          <input type="text" name="email" placeholder="Email" autocomplete="off" class="form-control placeholder-no-fix">
-
-                      </div>
-                      <div class="modal-footer">
-                          <button data-dismiss="modal" class="btn btn-default" type="button">Cancel</button>
-                          <button class="btn btn-success" type="button">Submit</button>
-                      </div>
-                  </div>
-              </div>
-          </div>
-          <!-- modal -->
-
       </form>
 
     </div>
@@ -83,6 +60,16 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="/static/bucketadmin/bs3/js/bootstrap.min.js"></script>
     <script src="/static/bucketadmin/js/scripts.js"></script>
-
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js"></script>
+    <script>
+      var createWorkSpaceApp = angular.module('createWorkSpaceApp', []);
+      createWorkSpaceApp.controller('createWorkSpaceController', function($scope) {
+        $scope.submitForm = function(isValid) {
+          if (isValid) {
+            alert('our form is amazing');
+          }
+        };
+      });
+    </script>
   </body>
 </html>

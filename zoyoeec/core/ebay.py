@@ -7,8 +7,7 @@ from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
 from ebayapi.api import *
 from ebayapi import api as ebayapi
-from retail import Supplier,ShopInfo,getSupplierFromEbayInfo
-import retailtype
+from retail import Supplier,ShopInfo,Item
 from error import *
 from lxml import etree 
 import urllib, random, json, datetime
@@ -25,6 +24,26 @@ def getEbayInfo(request):
 def getTokenFromEbayInfo(ebayinfo):
    return ebayinfo['token']
 
+def getSupplierFromEbayInfo(ebayinfo):
+  if ebayinfo:
+    return Supplier.getSupplierByName(ebayinfo['store'])
+  else:
+    return None
+
+# Save an ebay supplier into google datastore 
+def saveSupplier(ebayinfo):
+  supplier = getSupplierFromEbayInfo(ebayinfo)
+  if supplier: 
+    supplier.data = json.dumps(ebayinfo['categories'])
+    supplier.put()
+    return supplier
+  elif ebayinfo:
+    supplier = Supplier(name = formatName(ebayinfo['store']),data=json.dumps(ebayinfo['categories']))
+    supplier.put()
+    return supplier
+  else:
+    return None
+
 def ebay_ajax_prefix(handler):
   def rst_handler(request,*args,**kargs):
     token = getToken(request)
@@ -32,7 +51,7 @@ def ebay_ajax_prefix(handler):
       ebayinfo = getEbayInfo(request)
       return handler(request,ebayinfo,*args,**kargs)
     else:
-      return returnError("Not authorised")
+      return xmlError("Not authorised")
   return rst_handler
 
 def ebay_view_prefix(handler):
@@ -43,7 +62,7 @@ def ebay_view_prefix(handler):
       return handler(request,*args,**kargs)
     else:
       context = Context({})
-      return (render_to_response("ebaylogin.html",context,context_instance=RequestContext(request)))
+      return (render_to_response("ebay/ebayloginerror.html",context,context_instance=RequestContext(request)))
   return rst_handler
 
 def GetXSLT(xslt_context,xslt_template):
@@ -221,7 +240,7 @@ def getToken(request):
         logging.info("Can not find shopinfo in ebayinfo:" + store)
         return None
     request.session['ebayinfo'] = ebayinfo
-    currentSite().setebayinfo(json.dumps(ebayinfo))
+    currentSite().setEbayInfo(json.dumps(ebayinfo))
     return ebayinfo['token']
   else:
     return None  
@@ -281,7 +300,7 @@ def relist(ebayinfo,item):
         item.put()
       return (HttpResponse(revise,mimetype = "text/xml"),item)
     else:
-      return (returnError("Related ebay item is still active"),item)
+      return (xmlError("Related ebay item is still active"),item)
   else:
     return (HttpResponse(ebayitem,mimetype = "text/xml"),item)
 
@@ -304,7 +323,7 @@ def format(ebayinfo,itemid):
     refid = xml_doc.xpath("//xs:SKU",
       namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})
     if (not refid):
-      return returnError('SKU Not Provided')
+      return xmlError('SKU Not Provided')
     else:
       refid = refid[0].text
 #   refid = xml_doc.xpath("//xs:ItemID",
@@ -334,7 +353,7 @@ def format(ebayinfo,itemid):
       ,'infourl':infourl,'category':category,'sndcategory':sndcategory
       ,'description':topd[0],'ebayid':itemid,'ebaycategory':ebaycategory
       ,'specification':"{}"}
-    item = retailtype.getItem(refid)
+    item = Item.getItemById(refid)
     supplier = getSupplierFromEbayInfo(ebayinfo)
     if item:
       iteminfo['specification'] = item.specification

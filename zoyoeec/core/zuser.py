@@ -31,6 +31,11 @@ class UserInfo(db.Model):
   history = db.TextProperty(default="{}")
   password = db.TextProperty(default="")
   oauth = db.BooleanProperty(default=False)
+  def addAuthority(self,tokens):
+    totauth = json.loads(self.authtoken)
+    totauth = totauth + tokens
+    self.authtoken = json.dumps(totauth)
+    self.put()
 
 def __get_user(email,createifnotexist = False):
   user = UserInfo.all().filter("email =",email).get()
@@ -107,10 +112,24 @@ def authority_login(handler):
       return loginError(request,"Please login with your google account continue");
   return rsthandler
 
+def redirect_login(request):
+  absoluteurl = request.build_absolute_uri()
+  return HttpResponseRedirect("/login/?requesturl=" + encrypt("url",absoluteurl))
+
+def require_work_space(handler):
+  def rst_handler(request, *args, **kargs):
+    site = currentSite()
+    if site:
+      return handler(request,*args,**kargs)
+    else:
+      return HttpResponseRedirect("/workspace/")
+  return rst_handler
+
+@chain(require_work_space)
 def require_login(handler):
   def rst_handler(request,*args,**kargs):
-    site = getSiteInfo()
-    if site.requirelogin:
+    site = currentSite()
+    if site and site.requirelogin:
       user = getCurrentUser(request)
       if not user:
         absoluteurl = request.build_absolute_uri()
@@ -118,7 +137,7 @@ def require_login(handler):
     return handler(request,*args,**kargs)
   return rst_handler
 
-
+@chain(require_login)
 def authority_item(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser(request)
@@ -128,9 +147,10 @@ def authority_item(handler):
       else:
         return authorityError(request,"Not authorised activity, You need to be in the item modification group to do this")
     else: 
-      return loginError(request,"Please login with your google account continue");
+      return redirect_login(request)
   return rst_handler
 
+@chain(require_login)
 def authority_ebay(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser(request)
@@ -140,9 +160,10 @@ def authority_ebay(handler):
       else:
         return authorityError(request,"Not authorised activity, You need to be in the ebay management group to do this")
     else:
-      return loginError(request,"Please login with your google account continue");
+      return redirect_login(request)
   return rst_handler
 
+@chain(require_login)
 def authority_config(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser(request)
@@ -152,6 +173,6 @@ def authority_config(handler):
       else:
         return authorityError(request,"Not authorised activity, You need to be in the site configuration group to do this")
     else:
-      return loginError(request,"Please login with your google account continue");
+      return redirect_login(request)
   return rst_handler
 

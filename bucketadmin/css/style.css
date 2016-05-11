@@ -5760,3 +5760,34 @@ right: -1px;
     border-radius:0px 4px 4px 0px;
     -webkit-border-radius:0px 4px 4px 0px;
 }
+
+input.ng-valid{
+  background:#dff0d8;
+}
+
+
+input.ng-pristine{
+  background:#fcf8e3;
+}
+input.ng-dirty{
+  background:#fcf8e3;
+}
+input.ng-touched {
+  background:#fcf8e3;
+}
+/* really specific css rules applied by angular */
+input.ng-invalid{
+  background:#f2dede;
+}
+input.ng-invalid-pattern{
+  background:#f2dede;
+}
+input.ng-invalid-required{
+  background:#f2dede;
+}
+input.ng-invalid-minlength{
+  background:#f2dede;
+}
+input.ng-invalid-maxlength{
+  background:#f2dede;
+}

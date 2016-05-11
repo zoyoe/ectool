@@ -60,35 +60,40 @@ urlpatterns = patterns('core',
   (r'^orders/ebayajax/','ebay.ebayordersajax'),
   (r'^orders/','order.orders'),
 
-# admin stuff
-  (r'^admin/item/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.item'),
-  (r'^admin/additem/$','admin.additem'),
-  (r'^admin/deploy/$', 'admin.deploy'),
-  (r'^admin/relist/$', 'admin.relistlist'),
-  (r'^admin/actionhistory/$','admin.actionhistory'),
-  (r'^admin/saveitem/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.saveitem'),
-  (r'^admin/deleteitem/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.deleteitem'),
-  (r'^admin/itemimage/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.itemimage'),
-  (r'^admin/uploadimages/$','admin.uploadimages'),
-  (r'^admin/items/(?P<shop>[a-zA-Z\d_]+)/(?P<category>[a-zA-Z\d]+)/', 'admin.items'),
-  (r'^admin/ebayitems/(?P<shop>[a-zA-Z\d_]+)/', 'admin.ebayitems'),
-  (r'^admin/unpublisheditems/(?P<shop>[a-zA-Z\d_]+)/', 'admin.unpublisheditems'),
-  (r'^admin/items/(?P<shop>[a-zA-Z\d_]+)/$', 'admin.supplieritems'),
-  (r'^admin/addimage/','admin.addimage'),
-  (r'^admin/addimages/(?P<supplier>[a-zA-Z\d_]+)/$','admin.addimages'),
-  (r'^admin/blobimage/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/(?P<index>[\d]+)/','admin.blobimage'),
-  (r'^admin/rotateimage/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/(?P<index>[\d]+)/','admin.rotateimage'),
-  (r'^admin/fetchimage/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/(?P<index>[\d]+)/','admin.fetchimage'),
+## Admin Section
+# browsing stuff
+  (r'^admin/item/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.view.item'),
+  (r'^admin/additem/$','admin.view.additem'),
+  (r'^admin/deploy/$', 'admin.view.deploy'),
+  (r'^admin/relist/$', 'admin.view.relistlist'),
+  (r'^admin/actionhistory/$','admin.view.actionhistory'),
+  (r'^admin/saveitem/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.view.saveitem'),
+  (r'^admin/deleteitem/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.view.deleteitem'),
+  (r'^admin/ebayitems/(?P<shop>[a-zA-Z\d_]+)/', 'admin.view.ebayitems'),
+  (r'^admin/unpublisheditems/(?P<shop>[a-zA-Z\d_]+)/', 'admin.view.unpublisheditems'),
+  (r'^admin/items/(?P<supplier>[a-zA-Z\d_]+)/$', 'admin.view.supplieritems'),
+  (r'^admin/items/(?P<supplier>[a-zA-Z\d_]+)/(?P<category>[a-zA-Z\d]+)/', 'admin.view.items'),
+
+# Image based 
+  (r'^admin/image/','image.urls',
+
+
+# Ebay functions for items
   (r'^admin/exporttoebay/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/','admin.exporttoebay'),
   (r'^admin/syncwithebay/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/','admin.syncwithebay'),
   (r'^admin/relisttoebay/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/','admin.relisttoebay'),
   (r'^admin/categories/$', 'ebay.fetchcategory'),
   (r'^admin/$', 'main.admin'),
 
+# Admin site config view
   (r'^admin/feedinfo/$', 'admin.setupinfo'),
   (r'^admin/addconfig/$', 'admin.addconfig'),
+
+# config views
   (r'^admin/config/preference/$', 'admin.preference'),
   (r'^admin/config/ebay/$', 'admin.ebayconfig'),
+
+#### end of admin section
 
 # resource stuff
   (r'^image/item/(?P<itemid>[a-zA-Z\d_\-\.]+)/$', 'admin.fetchimagebyrid'),

@@ -6,7 +6,7 @@ from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
 from ebay import ebay_view_prefix,getactivelist, getEbayInfo
-from retail import retail, getSupplier,saveSupplier,getSupplierFromEbayInfo,Supplier,Item,SiteInfo
+from retail import retail, Supplier,Item,SiteInfo
 from retailtype import getCategoryItems,ShopInfo,getSiteInfo,getCategoriesInfo
 from google.appengine.ext import db
 from google.appengine.api import users,namespace_manager
@@ -32,12 +32,15 @@ def main(request):
         return HttpResponseRedirect('/admin/')
     else:
       return HttpResponseRedirect('/admin/config/preference/')
-
+##
+# Display the current status of the workspace ( main site )
+# 
+##
 def workspace(request):
-  if (request.META['HTTP_HOST']=="www.zoyoe.com"):
-    return (render_to_response("zoyoe/createworkspace.html",{},context_instance=RequestContext(request)))
-  else:
-    return HttpResponseRedirect('/admin/config/preference/')
+  ##  if (request.META['HTTP_HOST']=="www.zoyoe.com"):
+  return (render_to_response("zoyoe/createworkspace.html",{},context_instance=RequestContext(request)))
+  ## else:
+  ##  return HttpResponseRedirect('/admin/config/preference/')
 
 def logout(request):
   user = zuser.logoutUser(request)
@@ -80,25 +83,30 @@ def register(request):
           return HttpResponseRedirect(zuser.decrypt('url',requesturl));
         else:
           return HttpResponseRedirect("/");
-## Need to provide more information of register 
-#        return error.ZoyoeSuccess("Success")
-######
-      else:
-        return error.ZoyoeError("User already exist.")
-    return error.ZoyoeError("email or password not provided")
+  # Pass to the phase as method neq POST 
+  user = zuser.getCurrentUser(request)
+  if not user:
+    if ('requesturl' in request.GET):
+      context = {}
+      context['requesturl'] = request.GET['requesturl']
+    return (render_to_response("zoyoe/register.html",context,context_instance=RequestContext(request)))
   else:
-    user = zuser.getCurrentUser(request)
-    if not user:
-      if ('requesturl' in request.GET):
-        context = {}
-        context['requesturl'] = request.GET['requesturl']
-      return (render_to_response("zoyoe/register.html",context,context_instance=RequestContext(request)))
+    if ('requesturl' in request.GET):
+      requesturl = request.GET['requesturl']
+      return HttpResponseRedirect(zuser.decrypt('url',requesturl));
     else:
-      if ('requesturl' in request.GET):
-        requesturl = request.GET['requesturl']
-        return HttpResponseRedirect(zuser.decrypt('url',requesturl));
-      else:
-        return HttpResponseRedirect("/");
+      return HttpResponseRedirect("/");
+
+def createworkspace(request):
+  if currentSite():
+    return HttpResponseRedirect('/admin/config/preference/')
+  else:
+    site = getSiteInfo()
+    site.put() # create the site
+    user = zuser.getCurrentUser()
+    user.addAuthority(["ebay","config","item"])
+    return HttpResponseRedirect('/admin/dashboard/');
+  
 
 def items(request,shop,category):
   stories = getCategoriesInfo()
@@ -132,7 +140,7 @@ def items(request,shop,category):
   dict['sellitems'] = items
   dict['queryurl'] = "/items/"+shop+"/"+category
   context = Context(dict)
-  temp_path = getSiteInfo().gettemplate("products.html");
+  temp_path = getSiteInfo().getTemplate("products.html");
   return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
 
 ### This is the main view of pos #
@@ -148,7 +156,7 @@ def config(request):
 
 def item(request,shop,key):
   stories = getCategoriesInfo()
-  item = Item.get_by_id(int(key),parent = getSupplier(shop))
+  item = Item.get_by_id(int(key),parent = Supplier.getSupplierFromName(shop))
   return record.getItemResponse(request,item,stories)
 
 ### This is the main view of pos #

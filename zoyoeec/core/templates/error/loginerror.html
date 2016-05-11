@@ -6,16 +6,18 @@
         <p class="lead text-muted">You are not signed in at the moment.</p>
         <div class="clearfix"></div>
         <div class="col-lg-6 col-lg-offset-3">
+        {{ERROR}}
         </div>
         <div class="clearfix"></div>
         <br>
         <div class="col-lg-6  col-lg-offset-3">
           <div class="btn-group btn-group-justified">
-            <a href="{{user|loginurl:request}}" class="btn btn-info">Login with google account</a> 
+            <a href="{{user|loginurl:request}}" class="btn btn-info">Login</a> 
             <a href="http://www.zoyoe.com" class="btn btn-warning">Back to zoyoe</a> 
           </div>
         </div>
       </div>
+</div>
 {% endblock %}
 
 {% block subsidebar %}

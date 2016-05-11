@@ -1,22 +1,21 @@
 import django.core.handlers.wsgi
+import random,json
+import zuser
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
-from ebay import ebay_view_prefix,getactivelist, getEbayInfo
-from retail import getSupplier,saveSupplier,getSupplierFromEbayInfo,Supplier,Item,SiteInfo
-import random,json
-from retailtype import getCategoriesInfo, getCategoryItems, getItem
+from retail import Supplier,Item,SiteInfo
+from retailtype import getCategoriesInfo, Item
 from google.appengine.ext import db
 from google.appengine.api import users
 from error import *
-import zuser
 
 def getItemResponse(request,item,stories):
   if item:
     dict = {'ITEM':item,'STORIES':stories}
     context = Context(dict)
     recordItemHistory(request,item)
-    tpath = getSiteInfo().gettemplate("retailitem.html");
+    tpath = getSiteInfo().getTemplate("retailitem.html");
     return (render_to_response(tpath,context,context_instance=RequestContext(request)))
   else:
     return retailError(request,"item not found")
@@ -54,7 +53,7 @@ def getItemHistory(request):
     else:
       items = []
     for rid in items:
-      item = getItem(rid)
+      item = Item.getItemByRID(rid)
       if item:
         rslt.append(item)
   return rslt
@@ -64,13 +63,13 @@ def getItemHistoryResponse(request):
   items = []
   if (itemrefs != None):
     for ref in itemrefs:
-      items.append(getItem(ref))
+      items.append(Item.getItemByRID(ref))
     stories = getCategoriesInfo()
     lvl1 = "Viewing History"
     dict = {'SHOP':'Items you recently viewed','STORIES':stories,'PATH':lvl1,'CATEGORY':""}
     dict['sellitems'] = items
     context = Context(dict)
-    temp_path = currentSite().gettemplate("products.html");
+    temp_path = currentSite().getTemplate("products.html");
     return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
   else:
     return userError(request,"Your have not signed in")

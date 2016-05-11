@@ -52,13 +52,15 @@ class SiteInfo(db.Model):
 
   """ return the template path regarding certain file name
   """
-  def gettemplate(self,name):
+  def getTemplate(self,name):
     if self.template:
       return self.template + "/" + name
     else:
       return "default/" + name 
 
-  def setebayinfo(ebayinfo):
+  """ put categories info into ebayinfo
+  """
+  def setEbayInfo(ebayinfo):
     self.ebayinfo = ebayinfo
     self.put()
 
@@ -77,7 +79,7 @@ def getCategoriesInfo():
   site = getSiteInfo()
   stories = {}
   if site:
-    supplier = getSupplier(site.mainshop) 
+    supplier = Supplier.getSupplierByName(site.mainshop) 
     if(supplier):
       stories[supplier.name] = json.loads(supplier.data)
   return stories
@@ -110,7 +112,7 @@ class Supplier(db.Model):
         item.ebayid = iteminfo['ebayid']
         item.specification = iteminfo['specification']
       item.put()
-      indexItem(item)
+      item.addIndex()
       return item
     else:
       item = Item(refid = formatRID(iteminfo['refid'])
@@ -130,7 +132,7 @@ class Supplier(db.Model):
       if "ebaycategory" in iteminfo:
         item.ebaycategory = iteminfo['ebaycategory']
       item.put()
-      indexItem(item)
+      item.addIndex()
       return item
   def getItems(self):
     return Item.all().ancestor(self)
@@ -151,6 +153,12 @@ class Supplier(db.Model):
     return Item.all().ancestor(self).filter("ebayid !=",None).filter("ebayid !=","")
   def getUnpublishedItems(self):
     return Item.all().ancestor(self).filter("ebayid =",None)
+
+  @staticmethod
+  def getSupplierByName(sname):
+    suppliers = db.GqlQuery("SELECT * FROM Supplier WHERE name = :1",sname)
+    return suppliers.get()
+
 
 def getCategoryItems(category):
   return Item.all().filter("category =",category)
@@ -179,20 +187,49 @@ class Item(db.Model):
   ebayid = db.StringProperty(default="")
   picture = db.BlobProperty(default=None)
   ebaycategory = db.TextProperty(default=None)
+
   def getImage(self,idx):
     return ImageData.all().ancestor(self).filter("idx =",idx).get()
+
   def getImages(self):
     return ImageData.all().ancestor(self).order("idx")
+
   def getSpecification(self):
     try:
       obj = json.loads(self.specification)
       return obj
     except:
       return {}
+
   def payment(self):
     site = SiteInfo.all().get()
     return site.paypal
-    
+
+  def addIndex(self):
+    try:
+      document = search.Document(
+        doc_id = self.refid,
+        fields=[
+          search.TextField(name='title', value=self.name),
+          search.TextField(name='description', value=self.description + " " + self.specification),
+        ])
+      index = search.Index(name="itemindex")
+      index.put(document)
+      return document
+    except search.Error:
+      return None
+
+  def deleteIndex(self):
+    index = search.Index(name="itemindex")
+    index.delete(self.refid)
+
+  @staticmethod
+  def getItemByRID(rid):
+    formatrid = formatRID(rid)
+    item = db.GqlQuery("SELECT * FROM Item WHERE refid = :1",formatrid)
+    return item.get()
+
+
 
 def createDefaultItem(refid,suppliername="Anonymous"):
   item = getItem(refid)
@@ -212,7 +249,7 @@ def createDefaultItem(refid,suppliername="Anonymous"):
       'specification':'{}',
       'description':'No extra description provided'
     }
-    supplier = getSupplier(suppliername)
+    supplier = Supplier.getSupplierByName(suppliername)
     if supplier:
       return supplier.saveItem(iteminfo)
     else:
@@ -227,37 +264,6 @@ class ShopInfo(db.Model):
   type = db.StringProperty(default="")
 
 
-# Follwing are helper functions
-
-def getItem(rid):
-  formatrid = formatRID(rid)
-  supplier = db.GqlQuery("SELECT * FROM Item WHERE refid = :1",formatrid)
-  return supplier.get()
-
-def getSupplier(sname):
-  suppliers = db.GqlQuery("SELECT * FROM Supplier WHERE name = :1",sname)
-  return suppliers.get()
-
-def ridcode(iid):
-  return iid;
-
-def deleteItemIndex(item):
-  index = search.Index(name="itemindex")
-  index.delete(item.refid)
-
-def indexItem(item):
-  try:
-    document = search.Document(
-      doc_id = item.refid,
-      fields=[
-       search.TextField(name='title', value=item.name),
-       search.TextField(name='description', value=item.description + " " + item.specification),
-       ])
-    index = search.Index(name="itemindex")
-    index.put(document)
-    return document
-  except search.Error:
-    return None
 
 
 # Schema updating functions
@@ -272,7 +278,7 @@ def checkrid(request):
 def resetIndex(request):
   items = Item.all()
   for item in items:
-    indexItem(item)
+    item.addIndex()
   return HttpResponse("OK")
     
 

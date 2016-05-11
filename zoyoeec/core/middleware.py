@@ -1,5 +1,7 @@
 from google.appengine.api import namespace_manager, users
+from django.shortcuts import render_to_response
 from error import *
+import retailtype
 class NSMiddleware(object):
   def process_request(self, request):
     try:

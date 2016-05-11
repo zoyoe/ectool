@@ -4,7 +4,7 @@ from lxml import etree
 from retailtype import *
 from StringIO import StringIO
 
-def returnError(error):
+def xmlError(error):
   return HttpResponse("<?xml version='1.0' encoding='utf-8'?><ZoyoeError>" + error + "</ZoyoeError>",mimetype="text/xml")
 
 def ZoyoeError(error):
@@ -16,7 +16,7 @@ def ZoyoeSuccess(success):
 def retailError(request,error,url="/retail/receiptview/"):
   stories = getCategoriesInfo()
   context = Context({'ERROR':error,'URL':url,'STORIES':stories})
-  temp_path = currentSite().gettemplate("error.html");
+  temp_path = currentSite().getTemplate("error.html");
   return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
@@ -38,5 +38,20 @@ def authorityError(request,error):
   return (render_to_response("error/authorityerror.html"
     ,context,context_instance=RequestContext(request)))
 
+
+# We put the latest error in the session. 
+# However this is might cause problems when 2 instance are created at the same time.
 def builderror(request,error):
   request.session['error'] = error
+
+
+def chain(deco):
+  def new_decorator(deco_input):
+    def rslt(handler):
+      def rslt_handler(request,*args,**kargs):
+        return (deco(deco_input(handler)))(request,*args,**kargs)
+      return rslt_handler
+    return rslt
+  return new_decorator
+    
+    
