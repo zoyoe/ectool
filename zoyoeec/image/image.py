@@ -1,4 +1,79 @@
-### Reource view
+import django.core.handlers.wsgi
+from core import zuser
+import ebay
+import datetime,urllib2,httplib,random,json
+from django.core.context_processors import csrf
+from django.http import HttpResponse, HttpResponseRedirect
+from django.template import loader,Context,RequestContext
+from django.shortcuts import render_to_response
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.cache import never_cache
+from google.appengine.ext import db,blobstore,deferred
+from google.appengine.api import users,images
+from google.appengine.runtime.apiproxy_errors import RequestTooLargeError 
+from order import *
+from error import *
+from page import *
+from core.retailtype import Supplier,Item,ShopInfo,ImageData,formatName### Reource view
+
+def __createsc(img_data):
+  image = images.Image(img_data)
+  image.resize(width=300)
+  return image.execute_transforms()
+
+def __quickrescale(img_data, size):
+  image = images.Image(img_data)
+  if image.width > image.height:
+    image.resize(width=size)
+    return image.execute_transforms()
+  else:
+    image.resize(height=size)
+    return image.execute_transforms()
+
+
+def __rescale(img_data, width, height, halign='middle', valign='middle'):
+  """Resize then optionally crop a given image.
+
+  Attributes:
+    img_data: The image data
+    width: The desired width
+    height: The desired height
+    halign: Acts like photoshop's 'Canvas Size' function, horizontally
+            aligning the crop to left, middle or right
+    valign: Verticallly aligns the crop to top, middle or bottom
+
+  """
+  image = images.Image(img_data)
+
+  desired_wh_ratio = float(width) / float(height)
+  wh_ratio = float(image.width) / float(image.height)
+
+  if desired_wh_ratio > wh_ratio:
+    # resize to width, then crop to height
+    image.resize(width=width)
+    image.execute_transforms()
+    trim_y = (float(image.height - height) / 2) / image.height
+    if valign == 'top':
+      image.crop(0.0, 0.0, 1.0, 1 - (2 * trim_y))
+    elif valign == 'bottom':
+      image.crop(0.0, (2 * trim_y), 1.0, 1.0)
+    else:
+      image.crop(0.0, trim_y, 1.0, 1 - trim_y)
+  else:
+    # resize to height, then crop to width
+    image.resize(height=height)
+    image.execute_transforms()
+    trim_x = (float(image.width - width) / 2) / image.width
+    if halign == 'left':
+      image.crop(0.0, 0.0, 1 - (2 * trim_x), 1.0)
+    elif halign == 'right':
+      image.crop((2 * trim_x), 0.0, 1.0, 1.0)
+    else:
+      image.crop(trim_x, 0.0, 1 - trim_x, 1.0)
+
+  return image.execute_transforms()
+
+
 
 ##
 # fetch the first image of a item by its refid
@@ -15,11 +90,11 @@ def fetchimagebyrid(request,itemid):
          if image.small:
             picture = image.small
          elif image.image:
-            image.small = createsc(image.image)
+            image.small = __createsc(image.image)
             try:
               image.put()
             except RequestTooLargeError:
-              pic = rescale(image.image,600,600)
+              pic = __rescale(image.image,600,600)
               image.image = pic
               image.put()
               del pic
@@ -49,11 +124,11 @@ def fetchimage(request,supplier,key,index="0"):
          if image.small:
             picture = image.small
          elif image.image:
-            image.small = createsc(image.image)
+            image.small = __createsc(image.image)
             try:
               image.put()
             except RequestTooLargeError:
-              pic = rescale(image.image,600,600)
+              pic = __rescale(image.image,600,600)
               image.image = pic
               image.put()
               del pic
@@ -97,13 +172,14 @@ def rotateimage(request,supplier,key,index="0"):
 ###
 @zuser.authority_item
 def uploadimage(request,supplier,key,index='0'):
-  __register_admin_action(request,"uploadimage",supplier+"/"+key)
-  #file = request.FILES['image'].read()
+  # FIXME: need to think about how to record this activity
+  #__register_admin_action(request,"uploadimage",supplier + "/" + key + "/" + index)
+  
   #type = request.FILES['image'].content_type
   #image = request.FILES['image'].content_type_extra
-  file = request.FILES['image'].read()
-  picture = rescale(file,600,600)
-  item = Item.get_by_id(int(key),parent = getSupplierByName(supplier))
+  image_data = request.FILES['image'].read()
+  picture = __rescale(image_data,600,600)
+  item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(supplier))
   idx = int(index)
   if item:
     img = item.getImage(idx)
@@ -112,7 +188,7 @@ def uploadimage(request,supplier,key,index='0'):
     else:
       img = ImageData(image=picture,name=item.name,parent=item,idx=idx) 
       img.url = "http://" + request.META['HTTP_HOST'] + "/admin/fetchimage/" + supplier + "/" + key + "/" + str(idx)
-    img.small = createsc(picture)
+    img.small = __createsc(picture)
     img.put()
     del picture
     item.galleryurl = img.url
@@ -126,7 +202,6 @@ def uploadimage(request,supplier,key,index='0'):
 #
 ####
 @zuser.authority_item
-@ebay_view_prefix
 def uploadimages(request):
   supplier = "Anonymous"
   if 'supplier' in request.GET:
@@ -136,7 +211,7 @@ def uploadimages(request):
 
 
 # Fix urls for ImageData
-#
+# FIXME: using task queue instead
 #
 def checkurl(request):
   imgs = ImageData.all()

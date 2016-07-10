@@ -6,8 +6,9 @@ from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
 from error import *
-import ebay, random
-from ebay import ebay_view_prefix,getactivelist, getEbayInfo
+import random
+from ebay import ebay
+from ebay.ebay import ebay_view_prefix,getactivelist, getEbayInfo
 from retail import getSupplier,getSupplierByName,getSupplierFromEbayInfo,Supplier,Item
 import urllib2,httplib
 import requests,json,datetime

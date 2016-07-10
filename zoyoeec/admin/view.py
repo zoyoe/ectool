@@ -1,5 +1,5 @@
 import django.core.handlers.wsgi
-import ebayapi,zuser,retailtype
+import ebay
 import datetime,urllib2,httplib,random,json
 from django.core.context_processors import csrf
 from django.http import HttpResponse, HttpResponseRedirect
@@ -10,12 +10,10 @@ from django.views.decorators.cache import never_cache
 from google.appengine.ext import db,blobstore,deferred
 from google.appengine.api import users,images
 from google.appengine.runtime.apiproxy_errors import RequestTooLargeError 
-from ebay import ebay_view_prefix,ebay_ajax_prefix,getinactivelist,getactivelist, getEbayInfo, sync,relist, format
-from order import *
-from error import *
-from page import *
-from retail import saveSupplier,getSupplierFromEbayInfo,Supplier,Item,ShopInfo,ImageData,formatName
-from admin.model import *
+from core import error, retailtype, retail
+from core import zuser,page
+from ebay import ebay
+from model import *
 
 application = django.core.handlers.wsgi.WSGIHandler()
 
@@ -24,7 +22,7 @@ application = django.core.handlers.wsgi.WSGIHandler()
 #  It will fill context needed for paging
 #
 def pageItems(query,dict,url,request):
-  myPagedQuery = PagedQuery(query,48)
+  myPagedQuery = page.PagedQuery(query,48)
   dict['queryurlprev'] = "#" 
   dict['queryurlnext'] = "#" 
   total = myPagedQuery.page_count()
@@ -61,12 +59,12 @@ def actionhistory(request):
 ####
 
 @zuser.authority_item
-def unpublisheditems(request,shop):
-  supplier = getSupplier(shop)
-  dict = {'SHOP':shop,'ITEM_WIDTH':'200'}
+def unpublisheditems(request,suppliername):
+  supplier = Supplier.getSupplierByName(suppliername)
+  dict = {'SHOP':suppliername,'ITEM_WIDTH':'200'}
   if (supplier):
     dict['sellitems'] = pageItems(supplier.getUnpublishedItems(),dict,
-        "/admin/items/"+shop+"/",request)
+        "/admin/items/"+suppliername+"/",request)
     context = Context(dict)
     return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
   else:
@@ -77,7 +75,7 @@ def unpublisheditems(request,shop):
 
 @zuser.authority_item
 def ebayitems(request,shop):
-  supplier = getSupplier(shop)
+  supplier = Supplier.getSupplierByName(shop)
   dict = {'SHOP':shop,'ITEM_WIDTH':'200'}
   if (supplier):
     dict['sellitems'] = supplier.getEbayItems()
@@ -90,23 +88,23 @@ def ebayitems(request,shop):
 
 
 @zuser.authority_item
-def items(request,supplier,category):
-  supplier = getSupplier(shop)
+def items(request,suppliername,category):
+  supplier = Supplier.getSupplier(suppliername)
   suppliers = Supplier.all()
   stories = {}
   lvl1 = "Category"
   lvl2 = "Gallery"
   for supply in suppliers:
     stories[supply.name] = json.loads(supply.data)
-    if (supply.name == shop):
+    if (supply.name == suppliername):
       for c in stories[supply.name]:
         if (category in stories[supply.name][c]['children']):
           lvl1 = stories[supply.name][c]['name']
           lvl2 = stories[supply.name][c]['children'][category]['name']
-  dict = {'SHOP':shop,'ITEM_WIDTH':'200','STORIES':stories,'PATH':lvl1,'CATEGORY':lvl2}
+  dict = {'SHOP':suppliername,'ITEM_WIDTH':'200','STORIES':stories,'PATH':lvl1,'CATEGORY':lvl2}
   if (supplier):
     dict['sellitems'] = pageItems(supplier.getCategoryItems(category),
-        dict,"/admin/items/"+shop+"/" + category + "/",request)
+        dict,"/admin/items/"+suppliername+"/" + category + "/",request)
     context = Context(dict)
     return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
   else:
@@ -115,18 +113,18 @@ def items(request,supplier,category):
     return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
 
 @zuser.authority_item
-def supplieritems(request,supplier): 
-  supplier = getSupplier(shop)
+def supplieritems(request,suppliername): 
+  supplier = Supplier.getSupplierByName(suppliername)
   suppliers = [supplier]
   stories = {}
   lvl1 = "Category"
   lvl2 = "Gallery"
   for supply in suppliers:
     stories[supply.name] = json.loads(supply.data)
-  dict = {'SHOP':shop,'ITEM_WIDTH':'200','STORIES':stories,'PATH':'All','CATEGORY':''}
+  dict = {'SHOP':suppliername,'ITEM_WIDTH':'200','STORIES':stories,'PATH':'All','CATEGORY':''}
   if (supplier):
     dict['sellitems'] = pageItems(supplier.getItems(),
-        dict,"/admin/items/" + shop + "/",request)
+        dict,"/admin/items/" + suppliername + "/",request)
     context = Context(dict)
     return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
   else:
@@ -144,14 +142,14 @@ def supplieritems(request,supplier):
 @zuser.authority_item
 def additem(request):
   rid = request.GET['rid']
-  item = createDefaultItem(rid)
+  item = retailtype.createDefaultItem(rid)
   response =  HttpResponseRedirect('/admin/item/'+ item.parent().name + '/' + str(item.key().id()) +"/")
   return response
   
 
 @zuser.authority_item
 def deleteitem(request,shop,key):
-  item = Item.get_by_id(int(key),parent = getSupplier(shop))
+  item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
   if item:
     item.deleteIndex()
     item.delete()
@@ -159,8 +157,8 @@ def deleteitem(request,shop,key):
 
 @zuser.authority_item
 def item(request,shop,key):
-  stories = getCategoriesInfo()
-  item = Item.get_by_id(int(key),parent = getSupplier(shop))
+  stories = retailtype.getCategoriesInfo()
+  item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
   if item:
     upload_url = '/admin/blobimage/'+ shop + "/" + key +"/0/"
     upload_url1 = '/admin/blobimage/'+ shop + "/" + key +"/1/"
@@ -176,12 +174,12 @@ def item(request,shop,key):
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
   else:
-    return retailError(request,"item not found")
+    return error.retailError(request,"item not found")
 
 @zuser.authority_item
 def saveitem(request,shop,key):
   __register_admin_action(request,"saveitem",shop+"/"+key)
-  item = Item.get_by_id(int(key),parent = getSupplier(shop))
+  item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
   if(item):
     item.name = request.POST['name']
     item.refid = request.POST['refid']

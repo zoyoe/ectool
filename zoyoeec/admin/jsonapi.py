@@ -1,5 +1,6 @@
 import django.core.handlers.wsgi
-import ebayapi,zuser,retailtype
+import zuser, retailtype
+import ebay
 import datetime,urllib2,httplib,random,json
 from django import forms
 from django.core.context_processors import csrf
@@ -56,7 +57,7 @@ def exporttoebay(request,shop,key):
       info = ebay.getEbayInfo(request)
       rslt = sync(info,item)
       return HttpResponse(rslt,mimetype="text/xml")
-    rslt = ebayapi.api.AddItem(token,item)
+    rslt = ebay.api.AddItem(token,item)
     xml_doc = etree.parse(StringIO(rslt))
     ack = xml_doc.xpath("//xs:Ack",
       namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]

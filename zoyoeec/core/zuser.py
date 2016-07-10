@@ -1,19 +1,23 @@
-import django.core.handlers.wsgi
+
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.shortcuts import render_to_response
-from ebaysdk import finding
-from ebaysdk.exception import ConnectionError
-from error import *
-from lxml import etree
-from StringIO import StringIO
-import random,json
 from google.appengine.ext import db
+import random,json
+import error,retailtype
 from google.appengine.api import users
 from google.appengine.api import namespace_manager
 
 from Crypto.Cipher import XOR
+from lxml import etree
+
 import base64
+def user(request):
+  user = user.getCurrentUser(request)
+  return {'user':user}
+
+
 
 def encrypt(key, plaintext):
   cipher = XOR.new(key)
@@ -96,7 +100,7 @@ def logoutUser(request):
 
 def checkAuthority(authority,user):
   if not user:
-    return false
+    return False
   totauth = json.loads(user.authtoken)
   if (any(authority in s for s in totauth)):
     return True
@@ -109,8 +113,8 @@ def authority_login(handler):
     if user:
       return handler(request,*args,**kargs)
     else:
-      return loginError(request,"Please login with your google account continue");
-  return rsthandler
+      return error.loginError(request,"Please login with your google account continue");
+  return rst_handler
 
 def redirect_login(request):
   absoluteurl = request.build_absolute_uri()
@@ -118,17 +122,17 @@ def redirect_login(request):
 
 def require_work_space(handler):
   def rst_handler(request, *args, **kargs):
-    site = currentSite()
+    site = retailtype.currentSite()
     if site:
       return handler(request,*args,**kargs)
     else:
       return HttpResponseRedirect("/workspace/")
   return rst_handler
 
-@chain(require_work_space)
+@error.chain(require_work_space)
 def require_login(handler):
   def rst_handler(request,*args,**kargs):
-    site = currentSite()
+    site = retailtype.currentSite()
     if site and site.requirelogin:
       user = getCurrentUser(request)
       if not user:
@@ -137,7 +141,7 @@ def require_login(handler):
     return handler(request,*args,**kargs)
   return rst_handler
 
-@chain(require_login)
+@error.chain(require_login)
 def authority_item(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser(request)
@@ -145,12 +149,12 @@ def authority_item(handler):
       if checkAuthority("item",user):
         return handler(request,*args,**kargs)
       else:
-        return authorityError(request,"Not authorised activity, You need to be in the item modification group to do this")
+        return error.authorityError(request,"Not authorised activity, You need to be in the item modification group to do this")
     else: 
       return redirect_login(request)
   return rst_handler
 
-@chain(require_login)
+@error.chain(require_login)
 def authority_ebay(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser(request)
@@ -158,12 +162,12 @@ def authority_ebay(handler):
       if checkAuthority("ebay",user):
         return handler(request,*args,**kargs)
       else:
-        return authorityError(request,"Not authorised activity, You need to be in the ebay management group to do this")
+        return error.authorityError(request,"Not authorised activity, You need to be in the ebay management group to do this")
     else:
       return redirect_login(request)
   return rst_handler
 
-@chain(require_login)
+@error.chain(require_login)
 def authority_config(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser(request)
@@ -171,8 +175,10 @@ def authority_config(handler):
       if checkAuthority("config",user):
         return handler(request,*args,**kargs)
       else:
-        return authorityError(request,"Not authorised activity, You need to be in the site configuration group to do this")
+        return error.authorityError(request,"Not authorised activity, You need to be in the site configuration group to do this")
     else:
       return redirect_login(request)
   return rst_handler
+
+
 

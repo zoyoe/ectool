@@ -5,26 +5,27 @@ from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
-from ebay import ebay_view_prefix,getactivelist, getEbayInfo
+from ebay.ebay import ebay_view_prefix,getactivelist, getEbayInfo
 from retail import retail, Supplier,Item,SiteInfo
-from retailtype import getCategoryItems,ShopInfo,getSiteInfo,getCategoriesInfo
+import retailtype
 from google.appengine.ext import db
 from google.appengine.api import users,namespace_manager
 from page import *
-import zuser,record,random,json,error
+import record, random, json, error
+from core import zuser
 
 application = django.core.handlers.wsgi.WSGIHandler()
 
 def main(request):
   if (request.META['HTTP_HOST']=="www.zoyoe.com"):
     # This is the main website
-    stories = getCategoriesInfo()
-    fliers = ShopInfo.all().filter("type =","category").order("name")
+    stories = retailtype.getCategoriesInfo()
+    fliers = retailtype.ShopInfo.all().filter("type =","category").order("name")
     context = Context({'STORIES':stories,'FLIERS':fliers})
     return (render_to_response("zoyoe/index.html",context,context_instance=RequestContext(request)))
   else:
     # This is customer's website
-    site = getSiteInfo()
+    site = retailtype.getSiteInfo()
     if site:
       if site.published:
         return retail(request)
@@ -43,7 +44,7 @@ def workspace(request):
   ##  return HttpResponseRedirect('/admin/config/preference/')
 
 def logout(request):
-  user = zuser.logoutUser(request)
+  zuser = zuser.logoutUser(request)
   return HttpResponseRedirect('/')
 
 def login(request):
@@ -51,8 +52,8 @@ def login(request):
     if('email' in request.POST and 'password' in request.POST):
       email = request.POST['email']
       password = request.POST['password']
-      user = zuser.loginUser(request,email,password)
-      if user:
+      zuser = zuser.loginUser(request,email,password)
+      if zuser:
         if ('requesturl' in request.POST):
           requesturl = request.POST['requesturl']
           return HttpResponseRedirect(zuser.decrypt('url',requesturl));
@@ -76,16 +77,16 @@ def register(request):
     if('email' in request.POST and 'password' in request.POST):
       email = request.POST['email']
       password = request.POST['password']
-      user = zuser.registerUser(request,email,password)
-      if user:
+      zuser = zuser.registerUser(request,email,password)
+      if zuser:
         if ('requesturl' in request.GET):
           requesturl = request.GET['requesturl']
           return HttpResponseRedirect(zuser.decrypt('url',requesturl));
         else:
           return HttpResponseRedirect("/");
   # Pass to the phase as method neq POST 
-  user = zuser.getCurrentUser(request)
-  if not user:
+  zuser = zuser.getCurrentUser(request)
+  if not zuser:
     if ('requesturl' in request.GET):
       context = {}
       context['requesturl'] = request.GET['requesturl']
@@ -98,18 +99,18 @@ def register(request):
       return HttpResponseRedirect("/");
 
 def createworkspace(request):
-  if currentSite():
+  if retailtype.currentSite():
     return HttpResponseRedirect('/admin/config/preference/')
   else:
-    site = getSiteInfo()
+    site = retailtype.getSiteInfo()
     site.put() # create the site
-    user = zuser.getCurrentUser()
-    user.addAuthority(["ebay","config","item"])
+    zuser = zuser.getCurrentUser()
+    zuser.addAuthority(["ebay","config","item"])
     return HttpResponseRedirect('/admin/dashboard/');
   
 
 def items(request,shop,category):
-  stories = getCategoriesInfo()
+  stories = retailtype.getCategoriesInfo()
   lvl1 = "Category"
   lvl2 = "Gallery"
   if (shop in stories):
@@ -120,7 +121,7 @@ def items(request,shop,category):
   else:
     return error.ZoyoeError("category does not exist")
   dict = {'SHOP':shop,'ITEM_WIDTH':'200','STORIES':stories,'PATH':lvl1,'CATEGORY':lvl2}
-  query = getCategoryItems(category).filter("disable ==",False)
+  query = retailtype.getCategoryItems(category).filter("disable ==",False)
   myPagedQuery = PagedQuery(query, 12)
   items = []
   dict['queryurlprev'] = "#" 
@@ -140,22 +141,11 @@ def items(request,shop,category):
   dict['sellitems'] = items
   dict['queryurl'] = "/items/"+shop+"/"+category
   context = Context(dict)
-  temp_path = getSiteInfo().getTemplate("products.html");
+  temp_path = retailtype.getSiteInfo().getTemplate("products.html");
   return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
 
-### This is the main view of pos #
-@zuser.authority_config
-def config(request):
-  cart = request.session.get('cart',{})
-  ebayinfo = getEbayInfo(request)
-  if not cart:
-    cart = {}
-  context = Context({'CART':cart.values(),'ebayinfo':ebayinfo})
-  return (render_to_response("pos.html",context,context_instance=RequestContext(request)))
-
-
 def item(request,shop,key):
-  stories = getCategoriesInfo()
+  stories = retailtype.getCategoriesInfo()
   item = Item.get_by_id(int(key),parent = Supplier.getSupplierFromName(shop))
   return record.getItemResponse(request,item,stories)
 
@@ -189,15 +179,10 @@ def admin(request):
    ,'STORIES':stories,'STAT':stat,'ESTAT':estat})
   return (render_to_response("admin/dashboard.html",context,context_instance=RequestContext(request)))
 
-def find(request):
-  api = finding(siteid='EBAY-AU',appid = 'zoyoea269-b772-4c8d-98bb-e8a23cefc0e');
-  api.execute('findItemsAdvanced',
-    {'itemFilter':[{'name':'Seller','value':'p_ssg'}]
-    })
-  return HttpResponse(str(api.response_dict()))
 
 def buildPreviewContext(request,max,config=False):
   contextdic = {}
+  finddic = {}
   contextdic['APP_HOST'] = request.META['HTTP_HOST'] 
   contextdic.update(csrf(request))
   if ('keywords' in request.GET):
@@ -239,6 +224,9 @@ def config(request):
   context['ebayinfo'] = getEbayInfo(request)
   return (render_to_response("config.html",context,context_instance=RequestContext(request)))
 
+### FIXME: It is bad to have the entry point of ebay plugin at the moment
+### 
+###
 def ebayjson(request):
   context = buildPreviewContext(request,20)
   rslt = "" 
@@ -262,8 +250,6 @@ def pdforder(request):
 def csvorder(request):
   context = {}
   return (render_to_response("order/csvorder.html",context,context_instance=RequestContext(request)))
-
-
 
 def namespace(request):
   return HttpResponse(namespace_manager.get_namespace())

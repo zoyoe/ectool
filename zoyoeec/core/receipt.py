@@ -1,5 +1,5 @@
 from retailtype import *
-import zuser
+from core import zuser
 from google.appengine.ext import db
 
 class Receipt(db.Model):

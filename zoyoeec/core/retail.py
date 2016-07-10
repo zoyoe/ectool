@@ -7,17 +7,18 @@ from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
 from error import *
 from receipt import *
-import ebay, random
+import random
+from ebay import ebay
 import requests,json,datetime
-from google.appengine.ext import db,search
+from google.appengine.ext import db
 from google.appengine.api import urlfetch
-from zuser import *
+from google.appengine.api import search
+from core import zuser
 
 
-def formatName(name):
-  return name.replace(" ", "_")
 
-@require_login
+
+@zuser.require_login
 def retail(request):
   stories = getCategoriesInfo()
   fliers = ShopInfo.all().filter("type =","category").order("name")
@@ -32,7 +33,7 @@ def matchjson(request):
     iid = request.GET['term'].split(".")
     iid.pop()
     iid = ".".join(iid)
-    item = getItem(iid)
+    item = Item.getItemByRID(iid)
     if item:
       ret = {'label':item.key().id(),'rid':item.refid
             ,'supplier':item.parent().name}
@@ -57,7 +58,7 @@ def searchview(request):
     key = request.GET['key']
     rslt = index.search(key)
     for doc in rslt:
-      item = getItem(doc.doc_id)
+      item = Item.getItemByRID(doc.doc_id)
       if (item.ebayid != None) and (item.ebayid != ""):
         items.append(item)
   stories = getCategoriesInfo()
@@ -119,10 +120,14 @@ invoice_template = {
   }
 }
 
-def buildBillingInfo(email,firstname,lastname):
+
+### createPayment function will careta a ebay payment object (JSON format)
+### Following are helper functions for createPayment
+###
+def __buildBillingInfo(email,firstname,lastname):
   return {"email":email,"first_name":firstname,"last_name":lastname}
 
-def buildCreditCart(cardnumber,type,em,ey,cvv,firstname,lastname):
+def __buildCreditCard(cardnumber,type,em,ey,cvv,firstname,lastname):
   return {"number":cardnumber
     ,"type":type
     ,"expire_month":em
@@ -132,7 +137,7 @@ def buildCreditCart(cardnumber,type,em,ey,cvv,firstname,lastname):
     ,"last_name":lastname
     }
 
-def buildPayerObject(request):
+def __buildPayerObject(request):
   return {"payment_method":"paypal"}
   payment_method = request.POST['payment_method']
   if (payment_method == "paypal"):
@@ -146,9 +151,9 @@ def buildPayerObject(request):
     firstname = request.POST['first_name']
     lastname = request.POST['last_name']
     return {"payment_method":"credit_card"
-      ,"funding_instruments":[{"credit_card":buildCreditCart(cardnumber,type,em,ey,cvv,firstname,lastname)}]}
+      ,"funding_instruments":[{"credit_card":__buildCreditCard(cardnumber,type,em,ey,cvv,firstname,lastname)}]}
 
-def buildTransactionObject(receipt):
+def __buildTransactionObject(receipt):
   receiptitems = ReceiptItem.all().ancestor(receipt)
   cart = {}
   for item in receiptitems:
@@ -181,8 +186,8 @@ def buildTransactionObject(receipt):
 
 def createPayment(request,failurl,receipt):
   pdata = {"intent":"sale",
-    "payer" : buildPayerObject(request),
-    "transactions" : [buildTransactionObject(receipt)],
+    "payer" : __buildPayerObject(request),
+    "transactions" : [__buildTransactionObject(receipt)],
     "redirect_urls" : {"return_url": "http://" + request.META['HTTP_HOST'] +"/paypal/accept/"
       ,"cancel_url": failurl
      }
@@ -204,8 +209,10 @@ def createPayment(request,failurl,receipt):
   else:
     a = resp.reason
     b = resp.status
-    z = 1/0
+    ## FIXME: log error here plz
     return None
+
+### END function createPayment ###
 
 #### Following is paypal invoice api stuff,
 #### they are very rough at this stage and need to be moved to other place
@@ -285,7 +292,7 @@ def add(request):
   token = ebay.getToken(request)
   value = ""
   if (not value in request.GET) or (not 'description' in request.GET):
-    iteminfo = getItem(item)
+    iteminfo = Item.getItemByRID(item)
     if (not iteminfo):
       return HttpResponse(status=201)
     dscp = iteminfo.name
@@ -299,7 +306,7 @@ def add(request):
   if item in cart:
     cart[item] = {"id":item,"description":dscp,"price":value,'amount':cart[item]['amount']+1,"galleryurl":cart[item]['galleryurl']}
   else:
-    itemobj = getItem(item)
+    itemobj = Item.getItemByRID(item)
     g = itemobj.galleryurl
     galleryurl = itemobj.galleryurl
     cart[item] = {"id":item,"description":dscp,"price":value,'amount':1,"galleryurl":galleryurl}
@@ -362,7 +369,7 @@ def deleteReceipt(key):
   else:
     return False
   
-### receipt ajax
+### receipt ajax command
 ###
 def receipt(request,key):
   receipt = Receipt.get_by_id(int(key))
@@ -384,7 +391,10 @@ def deletereceipt(request,key):
   else:
     return ZoyoeSuccess('Receipt not found')
 
-@require_login
+### END receipt ajas command
+###
+
+@zuser.require_login
 def checkoutcart(request):
   cart = request.session.get('cart',{})
   request.session['cart'] = {}
@@ -400,7 +410,7 @@ def checkoutcart(request):
     "postal_code":request.POST["postal_code"],
     "country_code": request.POST["country_code"]
     })
-    receipt.zuser = getCurrentUser(request)
+    receipt.zuser = zuser.getCurrentUser(request)
     for key in cart:
       item = cart[key]
       obj = ReceiptItem(parent=receipt,iid= item['id'],description=item['description'],amount=int(item['amount']),price=float(item['price']))
@@ -438,6 +448,10 @@ def expresspaypal(request,key):
     if redirecturl:
       return HttpResponseRedirect(redirecturl)
     return retailError(request,"Pay by paypal failed!")
+
+### END checkout by credit card
+### FIXME: the above implementation of checkout is not correct 
+### FIXME: Need to handle Error 
 
 
 ## approve paypal payment
@@ -477,8 +491,10 @@ def paypalaccept(request):
     # should not arrive here !!!
     return retailError(request,"Pay by paypal failed with payment id " + payid)
 
-## checkout will create an invoice 
-# 
+### Checkout might create an invoice 
+#   sendpaypalinvoice will call function buildinvoice to create a invoice draft and call createinvoice (which will invoke paypal createinvoice api) to create an invoice and then send that invoice by invoke paypal sendinvoice api.
+#   FIXME: move paypal api to another file is better
+### 
 def sendpaypalinvoice(request,key):
   receipt = Receipt.get_by_id(int(key))
   if not receipt:
@@ -511,11 +527,11 @@ def receiptsearch(request):
   builderror(request,content)
   return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
 
-@require_login
+@zuser.require_login
 def receipts(request):
-  user = getCurrentUser(request)
-  if (user):
-      receipts = user.receipt_set
+  zuser = zuser.getCurrentUser(request)
+  if (zuser):
+      receipts = zuser.receipt_set
       stories = getCategoriesInfo()
       context = Context({'receipts':receipts,'STORIES':stories})
       temp_path = currentSite().getTemplate("userreceipts.html");
@@ -523,7 +539,7 @@ def receipts(request):
   else:
       return receiptsearch(request)
 
-@require_login
+@zuser.require_login
 def receiptview(request):
   receipt = None
   if ('key' in request.GET):
@@ -546,7 +562,7 @@ def receiptview(request):
       cart[item.iid]['amount'] += 1
     else:
       a = item.iid
-      stockitem = getItem(item.iid)
+      stockitem = Item.getItemByRID(item.iid)
       galleryurl = "/static/res/picnotfound.png"
       if (stockitem):
         galleryurl = stockitem.galleryurl
@@ -559,7 +575,7 @@ def receiptview(request):
   return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
-@require_login
+@zuser.require_login
 def billinginfo(request):
   stories = getCategoriesInfo()
   cart = request.session.get('cart',{})
@@ -572,8 +588,8 @@ def billinginfo(request):
   return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
-def basic_authorization(user, password):
-    s = user + ":" + password
+def basic_authorization(zuser, password):
+    s = zuser + ":" + password
     return "Basic " + s.encode("base64").rstrip()
 
 # This private function gets the papal token if it exists in the current session. It will try fetch one if papal is connected. 
@@ -627,34 +643,7 @@ def paypalpdt(request):
   _identity_toke = "VbcoPtKY7npptth9GdQPW69fbH7DRoK1BBsTNIJDT2waJM_wU4BqGetpxZe"
   if not 'tx' in request.GET:
     return retailError(request,"No Paypal token provided")
-  trans_id = request.GET['tx']
-
-  # Confgure POST args
-  args = {}
-  # Specify the paypal command
-  args['cmd'] ='_notify-synch'
-  args['tx'] = trans_id
-  args['at'] = _identity_token
-
-  args = urllib.urlencode(args) 
-  status = ""
-  try:
-      # Do a post back to validate
-      # the transaction data
-      status = urlfetch.fetch(url = _paypal_url,
-                              method = urlfetch.POST,
-                              payload = args).content
-  except:
-      return retailError(request,"Unknow error, your request might have been processed already")
-
-  a = 1/0
-  if re.search('^SUCCESS', status):
-      # Check other transaction details here like
-      # payment_status etc..
-      # Update order status
-      return retailError(request,"Unknow error, your request might have been processed already")
-  else:
-      return retailError(request,"Unknow error, your request might have been processed already")
+  #FIXME this is not finished and never works
 
 
 

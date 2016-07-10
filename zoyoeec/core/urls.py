@@ -11,7 +11,6 @@ urlpatterns = patterns('core',
   (r'^login/$', 'main.login'),
   (r'^logout/$', 'main.logout'),
   (r'^register/$', 'main.register'),
-  (r'^find/$', 'main.find'),
   (r'^auth/$', 'ebay.auth'),
   (r'^logoutebay/$', 'ebay.logoutebay'),
   (r'^search/$', 'retail.searchjson'),
@@ -75,7 +74,8 @@ urlpatterns = patterns('core',
   (r'^admin/items/(?P<supplier>[a-zA-Z\d_]+)/(?P<category>[a-zA-Z\d]+)/', 'admin.view.items'),
 
 # Image based 
-  (r'^admin/image/','image.urls',
+  (r'^admin/image/','image.urls'),
+  (r'^admin/ebay/','ebay.urls'),
 
 
 # Ebay functions for items

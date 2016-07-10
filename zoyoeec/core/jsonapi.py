@@ -8,7 +8,8 @@ from ebaysdk.exception import ConnectionError
 from error import *
 from receipt import *
 from page import *
-import ebay, random
+import random
+from ebay import ebay
 import requests,json,datetime
 from google.appengine.ext import db,search
 from google.appengine.api import urlfetch

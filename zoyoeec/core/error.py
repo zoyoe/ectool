@@ -1,8 +1,10 @@
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse
-from lxml import etree
 from retailtype import *
 from StringIO import StringIO
+
+def formatName(name):
+  return name.replace(" ", "_")
 
 def xmlError(error):
   return HttpResponse("<?xml version='1.0' encoding='utf-8'?><ZoyoeError>" + error + "</ZoyoeError>",mimetype="text/xml")

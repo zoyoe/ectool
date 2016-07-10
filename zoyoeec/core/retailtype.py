@@ -6,7 +6,8 @@ from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
 from error import *
-import ebay, random
+import random
+from ebay import ebay
 import urllib2,httplib
 import requests,json,datetime
 from google.appengine.ext import db
@@ -60,7 +61,7 @@ class SiteInfo(db.Model):
 
   """ put categories info into ebayinfo
   """
-  def setEbayInfo(ebayinfo):
+  def setEbayInfo(self,ebayinfo):
     self.ebayinfo = ebayinfo
     self.put()
 
@@ -95,7 +96,7 @@ class Supplier(db.Model):
   data = db.TextProperty(default='{}')
   name = db.StringProperty(required=True)
   def saveItem(self,iteminfo,overwrite=True):
-    item = getItem(iteminfo['refid'])
+    item = Item.getItemByRID(iteminfo['refid'])
     if (item):
       item.name = iteminfo['name']
       item.price = iteminfo['price']
@@ -232,7 +233,7 @@ class Item(db.Model):
 
 
 def createDefaultItem(refid,suppliername="Anonymous"):
-  item = getItem(refid)
+  item = Item.getItemByRID(refid)
   if item:
     return item
   else:

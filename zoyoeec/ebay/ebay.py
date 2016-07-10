@@ -5,14 +5,14 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
-from ebayapi.api import *
-from ebayapi import api as ebayapi
-from retail import Supplier,ShopInfo,Item
-from error import *
-from lxml import etree 
+from ebay.api import *
+from core.retailtype import Supplier,ShopInfo,Item
 import urllib, random, json, datetime
-import zuser
+from core import error, retailtype
+from core import zuser
 from StringIO import StringIO
+
+from lxml import etree 
 
 def getEbayInfo(request): 
   token = getToken(request)
@@ -38,7 +38,7 @@ def saveSupplier(ebayinfo):
     supplier.put()
     return supplier
   elif ebayinfo:
-    supplier = Supplier(name = formatName(ebayinfo['store']),data=json.dumps(ebayinfo['categories']))
+    supplier = Supplier(name = error.formatName(ebayinfo['store']),data=json.dumps(ebayinfo['categories']))
     supplier.put()
     return supplier
   else:
@@ -51,7 +51,7 @@ def ebay_ajax_prefix(handler):
       ebayinfo = getEbayInfo(request)
       return handler(request,ebayinfo,*args,**kargs)
     else:
-      return xmlError("Not authorised")
+      return error.xmlError("Not authorised")
   return rst_handler
 
 def ebay_view_prefix(handler):
@@ -137,7 +137,7 @@ def getToken(request):
   if (not 'ebayinfo' in request.session) or (not request.session['ebayinfo']):
     request.session['ebayinfo'] =  {}
   ebayinfo = request.session.get('ebayinfo',{})
-  user = zuser.getCurrentUser(request)
+  zuser = zuser.getCurrentUser(request)
 
 # we are going to fetch the token if it does not exist yet
   token = ""
@@ -162,8 +162,8 @@ def getToken(request):
         # request.session['ebayinfo'] = ebayinfo
         logging.info("Can not get token from ebay id:" + token)
     if (not token): # can not get token from session
-      if user:
-        usr = user
+      if zuser:
+        usr = zuser
         if (usr and usr.ebaytoken):
           token = usr.ebaytoken
   # By the above computation we have tried to get the token
@@ -173,9 +173,9 @@ def getToken(request):
     logging.info("Can not get session for ebay auth")
     return None
 
-  # so far we might need to update the token of the current user 
-  if user:
-    usr = user
+  # so far we might need to update the token of the current zuser 
+  if zuser:
+    usr = zuser
     if (usr):
       usr.ebaytoken = token
       usr.put()
@@ -186,8 +186,8 @@ def getToken(request):
 
 # here we try to get as much info as possible from a ebay token
     if((not 'id' in ebayinfo) or (not 'email' in ebayinfo)):
-      user = GetUserInfo(token)
-      user_doc = etree.parse(StringIO(user))
+      zuser = GetUserInfo(token)
+      user_doc = etree.parse(StringIO(zuser))
       ack = user_doc.xpath("//xs:Ack",
         namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
       if ('Success' in ack.text):
@@ -240,7 +240,7 @@ def getToken(request):
         logging.info("Can not find shopinfo in ebayinfo:" + store)
         return None
     request.session['ebayinfo'] = ebayinfo
-    currentSite().setEbayInfo(json.dumps(ebayinfo))
+    retailtype.currentSite().setEbayInfo(json.dumps(ebayinfo))
     return ebayinfo['token']
   else:
     return None  
@@ -296,11 +296,11 @@ def relist(ebayinfo,item):
       if('Success' in ack.text):
         ebayid = xml_doc.xpath("//xs:ItemID",
           namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
-        item.ebayid = refid
+        item.ebayid = ebayid
         item.put()
       return (HttpResponse(revise,mimetype = "text/xml"),item)
     else:
-      return (xmlError("Related ebay item is still active"),item)
+      return (error.xmlError("Related ebay item is still active"),item)
   else:
     return (HttpResponse(ebayitem,mimetype = "text/xml"),item)
 
@@ -323,7 +323,7 @@ def format(ebayinfo,itemid):
     refid = xml_doc.xpath("//xs:SKU",
       namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})
     if (not refid):
-      return xmlError('SKU Not Provided')
+      return error.xmlError('SKU Not Provided')
     else:
       refid = refid[0].text
 #   refid = xml_doc.xpath("//xs:ItemID",
