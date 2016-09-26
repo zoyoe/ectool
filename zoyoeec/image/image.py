@@ -1,6 +1,5 @@
 import django.core.handlers.wsgi
 from core import zuser
-import ebay
 import datetime,urllib2,httplib,random,json
 from django.core.context_processors import csrf
 from django.http import HttpResponse, HttpResponseRedirect
@@ -197,6 +196,35 @@ def uploadimage(request,supplier,key,index='0'):
   else:
     return HttpResponse("fail")
 
+# ####
+# return ZoyoeSuccess if images are added
+# ####
+@csrf_exempt
+@zuser.authority_item
+def addimages(request,supplier):
+  file = request.FILES['files[]'].read()
+  name = request.FILES['files[]'].name.split(".")
+  name.pop()
+  rid = ".".join(name)
+  item = createDefaultItem(rid,supplier)
+  picture = quickrescale(file, 600)
+  idx = 0
+  img = item.getImage(idx)
+  if img:
+    img.image = picture
+    img.small = createsc(img.image)
+    img.put()
+  else:
+    img = ImageData(image=picture,name=item.name,parent=item,idx=idx) 
+    img.url = "http://" + request.META['HTTP_HOST'] + "/admin/fetchimage/" + item.parent().name + "/" + str(item.key().id()) + "/" + str(idx)
+    img.small = createsc(img.image)
+    img.put()
+    del picture
+    item.galleryurl = img.url
+    item.put()
+  return HttpResponse("ok")
+
+
 ####
 #  A view for userd to upload multiply images for a supplier
 #
@@ -210,9 +238,11 @@ def uploadimages(request):
   return (render_to_response("admin/images.html",context,context_instance=RequestContext(request)))
 
 
+####
 # Fix urls for ImageData
 # FIXME: using task queue instead
 #
+####
 def checkurl(request):
   imgs = ImageData.all()
   for img in imgs:

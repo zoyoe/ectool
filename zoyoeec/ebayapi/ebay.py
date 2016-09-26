@@ -12,6 +12,7 @@ from core import error, retailtype
 from core import userapi
 from StringIO import StringIO
 
+
 from lxml import etree 
 
 def getEbayInfo(request): 
@@ -29,6 +30,21 @@ def getSupplierFromEbayInfo(ebayinfo):
     return Supplier.getSupplierByName(ebayinfo['store'])
   else:
     return None
+
+def __get_item(itemid,token):
+  item = GetItem(itemid,token)
+  xml_doc = etree.parse(StringIO(item))
+  ack = xml_doc.xpath("//xs:Ack",
+    namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
+  if('Success' in ack.text):
+    title = xml_doc.xpath("//xs:Title",
+      namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
+    price = xml_doc.xpath("//xs:ConvertedCurrentPrice",
+      namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
+    return {'label':title,'value':price}
+  else:
+    return None
+  return None
 
 # Save an ebay supplier into google datastore 
 def saveSupplier(ebayinfo):
@@ -80,20 +96,6 @@ def checkSuccess(doc):
   else:
     return False;
 
-def getItem(itemid,token):
-  item = GetItem(itemid,token)
-  xml_doc = etree.parse(StringIO(item))
-  ack = xml_doc.xpath("//xs:Ack",
-    namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
-  if('Success' in ack.text):
-    title = xml_doc.xpath("//xs:Title",
-      namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
-    price = xml_doc.xpath("//xs:ConvertedCurrentPrice",
-      namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
-    return {'label':title,'value':price}
-  else:
-    return None
-  return None
 
 # We will save the referrer so that we can route back
 
@@ -437,6 +439,8 @@ def getactivelist(request):
   else:
     return None
 
+@zuser.authority_ebay
+@ebay_view_prefix
 def getinactivelist(request):
   token = getToken(request)
   page = 1 
@@ -463,7 +467,7 @@ def getinactivelist(request):
   else:
     return None
 
-
+@zuser.authority_ebay
 @ebay_view_prefix
 def fetchcategory(request):
   query = request.GET['term']
@@ -483,5 +487,79 @@ def fetchcategory(request):
     items.append({'label':label,'value':id})
   return HttpResponse(json.dumps(items),mimetype="text/plain")
 
-  
+@zuser.authority_ebay
+@ebay_view_prefix
+def exporttoebay(request,shop,key):
+  __register_admin_action(request,"ebayexport",shop+"/"+key)
+  token = ebay.getToken(request)
+  item = Item.get_by_id(int(key),parent = getSupplier(shop))
+  if item:
+    if (item.ebayid and (item.ebayid != '0')):
+      info = ebay.getEbayInfo(request)
+      rslt = sync(info,item)
+      return HttpResponse(rslt,mimetype="text/xml")
+    rslt = ebay.api.AddItem(token,item)
+    xml_doc = etree.parse(StringIO(rslt))
+    ack = xml_doc.xpath("//xs:Ack",
+      namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
+    if(not 'Failure' in ack.text):
+      itemid = xml_doc.xpath("//xs:ItemID",
+        namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
+      item.ebayid = itemid
+      item.put()
+    return HttpResponse(rslt,mimetype="text/xml")
+
+@zuser.authority_ebay
+@ebay_view_prefix
+def relisttoebay(request,shop,key):
+  __register_admin_action(request,"ebayrelist",shop+"/"+key)
+  info = ebay.getEbayInfo(request)
+  item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
+  if item:
+    if (item.ebayid and (item.ebayid != '0')):
+      rslt,item = relist(info,item)
+      return rslt
+  return (returnError("item not find or not exists in ebay"))
+
+@ebay_ajax_prefix
+def importfromebay(request,ebayinfo,itemid):
+  (rslt,item) = format(ebayinfo,itemid)
+  if item:
+    __register_admin_action(request,"ebaydepoly",item.parent().name+"/"+str(item.key().id()))
+    return rslt
+  else:
+    return rslt
  
+
+@ebay_view_prefix
+def syncwithebay(request,shop,key):
+  __register_admin_action(request,"ebayexport",shop+"/"+key)
+  info = ebay.getEbayInfo(request)
+  item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
+  if item:
+    rslt = sync(info,item)
+    return rslt
+
+@zuser.authority_ebay
+@ebay_view_prefix
+def deploy(request):
+  context = {}
+  context['itemlist'] = getactivelist(request)
+  #request.session['ebayinfo'] = {}
+  context['ebayinfo'] = getEbayInfo(request)
+  site = SiteInfo.all().get()
+  if not site:
+    site = SiteInfo()
+  site.mainshop = formatName(context['ebayinfo']['store'])
+  site.put()
+  saveSupplier(context['ebayinfo'])
+  return (render_to_response("admin/ebaydeploy.html",context,context_instance=RequestContext(request)))
+
+
+@zuser.authority_ebay
+@ebay_view_prefix
+def relistlist(request):
+  context = {}
+  context['itemlist'] = getinactivelist(request)
+  return (render_to_response("admin/ebaydeploy.html",context,context_instance=RequestContext(request)))
+

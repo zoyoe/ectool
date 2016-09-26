@@ -78,11 +78,6 @@ urlpatterns = patterns('core',
   (r'^admin/ebay/','ebay.urls'),
 
 
-# Ebay functions for items
-  (r'^admin/exporttoebay/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/','admin.exporttoebay'),
-  (r'^admin/syncwithebay/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/','admin.syncwithebay'),
-  (r'^admin/relisttoebay/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/','admin.relisttoebay'),
-  (r'^admin/categories/$', 'ebay.fetchcategory'),
   (r'^admin/$', 'main.admin'),
 
 # Admin site config view

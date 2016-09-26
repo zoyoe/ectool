@@ -282,34 +282,12 @@ def removeconfig(request):
       line.delete()
   return HttpResponse("ok")
 
-@zuser.authority_ebay
-@ebay_view_prefix
-def deploy(request):
-  context = {}
-  context['itemlist'] = getactivelist(request)
-  #request.session['ebayinfo'] = {}
-  context['ebayinfo'] = getEbayInfo(request)
-  site = SiteInfo.all().get()
-  if not site:
-    site = SiteInfo()
-  site.mainshop = formatName(context['ebayinfo']['store'])
-  site.put()
-  saveSupplier(context['ebayinfo'])
-  return (render_to_response("admin/ebaydeploy.html",context,context_instance=RequestContext(request)))
+###################################### Scan and Fix Stuff ################################
 
-
-@zuser.authority_ebay
-@ebay_view_prefix
-def relistlist(request):
-  context = {}
-  context['itemlist'] = getinactivelist(request)
-  return (render_to_response("admin/ebaydeploy.html",context,context_instance=RequestContext(request)))
-
-
-
-
-
+####
 # Main body of scan and fix items 
+#
+####
 
 def fixitems(cursor=None, num_updated=0):
     query = Item.all()
@@ -340,10 +318,10 @@ def fixitems(cursor=None, num_updated=0):
         logging.debug(
             'Scan items complete with %d updates!', num_updated)
         return None
-
-## Maintaince request
+####
+# Maintaince request
 #
-#
+####
 
 def scanitems(request):
   deferred.defer(fixitems)
