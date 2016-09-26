@@ -1,5 +1,5 @@
 from retailtype import *
-from core import zuser
+from core import userapi
 from google.appengine.ext import db
 
 class Receipt(db.Model):
@@ -11,7 +11,7 @@ class Receipt(db.Model):
   address = db.StringProperty(default='{}')
   status = db.StringProperty(default='draft')
   paypal = db.StringProperty(default="")
-  zuser = db.ReferenceProperty(zuser.UserInfo)
+  zuser = db.ReferenceProperty(userapi.UserInfo)
   total = db.FloatProperty(default=0.0)
 
 class ReceiptItem(db.Model):

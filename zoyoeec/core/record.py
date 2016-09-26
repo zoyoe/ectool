@@ -1,6 +1,6 @@
 import django.core.handlers.wsgi
 import random,json
-import zuser
+import userapi 
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
@@ -21,7 +21,7 @@ def getItemResponse(request,item,stories):
     return retailError(request,"item not found")
 
 def recordItemHistory(request,item):
-  user = zuser.getCurrentUser(request)
+  user = userapi.getCurrentUser(request)
   if user:
     history = user.history
     if not history:
@@ -41,7 +41,7 @@ def recordItemHistory(request,item):
     user.put()
 
 def getItemHistory(request):
-  user = zuser.getCurrentUser(request)
+  user = userapi.getCurrentUser(request)
   rslt = []
   if user:
     history = user.history

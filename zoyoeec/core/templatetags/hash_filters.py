@@ -3,7 +3,7 @@ from django import template
 from django.utils.html import escape
 from google.appengine.api import users
 register = template.Library()
-import core.zuser
+import core.userapi
 
 @register.filter("hash")
 def hash(dict,key):
@@ -25,11 +25,11 @@ def jhash(dstr,key):
 @register.filter("loginurl")
 def loginurl(user,request):
   absoluteurl = request.build_absolute_uri()
-  return "/login/?requesturl=" + core.zuser.encrypt("url",absoluteurl)
+  return "/login/?requesturl=" + core.userapi.encrypt("url",absoluteurl)
 
 @register.filter("googleloginurl")
 def googleloginurl(user,encurl):
-  absoluteurl = core.zuser.decrypt("url",encurl)
+  absoluteurl = core.userapi.decrypt("url",encurl)
   return users.create_login_url(absoluteurl)
 
 @register.filter("logouturl")

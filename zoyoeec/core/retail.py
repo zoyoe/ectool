@@ -8,17 +8,14 @@ from ebaysdk.exception import ConnectionError
 from error import *
 from receipt import *
 import random
-from ebay import ebay
+import ebayapi.ebay
 import requests,json,datetime
 from google.appengine.ext import db
 from google.appengine.api import urlfetch
 from google.appengine.api import search
-from core import zuser
+from core import userapi
 
-
-
-
-@zuser.require_login
+@userapi.require_login
 def retail(request):
   stories = getCategoriesInfo()
   fliers = ShopInfo.all().filter("type =","category").order("name")
@@ -50,7 +47,7 @@ def searchjson(request):
     return HttpResponse(json.dumps(items),mimetype = "text/plain")
   return HttpResponse('[]',mimetype = "text/plain")
 
-@zuser.require_login
+@userapi.require_login
 def searchview(request):
   index = search.Index(name="itemindex")
   items = []
@@ -394,7 +391,7 @@ def deletereceipt(request,key):
 ### END receipt ajas command
 ###
 
-@zuser.require_login
+@userapi.require_login
 def checkoutcart(request):
   cart = request.session.get('cart',{})
   request.session['cart'] = {}
@@ -410,7 +407,7 @@ def checkoutcart(request):
     "postal_code":request.POST["postal_code"],
     "country_code": request.POST["country_code"]
     })
-    receipt.zuser = zuser.getCurrentUser(request)
+    receipt.zuser = userapi.getCurrentUser(request)
     for key in cart:
       item = cart[key]
       obj = ReceiptItem(parent=receipt,iid= item['id'],description=item['description'],amount=int(item['amount']),price=float(item['price']))
@@ -527,9 +524,9 @@ def receiptsearch(request):
   builderror(request,content)
   return HttpResponseRedirect(request.META.get('HTTP_REFERER','/'))
 
-@zuser.require_login
+@userapi.require_login
 def receipts(request):
-  zuser = zuser.getCurrentUser(request)
+  zuser = userapi.getCurrentUser(request)
   if (zuser):
       receipts = zuser.receipt_set
       stories = getCategoriesInfo()
@@ -539,7 +536,7 @@ def receipts(request):
   else:
       return receiptsearch(request)
 
-@zuser.require_login
+@userapi.require_login
 def receiptview(request):
   receipt = None
   if ('key' in request.GET):
@@ -575,7 +572,7 @@ def receiptview(request):
   return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
-@zuser.require_login
+@userapi.require_login
 def billinginfo(request):
   stories = getCategoriesInfo()
   cart = request.session.get('cart',{})

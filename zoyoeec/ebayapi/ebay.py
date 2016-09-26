@@ -5,11 +5,11 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
-from ebay.api import *
+from api import *
 from core.retailtype import Supplier,ShopInfo,Item
 import urllib, random, json, datetime
 from core import error, retailtype
-from core import zuser
+from core import userapi
 from StringIO import StringIO
 
 from lxml import etree 
@@ -137,7 +137,7 @@ def getToken(request):
   if (not 'ebayinfo' in request.session) or (not request.session['ebayinfo']):
     request.session['ebayinfo'] =  {}
   ebayinfo = request.session.get('ebayinfo',{})
-  zuser = zuser.getCurrentUser(request)
+  zuser = userapi.getCurrentUser(request)
 
 # we are going to fetch the token if it does not exist yet
   token = ""

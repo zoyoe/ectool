@@ -71,7 +71,6 @@ def GetMyeBaySellingInactive(token,page):
   return GetEbayReply(CommonHeadCurrent('GetMyeBaySelling'),content)
 
 
-
 def GetUserInfo(token):
   xml_template = loader.get_template('GetUser.xml')
   para = {'token':token}
@@ -146,9 +145,6 @@ def RelistItemSimple(item,token,content):
   para['description'] = content
   content = xml_template.render(Context(para))
   return GetEbayReply(CommonHeadCurrent('RelistItem'),content)
-
-
-
 
 
 def ReviseItemBySKU(sku,title,token,desc):

@@ -5,14 +5,14 @@ from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
-from ebay.ebay import ebay_view_prefix,getactivelist, getEbayInfo
+from ebayapi.ebay import ebay_view_prefix,getactivelist, getEbayInfo
 from retail import retail, Supplier,Item,SiteInfo
 import retailtype
 from google.appengine.ext import db
 from google.appengine.api import users,namespace_manager
 from page import *
 import record, random, json, error
-from core import zuser
+import userapi
 
 application = django.core.handlers.wsgi.WSGIHandler()
 
@@ -44,7 +44,7 @@ def workspace(request):
   ##  return HttpResponseRedirect('/admin/config/preference/')
 
 def logout(request):
-  zuser = zuser.logoutUser(request)
+  zuser = userapi.logoutUser(request)
   return HttpResponseRedirect('/')
 
 def login(request):
@@ -52,11 +52,11 @@ def login(request):
     if('email' in request.POST and 'password' in request.POST):
       email = request.POST['email']
       password = request.POST['password']
-      zuser = zuser.loginUser(request,email,password)
+      zuser = userapi.loginUser(request,email,password)
       if zuser:
         if ('requesturl' in request.POST):
           requesturl = request.POST['requesturl']
-          return HttpResponseRedirect(zuser.decrypt('url',requesturl));
+          return HttpResponseRedirect(userapi.decrypt('url',requesturl));
         return error.ZoyoeSuccess("Success")
       else:
         if ('requesturl' in request.POST):
@@ -77,15 +77,15 @@ def register(request):
     if('email' in request.POST and 'password' in request.POST):
       email = request.POST['email']
       password = request.POST['password']
-      zuser = zuser.registerUser(request,email,password)
+      zuser = userapi.registerUser(request,email,password)
       if zuser:
         if ('requesturl' in request.GET):
           requesturl = request.GET['requesturl']
-          return HttpResponseRedirect(zuser.decrypt('url',requesturl));
+          return HttpResponseRedirect(userapi.decrypt('url',requesturl));
         else:
           return HttpResponseRedirect("/");
   # Pass to the phase as method neq POST 
-  zuser = zuser.getCurrentUser(request)
+  zuser = userapi.getCurrentUser(request)
   if not zuser:
     if ('requesturl' in request.GET):
       context = {}
@@ -94,7 +94,7 @@ def register(request):
   else:
     if ('requesturl' in request.GET):
       requesturl = request.GET['requesturl']
-      return HttpResponseRedirect(zuser.decrypt('url',requesturl));
+      return HttpResponseRedirect(userapi.decrypt('url',requesturl));
     else:
       return HttpResponseRedirect("/");
 
@@ -104,7 +104,7 @@ def createworkspace(request):
   else:
     site = retailtype.getSiteInfo()
     site.put() # create the site
-    zuser = zuser.getCurrentUser()
+    zuser = userapi.getCurrentUser()
     zuser.addAuthority(["ebay","config","item"])
     return HttpResponseRedirect('/admin/dashboard/');
   
@@ -150,7 +150,7 @@ def item(request,shop,key):
   return record.getItemResponse(request,item,stories)
 
 ### This is the main view of pos #
-@zuser.authority_config
+@userapi.authority_config
 @ebay_view_prefix
 def pos(request):
   cart = request.session.get('cart',{})
@@ -164,7 +164,7 @@ class dashboard:
   totalsuppliers = 0
   totalcategories = 0
 
-@zuser.authority_item
+@userapi.authority_item
 def admin(request):
   suppliers = Supplier.all()
   stories = {}
@@ -241,12 +241,12 @@ def ebayjson(request):
   return response
 
 
-@zuser.authority_item
+@userapi.authority_item
 def pdforder(request):
   context = {}
   return (render_to_response("order/pdforder.html",context,context_instance=RequestContext(request)))
 
-@zuser.authority_item
+@userapi.authority_item
 def csvorder(request):
   context = {}
   return (render_to_response("order/csvorder.html",context,context_instance=RequestContext(request)))

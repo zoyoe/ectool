@@ -121,7 +121,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
-    'ebay',
+    'ebayapi',
     'ebaysdk',
     'requests',
     'usertemplates',
@@ -133,8 +133,8 @@ INSTALLED_APPS = (
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request',
-    'core.zuser.user',
-    'core.zuser.info',
+    'core.userapi.user_pre_processor',
+    'core.middleware.info',
 )
 
 # A sample logging configuration. The only tangible logging

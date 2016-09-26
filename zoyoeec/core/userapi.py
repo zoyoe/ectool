@@ -1,4 +1,3 @@
-
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import HttpResponse
@@ -11,10 +10,10 @@ from google.appengine.api import namespace_manager
 
 from Crypto.Cipher import XOR
 from lxml import etree
-
 import base64
-def user(request):
-  user = user.getCurrentUser(request)
+
+def user_pre_processor(request):
+  user = getCurrentUser(request)
   return {'user':user}
 
 

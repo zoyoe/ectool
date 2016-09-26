@@ -1,13 +1,13 @@
 import django.core.handlers.wsgi
+import random
 from django.core.context_processors import csrf
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
+import ebayapi.ebay
 from error import *
-import random
-from ebay import ebay
 import urllib2,httplib
 import requests,json,datetime
 from google.appengine.ext import db
