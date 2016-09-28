@@ -33,4 +33,4 @@ libraries:
   version: "2.6"
 
 env_variables:
-  DJANGO_SETTINGS_MODULE : 'core.settings'
+  DJANGO_SETTINGS_MODULE : 'settings'

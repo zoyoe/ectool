@@ -27,15 +27,15 @@
 
     <div class="container">
 
-      <form name="CWSForm" class="form-signin" ng-submit="submitForm(CWSForm.$valid)" novalidate>
+      <form id="cwsform" action="/createworkspace/" name="cwsform" class="form-signin" ng-submit="submitForm(cwsform)" novalidate>
         <h2 class="form-signin-heading">create work space</h2>
         <div class="login-wrap">
             <div class="user-login-info">
                 {% csrf_token %}
                 <input name="name" type="text" class="form-control" placeholder="workspace name" autofocus required/>
                 <input name="email" ng-model="email" type="text" class="form-control" placeholder="admin account email" required ng-pattern="/^[a-z]+[a-z0-9._]+@[a-z]+\.[a-z.]{2,5}$/">
-                <input name="password" ng-model="password" type="password" ng-minlength="3" ng-maxlength="8" class="form-control" placeholder="Password">
-                <input name="passowrdcheck" ng-model="passwordcheck" type="password" ng-minlength="3" ng-maxlength="8" class="form-control" placeholder="Confirm Password">
+                <input name="password" ng-model="password" type="password" ng-minlength="3" ng-maxlength="8" class="form-control" placeholder="Password" required>
+                <input name="passowrdcheck" ng-model="passwordcheck" type="password" ng-minlength="3" ng-maxlength="8" class="form-control" required placeholder="Confirm Password">
             </div>
             <label class="checkbox">
                 <input type="checkbox" value="accept"/>I accept the terms and conditions of use
@@ -64,9 +64,9 @@
     <script>
       var createWorkSpaceApp = angular.module('createWorkSpaceApp', []);
       createWorkSpaceApp.controller('createWorkSpaceController', function($scope) {
-        $scope.submitForm = function(isValid) {
-          if (isValid) {
-            alert('our form is amazing');
+        $scope.submitForm = function(cwsform) {
+          if (cwsform.valid) {
+            document.getElementById("cwsform").submit();
           }
         };
       });

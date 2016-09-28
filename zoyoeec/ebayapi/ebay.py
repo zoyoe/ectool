@@ -308,7 +308,7 @@ def relist(ebayinfo,item):
   else:
     return (error.xmlError("Can not get item.", xml_doc), item)
 
-def import(ebayinfo,itemid):
+def __import_ebay_item(ebayinfo,itemid):
 
 # fetch ebay related info
   token = ebayinfo['token']
@@ -372,7 +372,7 @@ def import(ebayinfo,itemid):
       revise = ReviseItemSimple(item,token,content)
       xml_doc, error = __fetch_ebay_reply_xml(revise)
       if xml_doc:
-        return (xmlSuccess("Success!",xml_doc)),item)
+        return (xmlSuccess("Success!",xml_doc),item)
       else:
         return (xmlError("can not revise item.",error), None)
     else:
@@ -383,7 +383,7 @@ def import(ebayinfo,itemid):
           namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
         zitem.ebayid = refid
         zitem.put()
-        return (xmlSuccess("Success!",xml_doc)),item)
+        return (xmlSuccess("Success!",xml_doc),item)
       else:
         return (xmlError("can not revise item.",error), None)
   else:
@@ -439,8 +439,7 @@ def getactivelist(request):
 
 
 # FIXME: this is a pure xml request, thus ebay_view_prefix is not correct 
-@zuser.authority_ebay
-@ebay_view_prefix
+@ebay_ajax_prefix
 def getinactivelist(request):
   token = getToken(request)
   page = 1 
@@ -468,7 +467,7 @@ def getinactivelist(request):
     return None
 
 # FIXME: this is a pure json request, thus ebay_view_prefix is not correct 
-@zuser.authority_ebay
+@userapi.authority_ebay
 @ebay_view_prefix
 def fetchcategory(request):
   query = request.GET['term']
@@ -488,7 +487,7 @@ def fetchcategory(request):
     items.append({'label':label,'value':id})
   return HttpResponse(json.dumps(items),mimetype="text/plain")
 
-@zuser.authority_ebay
+@userapi.authority_ebay
 @ebay_view_prefix
 def exporttoebay(request,shop,key):
   __register_admin_action(request,"ebayexport",shop+"/"+key)
@@ -510,7 +509,7 @@ def exporttoebay(request,shop,key):
       item.put()
     return HttpResponse(rslt,mimetype="text/xml")
 
-@zuser.authority_ebay
+@userapi.authority_ebay
 @ebay_view_prefix
 def relisttoebay(request,shop,key):
   __register_admin_action(request,"ebayrelist",shop+"/"+key)
@@ -524,7 +523,7 @@ def relisttoebay(request,shop,key):
 
 @ebay_ajax_prefix
 def importfromebay(request,ebayinfo,itemid):
-  (rslt,item) = format(ebayinfo,itemid)
+  (rslt,item) = __import_ebay_item(ebayinfo,itemid)
   if item:
     __register_admin_action(request,"ebaydepoly",item.parent().name+"/"+str(item.key().id()))
     return rslt
@@ -541,8 +540,7 @@ def syncwithebay(request,shop,key):
     rslt = sync(info,item)
     return rslt
 
-@zuser.authority_ebay
-@ebay_view_prefix
+@userapi.authority_ebay
 def deploy(request):
   context = {}
   context['itemlist'] = getactivelist(request)
@@ -557,8 +555,7 @@ def deploy(request):
   return (render_to_response("admin/ebaydeploy.html",context,context_instance=RequestContext(request)))
 
 
-@zuser.authority_ebay
-@ebay_view_prefix
+@userapi.authority_ebay
 def relistlist(request):
   context = {}
   context['itemlist'] = getinactivelist(request)

@@ -1,25 +1,19 @@
 from django.conf.urls import patterns, include, url
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+import ebayapi
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
-
-urlpatterns = patterns('core',
-  (r'^$', 'main.main'),
-  (r'^workspace/$', 'main.workspace'),
-  (r'^login/$', 'main.login'),
-  (r'^logout/$', 'main.logout'),
-  (r'^register/$', 'main.register'),
-  (r'^auth/$', 'ebay.auth'),
-  (r'^logoutebay/$', 'ebay.logoutebay'),
+urlpatterns = patterns('',
+  (r'^$', 'core.main.main'),
+  (r'^workspace/$', 'core.main.workspace'),
+  (r'^createworkspace/$', 'core.main.createworkspace'),
+  (r'^login/$', 'core.main.login'),
+  (r'^logout/$', 'core.main.logout'),
+  (r'^register/$', 'core.main.register'),
   (r'^search/$', 'retail.searchjson'),
   (r'^match/$', 'retail.matchjson'),
-  (r'^authsuccess/$', 'ebay.authsuccess'),
-  (r'^authfail/$', 'ebay.authfail'),
   (r'^token/$', 'ebay.token'),
-  (r'^format/(?P<itemid>\d*)/', 'admin.importfromebay'),
-  (r'^relist/(?P<itemid>\d*)/', 'admin.importfromebay'),
+  (r'^format/(?P<itemid>\d*)/', 'ebayapi.ebay.importfromebay'),
+  (r'^relist/(?P<itemid>\d*)/', 'ebayapi.ebay.importfromebay'),
   (r'^item/(?P<shop>[a-zA-Z\d_\s]+)/(?P<key>[a-zA-Z\d]+)/$','main.item'),
 
 # items view pages
@@ -75,7 +69,8 @@ urlpatterns = patterns('core',
 
 # Image based 
   (r'^admin/image/','image.urls'),
-  (r'^admin/ebay/','ebay.urls'),
+  url(r'^ebay/',include('ebayapi.urls')),
+
 
 
   (r'^admin/$', 'main.admin'),
@@ -85,8 +80,8 @@ urlpatterns = patterns('core',
   (r'^admin/addconfig/$', 'admin.addconfig'),
 
 # config views
-  (r'^admin/config/preference/$', 'admin.preference'),
-  (r'^admin/config/ebay/$', 'admin.ebayconfig'),
+  (r'^admin/config/preference/$', 'admin.view.preference'),
+  (r'^admin/config/ebay/$', 'admin.view.ebayconfig'),
 
 #### end of admin section
 

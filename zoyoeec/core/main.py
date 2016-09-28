@@ -102,12 +102,19 @@ def createworkspace(request):
   if retailtype.currentSite():
     return HttpResponseRedirect('/admin/config/preference/')
   else:
-    site = retailtype.getSiteInfo()
-    site.put() # create the site
-    zuser = userapi.getCurrentUser()
-    zuser.addAuthority(["ebay","config","item"])
-    return HttpResponseRedirect('/admin/dashboard/');
-  
+    if (request.method == "POST"):
+      if('email' in request.POST and 'password' in request.POST):
+        email = request.POST['email']
+        password = request.POST['password']
+        zuser = userapi.registerUser(request,email,password)
+    zuser = userapi.getCurrentUser(request)
+    if zuser:
+      zuser.addAuthority(["ebay","config","item"])
+      site = retailtype.getSiteInfo()
+      site.put() # create the site
+      return HttpResponseRedirect('/admin/config/preference/');
+    else:
+      return HttpResponseRedirect('/workspace/');
 
 def items(request,shop,category):
   stories = retailtype.getCategoriesInfo()

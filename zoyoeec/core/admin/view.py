@@ -1,5 +1,4 @@
 import django.core.handlers.wsgi
-import ebay
 import datetime,urllib2,httplib,random,json
 from django.core.context_processors import csrf
 from django.http import HttpResponse, HttpResponseRedirect
@@ -10,9 +9,7 @@ from django.views.decorators.cache import never_cache
 from google.appengine.ext import db,blobstore,deferred
 from google.appengine.api import users,images
 from google.appengine.runtime.apiproxy_errors import RequestTooLargeError 
-from core import error, retailtype, retail
-from core import zuser,page
-from ebay import ebay
+from core import error, retailtype, retail, userapi, page
 from model import *
 
 application = django.core.handlers.wsgi.WSGIHandler()
@@ -43,7 +40,7 @@ def pageItems(query,dict,url,request):
 
 # Display the action history 
 #
-@zuser.authority_config
+@userapi.authority_config
 def actionhistory(request):
   dict = {}
   dict['actions'] = pageItems(AdminAction.all().order("-date"),
@@ -58,7 +55,7 @@ def actionhistory(request):
 #
 ####
 
-@zuser.authority_item
+@userapi.authority_item
 def unpublisheditems(request,suppliername):
   supplier = Supplier.getSupplierByName(suppliername)
   dict = {'SHOP':suppliername,'ITEM_WIDTH':'200'}
@@ -73,7 +70,7 @@ def unpublisheditems(request,suppliername):
     return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
 
 
-@zuser.authority_item
+@userapi.authority_item
 def ebayitems(request,shop):
   supplier = Supplier.getSupplierByName(shop)
   dict = {'SHOP':shop,'ITEM_WIDTH':'200'}
@@ -87,7 +84,7 @@ def ebayitems(request,shop):
     return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
 
 
-@zuser.authority_item
+@userapi.authority_item
 def items(request,suppliername,category):
   supplier = Supplier.getSupplier(suppliername)
   suppliers = Supplier.all()
@@ -112,7 +109,7 @@ def items(request,suppliername,category):
     context = Context(dict)
     return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
 
-@zuser.authority_item
+@userapi.authority_item
 def supplieritems(request,suppliername): 
   supplier = Supplier.getSupplierByName(suppliername)
   suppliers = [supplier]
@@ -139,7 +136,7 @@ def supplieritems(request,suppliername):
 
 #### Section: Item manipulation views.
 
-@zuser.authority_item
+@userapi.authority_item
 def additem(request):
   rid = request.GET['rid']
   item = retailtype.createDefaultItem(rid)
@@ -147,7 +144,7 @@ def additem(request):
   return response
   
 
-@zuser.authority_item
+@userapi.authority_item
 def deleteitem(request,shop,key):
   item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
   if item:
@@ -155,7 +152,7 @@ def deleteitem(request,shop,key):
     item.delete()
   return HttpResponseRedirect('/admin/items/'+shop)
 
-@zuser.authority_item
+@userapi.authority_item
 def item(request,shop,key):
   stories = retailtype.getCategoriesInfo()
   item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
@@ -176,7 +173,7 @@ def item(request,shop,key):
   else:
     return error.retailError(request,"item not found")
 
-@zuser.authority_item
+@userapi.authority_item
 def saveitem(request,shop,key):
   __register_admin_action(request,"saveitem",shop+"/"+key)
   item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
@@ -217,7 +214,7 @@ def clean(request):
 # Config the website 
 #
 #
-@zuser.authority_config
+@userapi.authority_config
 def feedinfo(k,content,type):
   if(type == "private"):
     configsite(k,content)
@@ -230,7 +227,7 @@ def feedinfo(k,content,type):
       line.content = content
       line.put()
 
-@zuser.authority_config
+@userapi.authority_config
 def configsite(attr,content):
   siteinfo = retailtype.getSiteInfo()
   keys = siteinfo.__dict__
@@ -248,21 +245,21 @@ def configsite(attr,content):
   siteinfo.put()
     
 
-@zuser.authority_config
+@userapi.authority_config
 def preference(request):
   context = {}
   context['CATEGORIES'] = ShopInfo.all().filter("type =","category").order("name")
   context['SITEINFO'] = retailtype.getSiteInfo()
   return (render_to_response("config/preferences.html",context,context_instance=RequestContext(request)))
 
-@zuser.authority_config
+@userapi.authority_config
 def ebayconfig(request):
 #  some config template
   context = {}
   context['EBAY'] = ShopInfo.all().filter("type =","ebay").order("name")
   return (render_to_response("config/config.html",context,context_instance=RequestContext(request)))
 
-@zuser.authority_config
+@userapi.authority_config
 def addconfig(request):
   if ("title" in request.POST):
     if ("content" in request.POST and request.POST['content']):
@@ -274,7 +271,7 @@ def addconfig(request):
   response =  HttpResponseRedirect('/admin/config/'+ request.POST['setting'])
   return response
 
-@zuser.authority_config
+@userapi.authority_config
 def removeconfig(request):
   if ("title" in request.POST):
     line = ShopInfo.all().filter("name =",request.POST['title']).get()
