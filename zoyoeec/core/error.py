@@ -2,18 +2,45 @@ from django.template import loader,Context,RequestContext
 from django.http import HttpResponse
 from retailtype import *
 from StringIO import StringIO
+from lxml import etree
 
 def formatName(name):
   return name.replace(" ", "_")
 
-def xmlError(error):
-  return HttpResponse("<?xml version='1.0' encoding='utf-8'?><ZoyoeError>" + error + "</ZoyoeError>",mimetype="text/xml")
+def xmlError(error,extradoc = None):
+  xstr = "<?xml version='1.0' encoding='utf-8'?><ZoyoeError>" + error + "</ZoyoeError>"
+  if extradoc:
+    xdoc = etree.parse(StringIO(xstr))
+    xdoc.getroot().appendChild(extradoc.getroot())
+    xstr = etree.tostring(xdoc, pretty_print=True)
+  return HttpResponse(xstr, mimetype="text/xml")
+
+def xmlSuccess(success,extradoc = None):
+  xstr = "<?xml version='1.0' encoding='utf-8'?><ZoyoeSuccess>" + success + "</ZoyoeSuccess>"
+  if extradoc:
+    xdoc = etree.parse(StringIO(xstr))
+    xdoc.getroot().appendChild(extradoc.getroot())
+    xstr = etree.tostring(xdoc, pretty_print=True)
+  return HttpResponse(xstr, mimetype="text/xml")
+
+
+####
+#
+# Usually we do not append extra document in which case it returns a pure zoyoe error or success xml document
+#
+####
 
 def ZoyoeError(error):
-  return HttpResponse("<?xml version='1.0' encoding='utf-8'?><ZoyoeError>" + error + "</ZoyoeError>",mimetype="text/xml")
+  return xmlError(error)
 
 def ZoyoeSuccess(success):
-  return HttpResponse("<?xml version='1.0' encoding='utf-8'?><ZoyoeSuccess>" + success + "</ZoyoeSuccess>",mimetype="text/xml")
+  return xmlSuccess(success)
+
+####
+#
+# plain error which are html pages
+#
+####
 
 def retailError(request,error,url="/retail/receiptview/"):
   stories = getCategoriesInfo()
@@ -41,8 +68,12 @@ def authorityError(request,error):
     ,context,context_instance=RequestContext(request)))
 
 
+####
+#
 # We put the latest error in the session. 
 # However this is might cause problems when 2 instance are created at the same time.
+#
+####
 def builderror(request,error):
   request.session['error'] = error
 
@@ -56,4 +87,4 @@ def chain(deco):
     return rslt
   return new_decorator
     
-    
+

@@ -1,17 +1,16 @@
 import django.core.handlers.wsgi
 import logging
+import api
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
-from api import *
 from core.retailtype import Supplier,ShopInfo,Item
 import urllib, random, json, datetime
 from core import error, retailtype
 from core import userapi
 from StringIO import StringIO
-
 
 from lxml import etree 
 
@@ -31,20 +30,14 @@ def getSupplierFromEbayInfo(ebayinfo):
   else:
     return None
 
-def __get_item(itemid,token):
-  item = GetItem(itemid,token)
-  xml_doc = etree.parse(StringIO(item))
+def __fetch_ebay_reply_xml(reply_str):
+  xml_doc = etree.parse(StringIO(reply_str))
   ack = xml_doc.xpath("//xs:Ack",
     namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
   if('Success' in ack.text):
-    title = xml_doc.xpath("//xs:Title",
-      namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
-    price = xml_doc.xpath("//xs:ConvertedCurrentPrice",
-      namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
-    return {'label':title,'value':price}
+    return (xml_doc, None)
   else:
-    return None
-  return None
+    return (None, xml_doc)
 
 # Save an ebay supplier into google datastore 
 def saveSupplier(ebayinfo):
@@ -274,62 +267,66 @@ def ebayordersajax(request,ebayinfo):
   rst = unicode(xrst)
   return HttpResponse(rst)
 
+####
+#
+# Formating ebay content will append general infomation after item description
+# It will replace everything after <!-- below is embed code --> tag
+# Used by relist and format
+#
+####
 
+####
+#
+# ebayinfo => item => xml_string * item
+#
+####
 def relist(ebayinfo,item):
-  token = ebayinfo['token']
   config = {'SELLER_ID':ebayinfo['id']}
   config['INITIAL'] = item.description
   config['ITEM'] = item
   config['EXTRA'] = ShopInfo.all().filter("type =","ebay").order("name")
-  format = loader.get_template("ebay/format.html")
-  content = format.render(Context(config))
+  ebaylistformat = loader.get_template("ebay/format.html")
+  content = ebaylistformat.render(Context(config))
+
+  token = ebayinfo['token']
   ebayitem = GetItem(item.ebayid,token)
-  xml_doc = etree.parse(StringIO(ebayitem))
-  ack = xml_doc.xpath("//xs:Ack",
-    namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
-  if('Success' in ack.text):
+  xml_doc,error = __fetch_ebay_reply_xml(ebayitem)
+  if xml_doc:
     sellingstatus = xml_doc.xpath("//xs:SellingStatus/xs:ListingStatus",
       namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
     if (sellingstatus == "Completed"):
       revise = RelistItemSimple(item,token,content)
-      xml_doc = etree.parse(StringIO(revise))
-      ack = xml_doc.xpath("//xs:Ack",
-        namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
-      if('Success' in ack.text):
+      xml_doc, error = __fetch_ebay_reply_xml(revise)
+      if xml_doc:
         ebayid = xml_doc.xpath("//xs:ItemID",
           namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
         item.ebayid = ebayid
         item.put()
-      return (HttpResponse(revise,mimetype = "text/xml"),item)
+      return (error.xmlSuccess("Success.", xml_doc),item)
     else:
-      return (error.xmlError("Related ebay item is still active"),item)
+      return (error.xmlError("Can not relist item.", xml_doc),item)
   else:
-    return (HttpResponse(ebayitem,mimetype = "text/xml"),item)
+    return (error.xmlError("Can not get item.", xml_doc), item)
 
+def import(ebayinfo,itemid):
 
-####
-# This function will append general infomation after item description
-# It will replace everything after <!-- below is embed code --> tag
-####
-def format(ebayinfo,itemid):
+# fetch ebay related info
   token = ebayinfo['token']
   id = ebayinfo['id']
-  config = {'SELLER_ID':id}
+
+# fetch ebay item
   item = GetItem(itemid,token)
-  xml_doc = etree.parse(StringIO(item))
-  ack = xml_doc.xpath("//xs:Ack",
-    namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
-  if('Success' in ack.text):
+  xml_doc,error = __fetch_ebay_reply_xml(item)
+  if xml_doc:
     description = xml_doc.xpath("//xs:Description",
       namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
     refid = xml_doc.xpath("//xs:SKU",
       namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})
     if (not refid):
-      return error.xmlError('SKU Not Provided')
+      return  (error.xmlError('SKU Not Provided',xml_doc), None)
     else:
       refid = refid[0].text
-#   refid = xml_doc.xpath("//xs:ItemID",
-#     namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
+
     name = xml_doc.xpath("//xs:Title",
       namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
     price = xml_doc.xpath("//xs:ConvertedCurrentPrice",
@@ -347,8 +344,11 @@ def format(ebayinfo,itemid):
     sellingstatus = xml_doc.xpath("//xs:SellingStatus/xs:ListingStatus",
       namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
     topd = description.text.split("<!-- below is embeded code -->")
+
+    config = {'SELLER_ID':id}
     config['INITIAL'] = topd[0]
     config['EXTRA'] = ShopInfo.all().filter("type =","ebay").order("name")
+
 # save the item
     iteminfo = {'refid':refid,'name':name
       ,'price':float(price),'cost':float(price),'galleryurl':galleryurl
@@ -366,36 +366,34 @@ def format(ebayinfo,itemid):
     zitem = supplier.saveItem(iteminfo)
 
     config['ITEM'] = zitem
-    format = loader.get_template("ebay/format.html")
-    content = format.render(Context(config))
+    contentformat = loader.get_template("ebay/format.html")
+    content = contentformat.render(Context(config))
     if (sellingstatus != "Completed"):
       revise = ReviseItemSimple(item,token,content)
-      xml_doc = etree.parse(StringIO(revise))
-      ack = xml_doc.xpath("//xs:Ack",
-        namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
-      if('Success' in ack.text):
-        return (HttpResponse(revise,mimetype = "text/xml"),item)
+      xml_doc, error = __fetch_ebay_reply_xml(revise)
+      if xml_doc:
+        return (xmlSuccess("Success!",xml_doc)),item)
       else:
-        return (HttpResponse(revise,mimetype = "text/xml"),None)
+        return (xmlError("can not revise item.",error), None)
     else:
       revise = RelistItemSimple(item,token,content)
-      xml_doc = etree.parse(StringIO(revise))
-      ack = xml_doc.xpath("//xs:Ack",
-        namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
-      if('Success' in ack.text):
+      xml_doc, error = __fetch_ebay_reply_xml(revise)
+      if xml_doc:
         ebayid = xml_doc.xpath("//xs:ItemID",
           namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
         zitem.ebayid = refid
         zitem.put()
-        return (HttpResponse(revise,mimetype = "text/xml"),item)
+        return (xmlSuccess("Success!",xml_doc)),item)
       else:
-        return (HttpResponse(revise,mimetype = "text/xml"),None)
+        return (xmlError("can not revise item.",error), None)
   else:
-    return (HttpResponse(item,mimetype = "text/xml"),None)
+    return (xmlError("can not get item.",error), None)
 
 ####
+#
 # This function will append general infomation after item description
 # It will replace everything after <!-- below is embed code --> tag
+#
 ####
 def sync(ebayinfo,item):
   token = ebayinfo['token']
@@ -414,7 +412,7 @@ def sync(ebayinfo,item):
     revise = ReviseItem(item,token,content)
   return HttpResponse(revise,mimetype = "text/xml")
 
-
+# FIXME: need deco here ebay_view_prefix ? ebay_ajax_prefix ?
 def getactivelist(request):
   token = getToken(request)
   page = 1 
@@ -439,6 +437,8 @@ def getactivelist(request):
   else:
     return None
 
+
+# FIXME: this is a pure xml request, thus ebay_view_prefix is not correct 
 @zuser.authority_ebay
 @ebay_view_prefix
 def getinactivelist(request):
@@ -467,6 +467,7 @@ def getinactivelist(request):
   else:
     return None
 
+# FIXME: this is a pure json request, thus ebay_view_prefix is not correct 
 @zuser.authority_ebay
 @ebay_view_prefix
 def fetchcategory(request):

@@ -16,8 +16,6 @@ def user_pre_processor(request):
   user = getCurrentUser(request)
   return {'user':user}
 
-
-
 def encrypt(key, plaintext):
   cipher = XOR.new(key)
   return base64.b64encode(cipher.encrypt(plaintext))
