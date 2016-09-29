@@ -1,6 +1,7 @@
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse
-from retailtype import *
+from django.shortcuts import render_to_response
+import retailtype
 from StringIO import StringIO
 from lxml import etree
 
@@ -43,26 +44,26 @@ def ZoyoeSuccess(success):
 ####
 
 def retailError(request,error,url="/retail/receiptview/"):
-  stories = getCategoriesInfo()
+  stories = retailtype.getCategoriesInfo()
   context = Context({'ERROR':error,'URL':url,'STORIES':stories})
   temp_path = currentSite().getTemplate("error.html");
   return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
 def userError(request,error):
-  stories = getCategoriesInfo()
+  stories = retailtype.getCategoriesInfo()
   context = Context({'ERROR':error,'STORIES':stories})
   return (render_to_response("usererror.html"
     ,context,context_instance=RequestContext(request)))
 
 def loginError(request,error):
-  stories = getCategoriesInfo()
+  stories = retailtype.getCategoriesInfo()
   context = Context({'ERROR':error,'STORIES':stories})
   return (render_to_response("error/loginerror.html"
     ,context,context_instance=RequestContext(request)))
 
 def authorityError(request,error):
-  stories = getCategoriesInfo()
+  stories = retailtype.getCategoriesInfo()
   context = Context({'ERROR':error,'STORIES':stories})
   return (render_to_response("error/authorityerror.html"
     ,context,context_instance=RequestContext(request)))

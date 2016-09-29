@@ -6,15 +6,29 @@ urlpatterns = patterns('',
   (r'^$', 'core.main.main'),
   (r'^workspace/$', 'core.main.workspace'),
   (r'^createworkspace/$', 'core.main.createworkspace'),
-  (r'^login/$', 'core.main.login'),
-  (r'^logout/$', 'core.main.logout'),
-  (r'^register/$', 'core.main.register'),
   (r'^search/$', 'retail.searchjson'),
   (r'^match/$', 'retail.matchjson'),
   (r'^token/$', 'ebay.token'),
   (r'^format/(?P<itemid>\d*)/', 'ebayapi.ebay.importfromebay'),
   (r'^relist/(?P<itemid>\d*)/', 'ebayapi.ebay.importfromebay'),
   (r'^item/(?P<shop>[a-zA-Z\d_\s]+)/(?P<key>[a-zA-Z\d]+)/$','main.item'),
+
+
+####
+#
+# root of admin
+#
+####
+  (r'^admin/$', 'core.main.admin'),
+
+####
+#
+# site user login/out/register
+#
+####
+  (r'^login/$', 'core.main.login'),
+  (r'^logout/$', 'core.main.logout'),
+  (r'^register/$', 'core.main.register'),
 
 # items view pages
   (r'^items/(?P<shop>[a-zA-Z\d_]+)/(?P<category>[a-zA-Z\d]+)/', 'main.items'),
@@ -69,11 +83,6 @@ urlpatterns = patterns('',
 
 # Image based 
   (r'^admin/image/','image.urls'),
-  url(r'^ebay/',include('ebayapi.urls')),
-
-
-
-  (r'^admin/$', 'main.admin'),
 
 # Admin site config view
   (r'^admin/feedinfo/$', 'admin.setupinfo'),
@@ -83,7 +92,19 @@ urlpatterns = patterns('',
   (r'^admin/config/preference/$', 'admin.view.preference'),
   (r'^admin/config/ebay/$', 'admin.view.ebayconfig'),
 
-#### end of admin section
+####
+#
+# ebay component
+#
+####
+
+  url(r'^ebay/',include('ebayapi.urls')),
+
+####
+#
+# end of admin section
+#
+####
 
 # resource stuff
   (r'^image/item/(?P<itemid>[a-zA-Z\d_\-\.]+)/$', 'admin.fetchimagebyrid'),
@@ -97,7 +118,14 @@ urlpatterns = patterns('',
 # rest api
   (r'^retail/get/','retail.get'),
   (r'^rest/cart/$', 'retail.cartinfo'),
-# debug
+
+####
+#
+# FIXME:
+# DEBUG: A good debug framework is needed for data migration
+#
+####
+
 # (r'^namespace/$', 'main.namespace'),
   (r'^admin/scanitems/$', 'admin.scanitems'),
   (r'^admin/checkurl/$', 'admin.checkurl'),
