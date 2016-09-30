@@ -316,6 +316,7 @@ def fixitems(cursor=None, num_updated=0):
             'Scan items complete with %d updates!', num_updated)
         return None
 ####
+#
 # Maintaince request
 #
 ####

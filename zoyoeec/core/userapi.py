@@ -110,7 +110,7 @@ def authority_login(handler):
     if user:
       return handler(request,*args,**kargs)
     else:
-      return error.loginError(request,"Please login with your google account continue");
+      return error.loginError(request,"Please login with your account to continue");
   return rst_handler
 
 def redirect_login(request):
@@ -125,6 +125,16 @@ def require_work_space(handler):
     else:
       return HttpResponseRedirect("/workspace/")
   return rst_handler
+
+
+##def ajax_require_work_space
+
+
+####
+#
+# 
+#
+####
 
 @error.chain(require_work_space)
 def require_login(handler):

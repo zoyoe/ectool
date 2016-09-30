@@ -38,8 +38,8 @@ def ZoyoeSuccess(success):
   return xmlSuccess(success)
 
 ####
-#
-# plain error which are html pages
+# 
+# Plain error which are html pages.
 #
 ####
 
@@ -50,11 +50,15 @@ def retailError(request,error,url="/retail/receiptview/"):
   return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
-def userError(request,error):
-  stories = retailtype.getCategoriesInfo()
-  context = Context({'ERROR':error,'STORIES':stories})
-  return (render_to_response("usererror.html"
-    ,context,context_instance=RequestContext(request)))
+def retailErrorAjax(request,error):
+  return ZoyoeError(error)
+
+####
+#
+# Admin Error
+#
+###
+
 
 def loginError(request,error):
   stories = retailtype.getCategoriesInfo()
