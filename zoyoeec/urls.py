@@ -14,12 +14,6 @@ urlpatterns = patterns('',
   (r'^item/(?P<shop>[a-zA-Z\d_\s]+)/(?P<key>[a-zA-Z\d]+)/$','main.item'),
 
 
-####
-#
-# root of admin
-#
-####
-  (r'^admin/$', 'core.main.admin'),
 
 ####
 #
@@ -68,6 +62,8 @@ urlpatterns = patterns('',
   (r'^orders/','order.orders'),
 
 ## Admin Section
+  (r'^admin/$', 'admin.view.admin'),
+
 # browsing stuff
   (r'^admin/item/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.view.item'),
   (r'^admin/additem/$','admin.view.additem'),
@@ -90,6 +86,7 @@ urlpatterns = patterns('',
 
 # config views
   (r'^admin/config/preference/$', 'admin.view.preference'),
+  (r'^admin/config/user/$', 'admin.view.user'),
   (r'^admin/config/ebay/$', 'admin.view.ebayconfig'),
 
 ####

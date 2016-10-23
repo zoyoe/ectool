@@ -37,9 +37,31 @@ def pageItems(query,dict,url,request):
   dict['queryurl'] = url
   return items
 
-
-# Display the action history 
+####
+#  This is the default view for admin
 #
+####
+@userapi.authority_item
+def admin(request):
+  suppliers = retailtype.Supplier.all()
+  stories = {}
+  stat = {}
+  estat = {}
+  items = []
+  for supply in suppliers:
+    stories[supply.name] = json.loads(supply.data)
+    stat[supply.name] = supply.getStat()
+    estat[supply.name] = supply.getEbayStat()
+  context = Context({'sellitems':items
+   ,'STORIES':stories,'STAT':stat,'ESTAT':estat})
+  return (render_to_response("admin/dashboard.html",context,context_instance=RequestContext(request)))
+
+
+
+####
+#  View of the action history 
+#
+####
 @userapi.authority_config
 def actionhistory(request):
   dict = {}
@@ -57,7 +79,7 @@ def actionhistory(request):
 
 @userapi.authority_item
 def unpublisheditems(request,suppliername):
-  supplier = Supplier.getSupplierByName(suppliername)
+  supplier = retailtype.Supplier.getSupplierByName(suppliername)
   dict = {'SHOP':suppliername,'ITEM_WIDTH':'200'}
   if (supplier):
     dict['sellitems'] = pageItems(supplier.getUnpublishedItems(),dict,
@@ -248,15 +270,25 @@ def configsite(attr,content):
 @userapi.authority_config
 def preference(request):
   context = {}
-  context['CATEGORIES'] = ShopInfo.all().filter("type =","category").order("name")
+  context['CATEGORIES'] = retailtype.getShopInfoByType("category")
   context['SITEINFO'] = retailtype.getSiteInfo()
   return (render_to_response("config/preferences.html",context,context_instance=RequestContext(request)))
+
+@userapi.authority_config
+def user(request):
+  context = {}
+  context['CATEGORIES'] = retailtype.getShopInfoByType("category")
+  context['SITEINFO'] = retailtype.getSiteInfo()
+  context['ACTIONS'] = pageItems(AdminAction.all().order("-date"),
+      context,"/admin/actionhistory/",request)
+  return (render_to_response("config/user.html",context,context_instance=RequestContext(request)))
+
 
 @userapi.authority_config
 def ebayconfig(request):
 #  some config template
   context = {}
-  context['EBAY'] = ShopInfo.all().filter("type =","ebay").order("name")
+  context['EBAY'] = retailtype.getShopInfoByType("ebay")
   return (render_to_response("config/config.html",context,context_instance=RequestContext(request)))
 
 @userapi.authority_config

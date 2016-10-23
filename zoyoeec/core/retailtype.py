@@ -76,6 +76,14 @@ def getSiteInfo():
     site = SiteInfo()
     return site
 
+#
+# This should only be called at creating a new workspace
+#
+def createSite(name):
+  site = getSiteInfo()
+  site.mainshop = name
+  site.put()
+
 def getCategoriesInfo():
   site = getSiteInfo()
   stories = {}
@@ -258,13 +266,18 @@ def createDefaultItem(refid,suppliername="Anonymous"):
       supplier.put()
       return supplier.saveItem(iteminfo)
 
+####
+#  All sorts of informations of the shop
+#
+####
 
 class ShopInfo(db.Model):
   name = db.StringProperty(required=True)
   content = db.TextProperty(required=True)
   type = db.StringProperty(default="")
 
-
+def getShopInfoByType(type):
+  return ShopInfo.all().filter("type =",type).order("name")
 
 
 # Schema updating functions

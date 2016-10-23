@@ -6,13 +6,13 @@ from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
 from ebayapi.ebay import ebay_view_prefix,getactivelist, getEbayInfo
-from retail import retail, Supplier,Item,SiteInfo
-import retailtype
 from google.appengine.ext import db
 from google.appengine.api import users,namespace_manager
 from page import *
+from retail import retail,Supplier,Item,SiteInfo
 import record, random, json, error
-import userapi
+import userapi, retailtype
+import forms
 
 application = django.core.handlers.wsgi.WSGIHandler()
 
@@ -33,6 +33,8 @@ def main(request):
         return HttpResponseRedirect('/admin/')
     else:
       return HttpResponseRedirect('/admin/config/preference/')
+
+
 ##
 # Display the current status of the workspace ( main site )
 # 
@@ -103,18 +105,23 @@ def createworkspace(request):
     return HttpResponseRedirect('/admin/config/preference/')
   else:
     if (request.method == "POST"):
-      if('email' in request.POST and 'password' in request.POST):
-        email = request.POST['email']
-        password = request.POST['password']
+      rf = forms.form_createworkspace(request.POST)
+      if rf.is_valid():
+        email = rf.cleaned_data['email']
+        password = rf.cleaned_data['password']
         zuser = userapi.registerUser(request,email,password)
-    zuser = userapi.getCurrentUser(request)
-    if zuser:
-      zuser.addAuthority(["ebay","config","item"])
-      site = retailtype.getSiteInfo()
-      site.put() # create the site
-      return HttpResponseRedirect('/admin/config/preference/');
-    else:
-      return HttpResponseRedirect('/workspace/');
+        zuser = userapi.loginUser(request,email,password)
+        if zuser:
+          retailtype.createSite(rf.cleaned_data['name'])
+          zuser.addAuthority(["ebay","config","item"])
+          return HttpResponseRedirect('/admin/config/preference/');
+      x = rf.email.errors.as_text()
+      y = rf.password.errors.as_text()
+      z = rf.name.errors.as_text()
+      a = 1/0
+    a = 1/0
+  a = 1/0
+  return HttpResponseRedirect('/workspace/');
 
 def items(request,shop,category):
   stories = retailtype.getCategoriesInfo()
@@ -171,21 +178,6 @@ class dashboard:
   totalsuppliers = 0
   totalcategories = 0
 
-@userapi.authority_item
-def admin(request):
-  suppliers = Supplier.all()
-  stories = {}
-  stat = {}
-  estat = {}
-  items = []
-  for supply in suppliers:
-    stories[supply.name] = json.loads(supply.data)
-    stat[supply.name] = supply.getStat()
-    estat[supply.name] = supply.getEbayStat()
-  context = Context({'sellitems':items
-   ,'STORIES':stories,'STAT':stat,'ESTAT':estat})
-  return (render_to_response("admin/dashboard.html",context,context_instance=RequestContext(request)))
-
 
 def buildPreviewContext(request,max,config=False):
   contextdic = {}
@@ -231,8 +223,9 @@ def config(request):
   context['ebayinfo'] = getEbayInfo(request)
   return (render_to_response("config.html",context,context_instance=RequestContext(request)))
 
-### FIXME: It is bad to have the entry point of ebay plugin at the moment
 ### 
+# FIXME: It is bad to have the entry point of ebay plugin at the moment
+# 
 ###
 def ebayjson(request):
   context = buildPreviewContext(request,20)

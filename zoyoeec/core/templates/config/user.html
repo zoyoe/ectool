@@ -1,0 +1,87 @@
+{% extends "gbase.html" %}
+{% load hash_filters %}
+{% block title %}
+<div class="col-md-12">
+  <ul class="breadcrumbs-alt">
+    <li>
+      <a href="#">Admin</a>
+    </li>
+    <li>
+      <a href="#">preference</a>
+    </li>
+    <li><a class="current" href="#">site preference</a>
+    </li>
+
+  </ul>
+</div>
+{% endblock %}
+
+{% block head %}
+<section class="col-lg-7 col-md-7">
+
+<div class = "panel">
+  <div class="panel-heading">Basic Setting:
+  </div>
+  <div class = "panel-body">
+    <table class="table  table-hover general-table">
+      <thead>
+        <tr>
+          <th>Account Info</th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>email</td>
+          <td>{{user.email}}</td>
+          <td><span class="label label-info label-mini">Reset Password</span></td>
+        </tr>
+        <tr>
+          <td>ebay token</td>
+          <td>{{user.ebaytoken}}</td>
+          <td><span class="label label-info label-mini">Reconnect</span></td>
+        </tr>
+        <tr>
+          <td>authority</td>
+          <td>{{user.authtoken}}</td>
+          <td><span class="label label-info label-mini">Set</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</section>
+
+<section class="col-lg-5 col-md-5">
+  <div class="panel-default panel">
+    <div class="panel-heading">
+      <h6 class="panel-title">Action History</h6>
+    </div>
+    <div class="panel-body">
+    <table class="table">
+      <thead>
+       <th>User</th>
+       <th>Action</th>
+       <th>Target</th>
+       <th>Date</th>
+      </thead>
+      <tbody>
+       {% for act in ACTIONS %}
+       <tr>
+        <td>{{act.parent.email}}</td>
+        <td>{{act.action}}</td>
+        <td><a href="/admin/item/{{act.target}}/">{{act.target}}</a></td>
+        <td>{{act.date}}</td>
+       </tr>
+       {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+{% block subsidebar %}
+{% endblock%}

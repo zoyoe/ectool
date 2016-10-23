@@ -14,6 +14,22 @@ from StringIO import StringIO
 
 from lxml import etree 
 
+
+####
+#
+# So far all the ebay info is stored in a dictionary called ebayinfo
+#
+# fields:
+#
+#    token: ebay token
+#    email: ebay email
+#    id : ebay seller id
+#    logo : ebay shop logo
+#    session: ebay link session
+#    categories : ebay categories
+#
+####
+
 def getEbayInfo(request): 
   token = getToken(request)
   if ('ebayinfo' in request.session):
