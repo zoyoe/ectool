@@ -8,22 +8,13 @@ import error,retailtype
 from google.appengine.api import users
 from google.appengine.api import namespace_manager
 
-from Crypto.Cipher import XOR
 from lxml import etree
+import cryptohelper
 import base64
 
 def user_pre_processor(request):
   user = getCurrentUser(request)
   return {'user':user}
-
-def encrypt(key, plaintext):
-  cipher = XOR.new(key)
-  return base64.b64encode(cipher.encrypt(plaintext))
-
-def decrypt(key, ciphertext):
-  cipher = XOR.new(key)
-  return cipher.decrypt(base64.b64decode(ciphertext))
-
 
 class UserInfo(db.Model):
   email = db.StringProperty(default='xgao@zoyoe.com')
@@ -67,7 +58,7 @@ def loginUser(request,email,password):
   else:
     user = __get_user(email)
     if user:
-      pw = decrypt(email,user.password)
+      pw = crypthelper.decrypt(email,user.password)
       if pw != password:
         user = None
       else:
@@ -82,7 +73,7 @@ def registerUser(request,email,password):
       return None
     else:
       user = __get_user(email,True)
-      user.password = encrypt(email,password)
+      user.password = cryptohelper.encrypt(email,password)
       user.put()
     return user
 
@@ -104,27 +95,10 @@ def checkAuthority(authority,user):
   else:
     return False
 
-def authority_login(handler):
-  def rst_handler(request,*args,**kargs):
-    user = getCurrentUser(request)
-    if user:
-      return handler(request,*args,**kargs)
-    else:
-      return error.loginError(request,"Please login with your account to continue");
-  return rst_handler
-
 def redirect_login(request):
   absoluteurl = request.build_absolute_uri()
-  return HttpResponseRedirect("/login/?requesturl=" + encrypt("url",absoluteurl))
+  return HttpResponseRedirect("/login/?requesturl=" + crptyhelper.encrypt("url",absoluteurl))
 
-def require_work_space(handler):
-  def rst_handler(request, *args, **kargs):
-    site = retailtype.currentSite()
-    if site:
-      return handler(request,*args,**kargs)
-    else:
-      return HttpResponseRedirect("/workspace/")
-  return rst_handler
 
 
 ##def ajax_require_work_space
@@ -132,9 +106,19 @@ def require_work_space(handler):
 
 ####
 #
-# 
+# Most commonly used prefix before view requests or ajax requests.
 #
 ####
+
+def require_work_space(handler):
+  def rst_handler(request, *args, **kargs):
+    site = retailtype.currentSite()
+    if site:
+      return handler(request,*args,**kargs)
+    else:
+      return workspaceError(request,"work space not exist")
+  return rst_handler
+
 
 @error.chain(require_work_space)
 def require_login(handler):
@@ -143,12 +127,21 @@ def require_login(handler):
     if site and site.requirelogin:
       user = getCurrentUser(request)
       if not user:
-        absoluteurl = request.build_absolute_uri()
-        return HttpResponseRedirect("/login/?requesturl=" + encrypt("url",absoluteurl))
+        return loginError(request, "login required")
     return handler(request,*args,**kargs)
   return rst_handler
 
-@error.chain(require_login)
+@error.chain(require_work_space)
+def authority_login(handler):
+  def rst_handler(request,*args,**kargs):
+    user = getCurrentUser(request)
+    if not user:
+      return loginError(request, "login required")
+    return handler(request,*args,**kargs)
+  return rst_handler
+
+
+@error.chain(authority_login)
 def authority_item(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser(request)
@@ -161,7 +154,7 @@ def authority_item(handler):
       return redirect_login(request)
   return rst_handler
 
-@error.chain(require_login)
+@error.chain(authority_login)
 def authority_ebay(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser(request)
@@ -174,7 +167,7 @@ def authority_ebay(handler):
       return redirect_login(request)
   return rst_handler
 
-@error.chain(require_login)
+@error.chain(authority_login)
 def authority_config(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser(request)
@@ -183,8 +176,6 @@ def authority_config(handler):
         return handler(request,*args,**kargs)
       else:
         return error.authorityError(request,"Not authorised activity, You need to be in the site configuration group to do this")
-    else:
-      return redirect_login(request)
   return rst_handler
 
 

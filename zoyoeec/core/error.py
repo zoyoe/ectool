@@ -60,17 +60,35 @@ def retailErrorAjax(request,error):
 ###
 
 
+####
+#
+# We need some special way to distinguish between view request or ajax request
+#
+####
+
+def isAjaxRequest(request):
+  return False
+
+def workspaceError(request,error):
+  if isAjaxRequest(request):
+    return zoyoeError(error)
+  else:
+    return HttpResponseRedirect("/workspace/")
+
 def loginError(request,error):
-  stories = retailtype.getCategoriesInfo()
-  context = Context({'ERROR':error,'STORIES':stories})
-  return (render_to_response("error/loginerror.html"
-    ,context,context_instance=RequestContext(request)))
+  if isAjaxRequest(request):
+    return zoyoeError("login required")
+  else:
+    absoluteurl = request.build_absolute_uri()
+    return HttpResponseRedirect("/login/?requesturl=" + encrypt("url",absoluteurl))
 
 def authorityError(request,error):
-  stories = retailtype.getCategoriesInfo()
-  context = Context({'ERROR':error,'STORIES':stories})
-  return (render_to_response("error/authorityerror.html"
-    ,context,context_instance=RequestContext(request)))
+  if isAjaxRequest(request):
+    return ZoyoeError(error)
+  else:
+    stories = retailtype.getCategoriesInfo()
+    context = Context({'ERROR':error,'STORIES':stories})
+    return (render_to_response("error/authorityerror.html",context,context_instance=RequestContext(request)))
 
 
 ####
@@ -91,5 +109,3 @@ def chain(deco):
       return rslt_handler
     return rslt
   return new_decorator
-    
-

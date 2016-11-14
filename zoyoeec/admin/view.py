@@ -265,6 +265,29 @@ def configsite(attr,content):
      else: 
        pass
   siteinfo.put()
+
+@userapi.authority_config
+def addconfig(request):
+  if ("title" in request.POST):
+    if ("content" in request.POST and request.POST['content']):
+      feedinfo(request.POST['title'],request.POST['content'],request.POST['type'])
+    else:
+      line = ShopInfo.all().filter("name =",request.POST['title']).get()
+      if line:
+        line.delete()
+  response =  HttpResponseRedirect('/admin/config/'+ request.POST['setting'])
+  return response
+
+@userapi.authority_config
+def removeconfig(request):
+  if ("title" in request.POST):
+    line = ShopInfo.all().filter("name =",request.POST['title']).get()
+    if line:
+      line.delete()
+  return HttpResponse("ok")
+
+#### End website config ####
+
     
 
 @userapi.authority_config
@@ -291,25 +314,6 @@ def ebayconfig(request):
   context['EBAY'] = retailtype.getShopInfoByType("ebay")
   return (render_to_response("config/config.html",context,context_instance=RequestContext(request)))
 
-@userapi.authority_config
-def addconfig(request):
-  if ("title" in request.POST):
-    if ("content" in request.POST and request.POST['content']):
-      feedinfo(request.POST['title'],request.POST['content'],request.POST['type'])
-    else:
-      line = ShopInfo.all().filter("name =",request.POST['title']).get()
-      if line:
-        line.delete()
-  response =  HttpResponseRedirect('/admin/config/'+ request.POST['setting'])
-  return response
-
-@userapi.authority_config
-def removeconfig(request):
-  if ("title" in request.POST):
-    line = ShopInfo.all().filter("name =",request.POST['title']).get()
-    if line:
-      line.delete()
-  return HttpResponse("ok")
 
 ###################################### Scan and Fix Stuff ################################
 
