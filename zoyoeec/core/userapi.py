@@ -10,7 +10,6 @@ from google.appengine.api import namespace_manager
 
 from lxml import etree
 import cryptohelper
-import base64
 
 def user_pre_processor(request):
   user = getCurrentUser(request)
@@ -58,7 +57,7 @@ def loginUser(request,email,password):
   else:
     user = __get_user(email)
     if user:
-      pw = crypthelper.decrypt(email,user.password)
+      pw = cryptohelper.decrypt(email,user.password)
       if pw != password:
         user = None
       else:
@@ -116,7 +115,7 @@ def require_work_space(handler):
     if site:
       return handler(request,*args,**kargs)
     else:
-      return workspaceError(request,"work space not exist")
+      return error.workspaceError(request,"work space not exist")
   return rst_handler
 
 
@@ -127,7 +126,7 @@ def require_login(handler):
     if site and site.requirelogin:
       user = getCurrentUser(request)
       if not user:
-        return loginError(request, "login required")
+        return error.loginError(request, "login required")
     return handler(request,*args,**kargs)
   return rst_handler
 
@@ -136,7 +135,7 @@ def authority_login(handler):
   def rst_handler(request,*args,**kargs):
     user = getCurrentUser(request)
     if not user:
-      return loginError(request, "login required")
+      return error.loginError(request, "login required")
     return handler(request,*args,**kargs)
   return rst_handler
 

@@ -27,15 +27,20 @@
 
     <div class="container">
 
-      <form id="cwsform" method="POST" action="/createworkspace/" name="cwsform" class="form-signin" ng-submit="submitForm(cwsform)" novalidate>
+      <form id="cwsform" method="POST" name="cwsform" class="form-signin" ng-submit="submitForm(cwsform)" novalidate>
         <h2 class="form-signin-heading">create work space</h2>
         <div class="login-wrap">
             <div class="user-login-info">
                 {% csrf_token %}
+                {% if FORM %}{% include "zoyoe/formhint.thingy" with field=FORM.name %}{% endif %}
                 <input name="name" type="text" class="form-control" placeholder="workspace name" autofocus required/>
+
+                {% if FORM %}{% include "zoyoe/formhint.thingy" with field=FORM.email %}{% endif %}
                 <input name="email" ng-model="email" type="text" class="form-control" placeholder="admin account email" required ng-pattern="/^[a-z]+[a-z0-9._]+@[a-z]+\.[a-z.]{2,5}$/">
+
+                {% if FORM %}{% include "zoyoe/formhint.thingy" with field=FORM.password%}{% endif %}
                 <input name="password" ng-model="password" type="password" ng-minlength="3" ng-maxlength="8" class="form-control" placeholder="Password" required>
-                <input name="passowrdcheck" ng-model="passwordcheck" type="password" ng-minlength="3" ng-maxlength="8" class="form-control" required placeholder="Confirm Password">
+                <input name="passowrdcheck" ng-model="passwordcheck" type="password" data-password-check="password" class="form-control" required placeholder="Confirm Password">
             </div>
             <label class="checkbox">
                 <input type="checkbox" value="accept"/>I accept the terms and conditions of use
@@ -63,10 +68,44 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js"></script>
     <script>
       var createWorkSpaceApp = angular.module('createWorkSpaceApp', []);
+      createWorkSpaceApp.directive("passwordCheck", function() {
+        return {
+          require: "ngModel",
+          scope: {
+            passwordCheck: '='
+          },
+          link: function(scope, element, attrs, ctrl) {
+            scope.$watch(function() {
+              var combined;
+
+              if (scope.passwordCheck || ctrl.$viewValue) {
+                combined = scope.passwordCheck+ '_' + ctrl.$viewValue; 
+              }                    
+              return combined;
+            }, function(value) {
+              if (value) {
+                ctrl.$parsers.unshift(function(viewValue) {
+                    var origin = scope.passwordCheck;
+                    if (origin !== viewValue) {
+                        ctrl.$setValidity("passwordCheck", false);
+                        return undefined;
+                    } else {
+                        ctrl.$setValidity("passwordCheck", true);
+                        return viewValue;
+                    }
+                });
+              }
+            });
+          }
+        };
+      });
       createWorkSpaceApp.controller('createWorkSpaceController', function($scope) {
         $scope.submitForm = function(cwsform) {
-          if (cwsform.valid) {
-            document.getElementById("cwsform").submit();
+          if (cwsform.$valid) {
+              var form = document.getElementById("cwsform");
+              form.action = "/createworkspace/";
+              form.submit();
+          }else{
           }
         };
       });

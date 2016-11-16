@@ -25,11 +25,11 @@ def jhash(dstr,key):
 @register.filter("loginurl")
 def loginurl(user,request):
   absoluteurl = request.build_absolute_uri()
-  return "/login/?requesturl=" + core.userapi.encrypt("url",absoluteurl)
+  return "/login/?requesturl=" + core.cryptohelper.encrypt("url",absoluteurl)
 
 @register.filter("googleloginurl")
 def googleloginurl(user,encurl):
-  absoluteurl = core.userapi.decrypt("url",encurl)
+  absoluteurl = core.cryptohelper.decrypt("url",encurl)
   return users.create_login_url(absoluteurl)
 
 @register.filter("logouturl")

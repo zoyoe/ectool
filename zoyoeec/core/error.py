@@ -1,7 +1,7 @@
 from django.template import loader,Context,RequestContext
-from django.http import HttpResponse
 from django.shortcuts import render_to_response
-import retailtype
+from django.http import HttpResponse, HttpResponseRedirect
+import retailtype, cryptohelper
 from StringIO import StringIO
 from lxml import etree
 
@@ -80,7 +80,7 @@ def loginError(request,error):
     return zoyoeError("login required")
   else:
     absoluteurl = request.build_absolute_uri()
-    return HttpResponseRedirect("/login/?requesturl=" + encrypt("url",absoluteurl))
+    return HttpResponseRedirect("/login/?requesturl=" + cryptohelper.encrypt("url",absoluteurl))
 
 def authorityError(request,error):
   if isAjaxRequest(request):

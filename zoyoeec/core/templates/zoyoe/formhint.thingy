@@ -1,0 +1,10 @@
+{% if field and field.errors %}
+<div class="alert alert-warning fade in">
+  <button data-dismiss="alert" class="close close-sm" type="button">
+    <i class="fa fa-times"></i>
+  </button>
+  {% for error in field.errors %}
+  <strong>{{ error|escape }}</strong>
+  {% endfor %}
+</div>
+{% endif %}

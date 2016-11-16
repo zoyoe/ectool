@@ -1,4 +1,5 @@
 from Crypto.Cipher import XOR
+import base64
 
 def encrypt(key, plaintext):
   cipher = XOR.new(key)

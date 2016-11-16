@@ -103,6 +103,7 @@ class Supplier(db.Model):
   """
   data = db.TextProperty(default='{}')
   name = db.StringProperty(required=True)
+  islocked = db.BooleanProperty(default=True)
   def saveItem(self,iteminfo,overwrite=True):
     item = Item.getItemByRID(iteminfo['refid'])
     if (item):

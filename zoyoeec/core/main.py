@@ -11,8 +11,8 @@ from google.appengine.api import users,namespace_manager
 from page import *
 from retail import retail,Supplier,Item,SiteInfo
 import record, random, json, error
-import userapi, retailtype
-import forms
+import userapi, retailtype, cryptohelper
+import zoyoeforms
 
 application = django.core.handlers.wsgi.WSGIHandler()
 
@@ -58,7 +58,7 @@ def login(request):
       if zuser:
         if ('requesturl' in request.POST):
           requesturl = request.POST['requesturl']
-          return HttpResponseRedirect(userapi.decrypt('url',requesturl));
+          return HttpResponseRedirect(cryptohelper.decrypt('url',requesturl));
         return error.ZoyoeSuccess("Success")
       else:
         if ('requesturl' in request.POST):
@@ -103,25 +103,22 @@ def register(request):
 def createworkspace(request):
   if retailtype.currentSite():
     return HttpResponseRedirect('/admin/config/preference/')
+  elif (request.method == "POST"):
+    rf = zoyoeforms.CreateWorkspace(request.POST)
+    if rf.is_valid():
+      email = rf.cleaned_data['email']
+      password = rf.cleaned_data['password']
+      zuser = userapi.registerUser(request,email,password)
+      if zuser:
+        retailtype.createSite(rf.cleaned_data['name'])
+        zuser.addAuthority(["ebay","config","item"])
+        return HttpResponseRedirect('/admin/config/preference/');
+      else:
+        return HttpResponseRedirect('/workspace/');
+    else:
+      return (render_to_response("zoyoe/createworkspace.html",{'FORM':rf},context_instance=RequestContext(request)))
   else:
-    if (request.method == "POST"):
-      rf = forms.form_createworkspace(request.POST)
-      if rf.is_valid():
-        email = rf.cleaned_data['email']
-        password = rf.cleaned_data['password']
-        zuser = userapi.registerUser(request,email,password)
-        zuser = userapi.loginUser(request,email,password)
-        if zuser:
-          retailtype.createSite(rf.cleaned_data['name'])
-          zuser.addAuthority(["ebay","config","item"])
-          return HttpResponseRedirect('/admin/config/preference/');
-      x = rf.email.errors.as_text()
-      y = rf.password.errors.as_text()
-      z = rf.name.errors.as_text()
-      a = 1/0
-    a = 1/0
-  a = 1/0
-  return HttpResponseRedirect('/workspace/');
+    return HttpResponseRedirect('/workspace/');
 
 def items(request,shop,category):
   stories = retailtype.getCategoriesInfo()

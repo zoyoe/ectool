@@ -28,25 +28,61 @@
         <tr>
           <th> Field </th>
           <th> Value </th>
-          <th> Required </th>
+          <th> type </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>logo</td>
-          <td>logo url</td>
-          <td><span class="label label-info label-mini">Yes</span></td>
+          <td>{{SITE.logo}}</td>
+          <td><span class="label label-info label-mini">private</span></td>
         </tr>
         <tr>
           <td>main shop</td>
-          <td>None</td>
-          <td><span class="label label-info label-mini">Yes</span></td>
+          <td>{{SITE.mainshop}}</td>
+          <td><span class="label label-info label-mini">private</span></td>
         </tr>
+        <tr>
+          <td>analytics</td>
+          <td>{{SITE.analytics}}</td>
+          <td><span class="label label-info label-mini">private</span></td>
+        </tr>
+        <tr>
+          <td>published</td>
+          <td>{{SITE.published}}</td>
+          <td><span class="label label-info label-mini">private</span></td>
+        </tr>
+        <tr>
+          <td>siteinfo</td>
+          <td>{{SITE.siteinfo}}</td>
+          <td><span class="label label-info label-mini">private</span></td>
+        </tr>
+        <tr>
+          <td>ebayinfo</td>
+          <td>{{SITE.ebayinfo}}</td>
+          <td><span class="label label-info label-mini">private</span></td>
+        </tr>
+        <tr>
+          <td>requirelogin</td>
+          <td>{{SITE.requirelogin}}</td>
+          <td><span class="label label-info label-mini">private</span></td>
+        </tr>
+
       </tbody>
     </table>
   </div>
 </div>
-
+<div class="row">
+  <div class="col-md-12">
+   <div class="mini-stat clearfix">
+     <span class="mini-stat-icon orange"><i class="fa fa-gavel"></i></span>
+     <div class="mini-stat-info">
+       <span>10</span>suppliers
+       <a class="pull-right btn-xs btn-primary btn">create supplier</a>
+     </div>
+   </div>
+  </div>
+</div>
 
 {% for line in CATEGORIES %}
 {% include "config/config.thingy" with title=line.name category="category" form="config-form" content=line.content %}
@@ -67,8 +103,16 @@
   </div>
 </div>
 
-
-
+{% for supplier in SUPPLIERS %}
+<div class = "panel" id='supplier-{{supplier.name}}'>
+  <div class="panel-heading">{{supplier.name}}:
+      <span  class="pull-right"> 
+         <a class="fa fa-pencil"></a>
+      </span>
+  </div>
+  <div class="panel-body">{{supplier.data|safe}}</div>
+</div>
+{% endfor %}
 </section>
 
 <section class="col-lg-5 col-md-5">

@@ -293,8 +293,9 @@ def removeconfig(request):
 @userapi.authority_config
 def preference(request):
   context = {}
-  context['CATEGORIES'] = retailtype.getShopInfoByType("category")
-  context['SITEINFO'] = retailtype.getSiteInfo()
+  suppliers = retailtype.Supplier.all()
+  context['SUPPLIERS'] = suppliers
+  context['SITE'] = retailtype.getSiteInfo()
   return (render_to_response("config/preferences.html",context,context_instance=RequestContext(request)))
 
 @userapi.authority_config
