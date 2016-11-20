@@ -97,9 +97,10 @@ def formatRID(name):
   return name.replace(" ", "_").upper().encode('ascii','ignore')
 
 class Supplier(db.Model):
-  """ data is a json object.
-  data = {'id': XX,'email': XX,'logo':XX,
-    'categories': categories}
+  """ 
+  Data is a json dictionary and it current contains the information of categories dictionary of the supplier
+  JSON Type Recusion:
+  CINFO = DICT(key = 'id', value =  {'name': name, "children":CINFO})
   """
   data = db.TextProperty(default='{}')
   name = db.StringProperty(required=True)

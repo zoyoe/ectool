@@ -22,6 +22,10 @@ def jhash(dstr,key):
   else:
     return None
 
+@register.filter("dumpjson")
+def dumpjson(obj):
+  return json.dumps(obj)
+
 @register.filter("loginurl")
 def loginurl(user,request):
   absoluteurl = request.build_absolute_uri()
@@ -64,7 +68,6 @@ class AngularNode(template.Node):
       self.text = text
   def render(self, context):
       return self.text
-
 
 @register.tag
 def angular(parser, token):

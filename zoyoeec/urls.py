@@ -81,8 +81,8 @@ urlpatterns = patterns('',
   (r'^admin/image/','image.urls'),
 
 # Admin site config view
-  (r'^admin/feedinfo/$', 'admin.setupinfo'),
-  (r'^admin/addconfig/$', 'admin.addconfig'),
+  (r'^admin/configapi/remove/$', 'admin.api.setupinfo'),
+  (r'^admin/configapi/add$/', 'admin.api.addconfig'),
 
 # config views
   (r'^admin/config/preference/$', 'admin.view.preference'),

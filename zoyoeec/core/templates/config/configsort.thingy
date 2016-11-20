@@ -1,0 +1,19 @@
+<div class="panel">
+  <div class="panel-heading">{{infos.type}}:
+  </div>
+  <div class = "panel-body">
+{% for line in infos.items %}
+    <div class="well">
+      <span class="pull-right">
+        <a href="javascript:zoyoe.config.delete('#{{form}}','{{line.name}}');" class="fa fa-times"></a>
+      </span>
+      <span  class="pull-right"> 
+         <a href="javascript:zoyoe.config.modify('#{{form}}','{{line.name}}','{{infos.type}}','{{infos.datatype}}')" class="fa fa-pencil"></a>
+      </span>
+      <h4>{{line.name}}</h4>
+      <div>{{line.content|safe}}</div>
+    </div>
+{% endfor %}
+  </div>
+</div>
+

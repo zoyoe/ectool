@@ -233,62 +233,7 @@ def clean(request):
     item.put()
   return HttpResponse("over")
 
-# Config the website 
-#
-#
-@userapi.authority_config
-def feedinfo(k,content,type):
-  if(type == "private"):
-    configsite(k,content)
-  else:
-    line = ShopInfo.all().filter("name =",k).get()
-    if not line:
-      line = ShopInfo(name=k,content=content,type=type)
-      line.put()
-    else:
-      line.content = content
-      line.put()
-
-@userapi.authority_config
-def configsite(attr,content):
-  siteinfo = retailtype.getSiteInfo()
-  keys = siteinfo.__dict__
-  properties = siteinfo.properties()
-  if (attr in properties):
-     model = properties.get(attr)
-     if isinstance(model, db.StringProperty):
-       setattr(siteinfo,attr,content)
-     elif isinstance(model,db.BooleanProperty):
-       setattr(siteinfo,attr,(False,True)[content == "True"])
-     elif isinstance(model,db.TextProperty):
-       setattr(siteinfo,attr,content)
-     else: 
-       pass
-  siteinfo.put()
-
-@userapi.authority_config
-def addconfig(request):
-  if ("title" in request.POST):
-    if ("content" in request.POST and request.POST['content']):
-      feedinfo(request.POST['title'],request.POST['content'],request.POST['type'])
-    else:
-      line = ShopInfo.all().filter("name =",request.POST['title']).get()
-      if line:
-        line.delete()
-  response =  HttpResponseRedirect('/admin/config/'+ request.POST['setting'])
-  return response
-
-@userapi.authority_config
-def removeconfig(request):
-  if ("title" in request.POST):
-    line = ShopInfo.all().filter("name =",request.POST['title']).get()
-    if line:
-      line.delete()
-  return HttpResponse("ok")
-
-#### End website config ####
-
-    
+   
 
 @userapi.authority_config
 def preference(request):

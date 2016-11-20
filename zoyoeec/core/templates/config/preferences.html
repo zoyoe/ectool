@@ -17,9 +17,10 @@
 {% endblock %}
 
 {% block head %}
-<section class="col-lg-7 col-md-7">
+<div ng-app="site-preference">
 
-<div class = "panel">
+<section class="col-lg-7 col-md-7">
+<div class = "panel" ng-controller="basic-setting-api">
   <div class="panel-heading">Basic Setting:
   </div>
   <div class = "panel-body">
@@ -29,165 +30,125 @@
           <th> Field </th>
           <th> Value </th>
           <th> type </th>
+          <th> action </th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>logo</td>
-          <td>{{SITE.logo}}</td>
+          {% angular %}<td>{{site.logo}}</td>{% endangular %}
           <td><span class="label label-info label-mini">private</span></td>
+          <td>{% include "config/config.thingy" with title="logo" category="private" form="config-form" content=SITE.logo%}</td>
         </tr>
         <tr>
           <td>main shop</td>
-          <td>{{SITE.mainshop}}</td>
+          {% angular %}<td>{{site.mainshop}}</td>{% endangular %}
           <td><span class="label label-info label-mini">private</span></td>
+          <td>{% include "config/config.thingy" with title="mainshop" category="private" form="config-form" content=SITE.mainshop%}</td>
         </tr>
         <tr>
           <td>analytics</td>
-          <td>{{SITE.analytics}}</td>
+          {% angular %}<td>{{site.analytics}}</td>{% endangular %}
           <td><span class="label label-info label-mini">private</span></td>
+          <td>{% include "config/config.thingy" with title="analytics" category="private" form="config-form" content=SITE.analytics%}</td>
         </tr>
         <tr>
           <td>published</td>
-          <td>{{SITE.published}}</td>
+          {% angular %}<td>{{site.published}}</td>{% endangular %}
           <td><span class="label label-info label-mini">private</span></td>
+          <td>{% include "config/config.thingy" with title="private" category="private" form="config-form" content=SITE.private %}</td>
         </tr>
         <tr>
           <td>siteinfo</td>
-          <td>{{SITE.siteinfo}}</td>
+          {% angular %}<td>{{site.siteinfo}}</td>{% endangular %}
           <td><span class="label label-info label-mini">private</span></td>
+          <td>{% include "config/config.thingy" with title="siteinfo" category="private" form="config-form" content=SITE.siteinfo%}</td>
         </tr>
         <tr>
           <td>ebayinfo</td>
-          <td>{{SITE.ebayinfo}}</td>
+          {% angular %}<td>{{site.ebayinfo}}</td>{% endangular %}
           <td><span class="label label-info label-mini">private</span></td>
+          <td>{% include "config/config.thingy" with title="ebayinfo" category="private" form="config-form" content=SITE.ebayinfo%}</td>
         </tr>
         <tr>
           <td>requirelogin</td>
-          <td>{{SITE.requirelogin}}</td>
+          {% angular %}<td>{{site.requirelogin}}</td>{% endangular %}
           <td><span class="label label-info label-mini">private</span></td>
+          <td>{% include "config/config.thingy" with title="requirelogin" category="private" form="config-form" content=SITE.requirelogin %}</td>
         </tr>
 
       </tbody>
     </table>
   </div>
 </div>
-<div class="row">
-  <div class="col-md-12">
-   <div class="mini-stat clearfix">
-     <span class="mini-stat-icon orange"><i class="fa fa-gavel"></i></span>
-     <div class="mini-stat-info">
-       <span>10</span>suppliers
-       <a class="pull-right btn-xs btn-primary btn">create supplier</a>
-     </div>
-   </div>
-  </div>
-</div>
 
-{% for line in CATEGORIES %}
-{% include "config/config.thingy" with title=line.name category="category" form="config-form" content=line.content %}
-{% endfor %}
-<div class = "panel">
-  <div class="panel-heading">Footer:
-  </div>
-  <div class = "panel-body">
-{% for line in FOOTER %}
-    <div class="well">
-      <span class="pull-right">
-        <a href="javascript:zoyoe.config.delete('#config-form','{{line.name}}');" class="fa fa-times"></a>
-      </span>
-      <h4>{{line.name}}</h4>
-      <div>{{line.content|safe}}</div>
+<div ng-controller="suppliers-api">
+{% angular %}
+  <div class="row">
+    <div class="col-md-12">
+      <div class="mini-stat clearfix">
+        <span class="mini-stat-icon orange"><i class="fa fa-gavel"></i></span>
+        <div class="mini-stat-info">
+          <span>{{suppliers.length}}</span>suppliers
+          <a class="pull-right btn-xs btn-primary btn" href="javascript::zoyoe.supplier.create(ngapp)">create supplier</a>
+        </div>
+      </div>
     </div>
-{% endfor %}
   </div>
-</div>
 
-{% for supplier in SUPPLIERS %}
-<div class = "panel" id='supplier-{{supplier.name}}'>
-  <div class="panel-heading">{{supplier.name}}:
-      <span  class="pull-right"> 
-         <a class="fa fa-pencil"></a>
-      </span>
+  <script type="text/ng-template"  id="tree_item_renderer.html">
+    <a href="/admin/items/sid/data">
+    {{data.name}}
+    </a>
+    <button ng-click="delete(data)" ng-show="data.children">Delete nodes</button>
+    <ul>
+        <li ng-repeat="data in data.children" ng-include="'tree_item_renderer.html'"></li>
+        <button ng-click="add(data)">Add Category</button>
+    </ul>
+  </script>
+  <div ng-repeat="supplier in suppliers" id='supplier-{{supplier.name}}' class="panel">
+    <div class="panel-heading">{{supplier.name}}
+        <span class="pull-right"> 
+           <a class="fa fa-pencil"></a>
+        </span>
+    </div>
+    <div class="panel-body">
+      <ul class="list-group">
+        <li ng-repeat="data in supplier.data" ng-include="'tree_item_renderer.html'"></li>
+        <button ng-click="add(supplier.data)" type="button" class="btn btn-primary btn-xs btn-block">
+        <span class="fa fa-plus"></span></button>
+      </ul>
+    </div>
   </div>
-  <div class="panel-body">{{supplier.data|safe}}</div>
-</div>
-{% endfor %}
+{% endangular %}
+</div> 
 </section>
-
-<section class="col-lg-5 col-md-5">
-{% include "config/config.thingy" with title="analytic" category="extra" form="config-form" content=ANALYTIC %}
-{% include "config/config.thingy" with title="paypal" category="private" form="config-form" content=SITEINFO.paypal %}
-{% include "config/config.thingy" with title="template" category="private" form="config-form" content=SITEINFO.template %}
-{% include "config/config.thingy" with title="published" datatype="boolean" category="private" form="config-form" content=SITEINFO.published %}
-{% include "config/config.thingy" with title="requirelogin" datatype="boolean" category="private" form="config-form" content=SITEINFO.requirelogin%}
-<form id='add-config' action="/admin/addconfig/" method='POST'>
-<div class = "panel">
-  <div class="panel-heading">
-    New Specification:
-    <button class="btn btn-xs pull-right btn-danger"><i class="fa fa-cogs"></i>&nbsp;submit</button>
-  </div>
-  <div class="panel-body" id='specification'>{{ITEM.description|safe}}
-      <div class="form-horizontal caption">
-      {% csrf_token %}
-      <input type="text" name="setting" value="ebay" style="display:none">
-      <div class="form-group">
-       <label class="col-lg-2 control-label">title: </label>
-       <div class="col-lg-10">
-        <input type="text" id="title" name="title" class="form-control">
-       </div>
-      </div>
-      <div class="form-group">
-       <label class="col-lg-2 control-label">type: </label>
-       <div class="col-lg-10">
-        <select name="type" class="form-control">
-         <option value="footer">Footer</option>
-         <option value="extra">Extra</option>
-        </select>
-       </div>
-      </div>
-      <div class="form-group">
-       <label class="col-lg-2 control-label">content: </label>
-       <div class="col-lg-10">
-        <textarea name="content" id="content" class="form-control"></textarea>
-       </div>
-      </div>
-      </div>
-  </div>
-  </form>
-
-</section>
-
 
 <div class="col-lg-12">
-<form action="/admin/addconfig/" method='POST' id="config-form" style="display:none">
-  <div class="form-horizontal caption">
-    {% csrf_token %}
-    <input type="text" name="setting" value="preference" style="display:none">
-    <div class="form-group">
-      <label class="col-lg-2 control-label">Title: </label>
-      <div class="col-lg-10">
-        <input type="text" id="title" name="title" class="form-control">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="col-lg-2 control-label">Type: </label>
-      <div class="col-lg-10">
-        <select class='form-control' name="type">
-         <option value="category">Category</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="control-label col-lg-2">value: </label>
-      <div class="col-lg-10">
-        <textarea name="content" id="content" class="form-control"></textarea>
-      </div>
-    </div>
-  </div>
-</form>
+{% include "config/addconfig.form" with formid="config-form" %}
 </div>
 
+</div> <!-- end ng app-->
 {% endblock %}
-{% block subsidebar %}
+{% block dialogfirst %}
+<script>
+  var app = angular.module("supplier-info",[]);
+  app.controller('suppliers-api', ['$scope', function($scope) {
+    $scope.suppliers = [
+      {'name':'test',data:{}},
+    {% for supplier in SUPPLIERS%}
+      {'name':'{{supplier.name}}',data:{{supplier.data|safe}}},
+    {% endfor %}
+    ];
+    $scope.createsupplier = function(){
+    }
+  }
+  ]);
+  app.controller('basic-setting-api', ['$scope', function($scope) {
+    $scope.site = {{SITE|dumpjson}};
+  }
+  ]);
+
+</script>
+
 {% endblock%}

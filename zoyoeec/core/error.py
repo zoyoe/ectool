@@ -24,6 +24,11 @@ def xmlSuccess(success,extradoc = None):
     xstr = etree.tostring(xdoc, pretty_print=True)
   return HttpResponse(xstr, mimetype="text/xml")
 
+def jsonReply(success, data = {}):
+  reply = {'reply': success,'data': data}
+  return HttpResponse(json.dumps(reply), mimetype="text")
+  
+
 
 ####
 #

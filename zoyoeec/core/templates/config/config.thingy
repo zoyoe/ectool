@@ -1,3 +1,4 @@
+{% if full %}
 <div class = "panel" id='config-{{category}}-{{title}}'>
   <div class="panel-heading">{{title}}:
       <span  class="pull-right"> 
@@ -6,4 +7,7 @@
   </div>
   <div class="panel-body">{{content|safe}}</div>
 </div>
+{% else %}
+   <a href="javascript:zoyoe.config.modify('#{{form}}','{{title}}','{{category}}','{{datatype}}')" class="fa fa-pencil"></a>
+{% endif %}
 

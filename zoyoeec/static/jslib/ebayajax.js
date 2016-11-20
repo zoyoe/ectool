@@ -59,21 +59,22 @@ zoyoe.config.modify = function(fid,title,prefix,type){
     zoyoe.config.formobj.find('#content').val(content);
   }
   zoyoe.config.dialog = new BootstrapDialog({
-      title: "<i class='fa fa-shopping-cart'></i>&nbsp;Modify",
+      title: "Modify Site Preference",
       message: zoyoe.config.formobj,
       buttons: [{
         label: 'Confirm',
+        cssClass: 'btn-primary',
         action: function(dialogRef){
           zoyoe.config.formobj.submit();
         }},{
         label: 'Cancel',
+        cssClass: 'btn-warning',
         action: function(dialogRef){
           zoyoe.config.dialog.close();
         }
       }]
     });
   zoyoe.config.dialog.open();
-
 }
 
 
@@ -87,6 +88,17 @@ zoyoe.image.rotate = function(shop,key,idx,cid){
       $(cid + ' img').attr('src', src+"&rand="+Math.random());
    });
  
+}
+
+zoyoe.supplier = {};
+/* you need a post form to do this */
+zoyoe.supplier.create = function(form,name,cb){
+   $.ajax({
+      url: "/admin/addsupplier/",
+      data: {'name':name}
+   }).done(function (data){
+     cb(JSON.stringify(data));
+   });
 }
 
 zoyoe.order.submit = function(form,table){
