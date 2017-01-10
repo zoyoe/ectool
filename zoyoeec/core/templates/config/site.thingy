@@ -1,0 +1,15 @@
+{% load hash_filters %}
+{
+  logo:         {content:'{{site.logo}}',category:'private',datatype:'string'},
+  requirelogin: {content:'{{site.requirelogin}}',category:'private',datatype:'boolean'},
+  mainshop:     {content:'{{site.mainshop}}',category:'private',datatype:'string'},
+  analytics:    {content:'{{site.analytics}}',category:'private',datatype:'string'},
+  published:    {content:'{{site.published}}',category:'private',datatype:'boolean'},
+  siteinfo:     {content:'{{site.siteinfo}}',category:'private',datatype:'string'},
+{% if site.ebayinfo %}
+  ebayinfo:     {content:'connected',category:'private',datatype:'external','api':'/admin/config/ebay/'},
+{% else %}
+  ebayinfo:     {content:'not connect',category:'private',datatype:'external','api':'/ebay/auth/'},
+{% endif %}
+  requirelogin: {content:'{{site.requirelogin}}',category:'private',datatype:'boolean'}
+}

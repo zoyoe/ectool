@@ -1,0 +1,18 @@
+{% load hash_filters %}
+<div>
+{% for item in CART %}
+<div class="cart-item">
+  <div class="media">
+    <a class="pull-left" href="#"><img src="{{item|hash:"galleryurl"}}?sc=" alt=""></img></a>
+    <div class="media-body">
+      <span class="cart-item-title">{{item|hash:"description"}}</span>
+      <span class="cart-item-amount">{{item|hash:"amount"}}*<span>${{item|hash:"price"}}</span></span>
+    </div>
+  </div>
+</div>
+{% endfor %}
+<div class="center" style="padding-top:10px;">
+  <a href="/shoppingcart/" class="beta-btn primary text-center">Checkout <i class="fa fa-chevron-right"></i></a>
+</div>
+</div>
+

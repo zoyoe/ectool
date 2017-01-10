@@ -1,0 +1,35 @@
+{% extends "default/base.html" %}
+{% load hash_filters %}
+
+{% block head %}
+  <div class="reformat" style="min-height:800px;">
+    {% include "betadesign/gallery.html" %}
+  </div>
+
+
+  <div class="col-xs-6">
+    <div class="dataTables_paginate paging_simple_numbers" id="dataTable_paginate">
+     <ul class="pagination">
+       <li class="paginate_button previous disabled" aria-controls="dataTable" tabindex="0" id="dataTable_previous"><a href="{{queryurlprevious}}">Previous</a></li>
+       {% for page in pages %}
+       <li class="paginate_button" aria-controls="dataTable" tabindex="0"><a href="{{queryurl}}/?page={{page}}">{{page}}</a></li>
+       {% endfor %}
+       <li class="paginate_button next" aria-controls="dataTable" tabindex="0" id="dataTable_next"><a href="{{queryurlnext}}">Next</a></li>
+     </ul>
+    </div>
+  </div>
+
+
+{% endblock %}
+
+{% block title %}
+{% endblock %}
+
+
+
+{% block subsidebar %}
+{% endblock%}
+
+{% block dialogfirst %}
+{% endblock %}
+

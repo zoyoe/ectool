@@ -1,9 +1,10 @@
 from django.template import loader,Context,RequestContext
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
-import retailtype, cryptohelper
+import dbtype, cryptohelper
 from StringIO import StringIO
 from lxml import etree
+import json
 
 def formatName(name):
   return name.replace(" ", "_")
@@ -49,7 +50,7 @@ def ZoyoeSuccess(success):
 ####
 
 def retailError(request,error,url="/retail/receiptview/"):
-  stories = retailtype.getCategoriesInfo()
+  stories = dbtype.getCategoriesInfo()
   context = Context({'ERROR':error,'URL':url,'STORIES':stories})
   temp_path = currentSite().getTemplate("error.html");
   return (render_to_response(temp_path
@@ -91,7 +92,7 @@ def authorityError(request,error):
   if isAjaxRequest(request):
     return ZoyoeError(error)
   else:
-    stories = retailtype.getCategoriesInfo()
+    stories = dbtype.getCategoriesInfo()
     context = Context({'ERROR':error,'STORIES':stories})
     return (render_to_response("error/authorityerror.html",context,context_instance=RequestContext(request)))
 

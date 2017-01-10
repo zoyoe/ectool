@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from google.appengine.ext import db
 import random,json
-import error,retailtype
+import error,dbtype
 from google.appengine.api import users
 from google.appengine.api import namespace_manager
 
@@ -111,7 +111,7 @@ def redirect_login(request):
 
 def require_work_space(handler):
   def rst_handler(request, *args, **kargs):
-    site = retailtype.currentSite()
+    site = dbtype.currentSite()
     if site:
       return handler(request,*args,**kargs)
     else:
@@ -122,7 +122,7 @@ def require_work_space(handler):
 @error.chain(require_work_space)
 def require_login(handler):
   def rst_handler(request,*args,**kargs):
-    site = retailtype.currentSite()
+    site = dbtype.currentSite()
     if site and site.requirelogin:
       user = getCurrentUser(request)
       if not user:

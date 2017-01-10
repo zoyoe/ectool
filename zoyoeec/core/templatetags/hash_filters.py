@@ -91,3 +91,5 @@ def angular(parser, token):
 def multiply(qty, unit_price, *args, **kwargs):
     # you would need to do any localization of the result here
     return qty * unit_price
+
+

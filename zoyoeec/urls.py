@@ -70,19 +70,19 @@ urlpatterns = patterns('',
   (r'^admin/deploy/$', 'admin.view.deploy'),
   (r'^admin/relist/$', 'admin.view.relistlist'),
   (r'^admin/actionhistory/$','admin.view.actionhistory'),
-  (r'^admin/saveitem/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.view.saveitem'),
-  (r'^admin/deleteitem/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.view.deleteitem'),
-  (r'^admin/ebayitems/(?P<shop>[a-zA-Z\d_]+)/', 'admin.view.ebayitems'),
-  (r'^admin/unpublisheditems/(?P<shop>[a-zA-Z\d_]+)/', 'admin.view.unpublisheditems'),
-  (r'^admin/items/(?P<supplier>[a-zA-Z\d_]+)/$', 'admin.view.supplieritems'),
-  (r'^admin/items/(?P<supplier>[a-zA-Z\d_]+)/(?P<category>[a-zA-Z\d]+)/', 'admin.view.items'),
+  (r'^admin/ebayitems/(?P<sname>[a-zA-Z\d_]+)/', 'admin.view.ebayitems'),
+  (r'^admin/items/view/(?P<command>[a-z]+)/(?P<path>[a-zA-Z\d_/]+)/', 'admin.view.items'),
 
 # Image based 
   (r'^admin/image/','image.urls'),
 
-# Admin site config view
-  (r'^admin/configapi/remove/$', 'admin.api.setupinfo'),
-  (r'^admin/configapi/add$/', 'admin.api.addconfig'),
+# Admin json api 
+  (r'^admin/config/api/$', 'admin.api.configapi'),
+  (r'^admin/config/info/$', 'admin.api.configinfo'),
+  (r'^admin/supplier/api/$', 'admin.api.supplierapi'),
+  (r'^admin/supplier/info/$', 'admin.api.configinfo'),
+  (r'^admin/saveitem/(?P<shop>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.view.saveitem'),
+  (r'^admin/deleteitem/(?P<sname>[a-zA-Z\d_]+)/(?P<key>[a-zA-Z\d]+)/$','admin.view.deleteitem'),
 
 # config views
   (r'^admin/config/preference/$', 'admin.view.preference'),
@@ -127,8 +127,8 @@ urlpatterns = patterns('',
   (r'^admin/scanitems/$', 'admin.scanitems'),
   (r'^admin/checkurl/$', 'admin.checkurl'),
   (r'^admin/checkimages/$', 'admin.replaceimage'),
-  (r'^admin/checkitems/$', 'retailtype.checkrid'),
-  (r'^admin/checkindex/$', 'retailtype.resetIndex'),
+  (r'^admin/checkitems/$', 'dbtype.checkrid'),
+  (r'^admin/checkindex/$', 'dbtype.resetIndex'),
   (r'^admin/cleanitems/$', 'admin.cleanitems'),
   (r'^admin/fixsupplier/$', 'admin.fixsupplier'),
 )

@@ -13,7 +13,9 @@ from google.appengine.runtime.apiproxy_errors import RequestTooLargeError
 from order import *
 from error import *
 from page import *
-from core.retailtype import Supplier,Item,ShopInfo,ImageData,formatName### Reource view
+from core.dbtype import Supplier,Item,ShopInfo,ImageData,formatName 
+
+### Reource view
 
 def __createsc(img_data):
   image = images.Image(img_data)

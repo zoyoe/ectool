@@ -9,8 +9,9 @@ from django.views.decorators.cache import never_cache
 from google.appengine.ext import db,blobstore,deferred
 from google.appengine.api import users,images
 from google.appengine.runtime.apiproxy_errors import RequestTooLargeError 
-from core import error, retailtype, retail, userapi, page
+from core import error, dbtype, userapi, page
 from model import *
+import string
 
 application = django.core.handlers.wsgi.WSGIHandler()
 
@@ -43,7 +44,7 @@ def pageItems(query,dict,url,request):
 ####
 @userapi.authority_item
 def admin(request):
-  suppliers = retailtype.Supplier.all()
+  suppliers = dbtype.Supplier.all()
   stories = {}
   stat = {}
   estat = {}
@@ -77,82 +78,36 @@ def actionhistory(request):
 #
 ####
 
-@userapi.authority_item
-def unpublisheditems(request,suppliername):
-  supplier = retailtype.Supplier.getSupplierByName(suppliername)
-  dict = {'SHOP':suppliername,'ITEM_WIDTH':'200'}
-  if (supplier):
-    dict['sellitems'] = pageItems(supplier.getUnpublishedItems(),dict,
-        "/admin/items/"+suppliername+"/",request)
-    context = Context(dict)
-    return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
-  else:
-    dict['sellitems'] = []
-    context = Context(dict)
-    return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
-
 
 @userapi.authority_item
-def ebayitems(request,shop):
-  supplier = Supplier.getSupplierByName(shop)
-  dict = {'SHOP':shop,'ITEM_WIDTH':'200'}
-  if (supplier):
-    dict['sellitems'] = supplier.getEbayItems()
-    context = Context(dict)
-    return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
+def items(request,command,path):
+  (suppliername,category) = string.split(path+"/","/",1)
+  dict = {'PATH' : path, 'ITEM_WIDTH':'200'}
+  category = category.split("/")[0]
+  if suppliername:
+    supplier = dbtype.Supplier.getSupplierByName(suppliername)
+    if supplier:
+      dict['ITEMS'] = pageItems(supplier.getItems(command,category),dict,
+                      "/admin/items/" + command + "/" + path, request)
+    else:
+      dict['ITEMS'] = []
   else:
-    dict['sellitems'] = []
-    context = Context(dict)
-    return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
-
-
-@userapi.authority_item
-def items(request,suppliername,category):
-  supplier = Supplier.getSupplier(suppliername)
-  suppliers = Supplier.all()
-  stories = {}
-  lvl1 = "Category"
-  lvl2 = "Gallery"
-  for supply in suppliers:
-    stories[supply.name] = json.loads(supply.data)
-    if (supply.name == suppliername):
-      for c in stories[supply.name]:
-        if (category in stories[supply.name][c]['children']):
-          lvl1 = stories[supply.name][c]['name']
-          lvl2 = stories[supply.name][c]['children'][category]['name']
-  dict = {'SHOP':suppliername,'ITEM_WIDTH':'200','STORIES':stories,'PATH':lvl1,'CATEGORY':lvl2}
-  if (supplier):
-    dict['sellitems'] = pageItems(supplier.getCategoryItems(category),
-        dict,"/admin/items/"+suppliername+"/" + category + "/",request)
-    context = Context(dict)
-    return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
-  else:
-    dict['sellitems'] = []
-    context = Context(dict)
-    return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
-
-@userapi.authority_item
-def supplieritems(request,suppliername): 
-  supplier = Supplier.getSupplierByName(suppliername)
-  suppliers = [supplier]
-  stories = {}
-  lvl1 = "Category"
-  lvl2 = "Gallery"
-  for supply in suppliers:
-    stories[supply.name] = json.loads(supply.data)
-  dict = {'SHOP':suppliername,'ITEM_WIDTH':'200','STORIES':stories,'PATH':'All','CATEGORY':''}
-  if (supplier):
-    dict['sellitems'] = pageItems(supplier.getItems(),
-        dict,"/admin/items/" + suppliername + "/",request)
-    context = Context(dict)
-    return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
-  else:
-    dict['sellitems'] = []
-    context = Context(dict)
-    return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
-
-
-
+    dict['ITEMS'] = pageItems(dbtype.Item.all(),dict,
+                      "/admin/items/" + command + "/" + path, request)
+  context = Context(dict)
+  return (render_to_response("./admin/items.html",context,context_instance=RequestContext(request)))
+  
+def jsonSearch(dic, follow,  hd, target):
+  for key in dic:
+    if(key == target):
+      return hd.insert(0,(key, dic[key]))
+    else:
+      if (jsonSearch(dic[key][follow]),hd,target):
+        return hd.insert(0,(key, dic[key]))
+      else:
+        pass
+  return None
+    
 #### End Section 
 
 
@@ -161,14 +116,14 @@ def supplieritems(request,suppliername):
 @userapi.authority_item
 def additem(request):
   rid = request.GET['rid']
-  item = retailtype.createDefaultItem(rid)
+  item = dbtype.createDefaultItem(rid)
   response =  HttpResponseRedirect('/admin/item/'+ item.parent().name + '/' + str(item.key().id()) +"/")
   return response
   
 
 @userapi.authority_item
 def deleteitem(request,shop,key):
-  item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
+  item = dbtype.Item.get_by_id(int(key),parent = dbtype.Supplier.getSupplierByName(shop))
   if item:
     item.deleteIndex()
     item.delete()
@@ -176,8 +131,8 @@ def deleteitem(request,shop,key):
 
 @userapi.authority_item
 def item(request,shop,key):
-  stories = retailtype.getCategoriesInfo()
-  item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
+  stories = dbtype.getCategoriesInfo()
+  item = dbtype.Item.get_by_id(int(key),parent = dbtype.Supplier.getSupplierByName(shop))
   if item:
     upload_url = '/admin/blobimage/'+ shop + "/" + key +"/0/"
     upload_url1 = '/admin/blobimage/'+ shop + "/" + key +"/1/"
@@ -197,8 +152,8 @@ def item(request,shop,key):
 
 @userapi.authority_item
 def saveitem(request,shop,key):
-  __register_admin_action(request,"saveitem",shop+"/"+key)
-  item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
+  register_admin_action(request,"saveitem",shop+"/"+key)
+  item = dbtype.Item.get_by_id(int(key),parent = dbtype.Supplier.getSupplierByName(shop))
   if(item):
     item.name = request.POST['name']
     item.refid = request.POST['refid']
@@ -227,7 +182,7 @@ def clean(request):
   for item in items:
     item.name = item.name.replace("\n","").replace("\t","").replace("\r","")
     item.put()
-  items = SupplierItem.all()
+  items = dbtype.SupplierItem.all()
   for item in items:
     item.description = item.description.replace("\n","").replace("\t","").replace("\r","")
     item.put()
@@ -238,16 +193,16 @@ def clean(request):
 @userapi.authority_config
 def preference(request):
   context = {}
-  suppliers = retailtype.Supplier.all()
+  suppliers = dbtype.Supplier.all()
   context['SUPPLIERS'] = suppliers
-  context['SITE'] = retailtype.getSiteInfo()
+  context['SITE'] = dbtype.getSiteInfo()
   return (render_to_response("config/preferences.html",context,context_instance=RequestContext(request)))
 
 @userapi.authority_config
 def user(request):
   context = {}
-  context['CATEGORIES'] = retailtype.getShopInfoByType("category")
-  context['SITEINFO'] = retailtype.getSiteInfo()
+  context['CATEGORIES'] = dbtype.getShopInfoByType("category")
+  context['SITEINFO'] = dbtype.getSiteInfo()
   context['ACTIONS'] = pageItems(AdminAction.all().order("-date"),
       context,"/admin/actionhistory/",request)
   return (render_to_response("config/user.html",context,context_instance=RequestContext(request)))
@@ -257,7 +212,7 @@ def user(request):
 def ebayconfig(request):
 #  some config template
   context = {}
-  context['EBAY'] = retailtype.getShopInfoByType("ebay")
+  context['EBAY'] = dbtype.getShopInfoByType("ebay")
   return (render_to_response("config/config.html",context,context_instance=RequestContext(request)))
 
 

@@ -1,0 +1,26 @@
+{% load template_filters %}
+<section class="col-lg-6 col-md-7" ng-controller="config-setting-api"  ng-init="configs={}">
+{% for line in shopinfo|foot %}
+<div class="panel" ng-repeat="(title, attr) in data.foot">
+  <div class="panel-heading">Template Setting:
+  </div>
+  <div class = "panel-body">
+    <div class="well">
+      <span class="pull-right">
+        <a ng-click="delete(tittle,attr)" class="fa fa-times"></a>
+        <a ng-click="alter(tittle,attr)" class="fa fa-pencil"></a>
+      </span>
+      <h4>{{line.name}}
+      </h4> 
+      <div ng-init="configs.foot.{{line.name}}.datatype='text'">
+      {{line.content|safe}}
+      </div>
+    </div>
+{% endfor %}
+  </div>
+</div>
+<button ng-click="add('foot')">Add Category</button>
+</section>
+
+
+

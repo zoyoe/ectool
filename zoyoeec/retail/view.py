@@ -1,26 +1,22 @@
+import requests,json,datetime,random
 import django.core.handlers.wsgi
 from django.core.context_processors import csrf
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
-from ebaysdk import finding
-from ebaysdk.exception import ConnectionError
-from error import *
-from receipt import *
-import random
-import ebayapi.ebay
-import requests,json,datetime
-from google.appengine.ext import db
-from google.appengine.api import urlfetch
-from google.appengine.api import search
+
+import ebayapi.ebay, core.error, core.receipt
+import core.dbtype
 from core import userapi
+
+from google.appengine.ext import db
+from google.appengine.api import urlfetch, search
 
 @userapi.require_login
 def retail(request):
-  stories = getCategoriesInfo()
-  fliers = ShopInfo.all().filter("type =","category").order("name")
-  context = Context({'STORIES':stories,'FLIERS':fliers})
-  cover_path = getSiteInfo().getTemplate("cover.html");
+  stories = core.dbtype.getCategoriesInfo()
+  context = Context({'STORIES':stories})
+  cover_path = core.dbtype.getSiteInfo().getTemplate("cover.html");
   return (render_to_response(cover_path,context,context_instance=RequestContext(request)))
 
 ## FIXME: Dont remember #
@@ -271,61 +267,6 @@ def buildinvoice(receipt,receiptitems):
 #### end of invoice stuff ####
 
 
-"""
-FIXME: A very rough implementation of adding something into your cart 
-"""
-def get(request):
-  cart = request.session.get('cart',{})
-  if not cart:
-    cart = {}
-  temp_path = currentSite().getTemplate("cartdisplay.html");
-  temp = loader.get_template(temp_path)
-  context = Context({'CART':cart.values()})
-  content = temp.render(context)
-  return HttpResponse(content,mimetype = "text/xml")
-
-def add(request):
-  item = request.GET['id']
-  token = ebay.getToken(request)
-  value = ""
-  if (not value in request.GET) or (not 'description' in request.GET):
-    iteminfo = Item.getItemByRID(item)
-    if (not iteminfo):
-      return HttpResponse(status=201)
-    dscp = iteminfo.name
-    value = iteminfo.price
-  else:
-    value = request.GET['value']
-    dscp = request.GET['description']
-  cart = request.session.get('cart',{})
-  if not cart:
-    cart = {}
-  if item in cart:
-    cart[item] = {"id":item,"description":dscp,"price":value,'amount':cart[item]['amount']+1,"galleryurl":cart[item]['galleryurl']}
-  else:
-    itemobj = Item.getItemByRID(item)
-    g = itemobj.galleryurl
-    galleryurl = itemobj.galleryurl
-    cart[item] = {"id":item,"description":dscp,"price":value,'amount':1,"galleryurl":galleryurl}
-  request.session['cart'] = cart
-  temp_path = currentSite().getTemplate("cart.thingy");
-  temp = loader.get_template(temp_path)
-  context = Context({'CART':cart.values()})
-  content = temp.render(context)
-  return HttpResponse(content,mimetype = "text/xml")
-
-def remove(request,item):
-  cart = request.session.get('cart',{})
-  if not cart:
-    cart = {}
-  if item in cart:
-    del cart[item]
-  request.session['cart'] = cart
-  temp_path = currentSite().getTemplate("cart.thingy");
-  temp = loader.get_template(temp_path)
-  context = Context({'CART':cart.values()})
-  content = temp.render(context)
-  return HttpResponse(content,mimetype = "text/xml")
 
 ## AJAX --
 ## FIXME : edit receipt is not well implemeneted

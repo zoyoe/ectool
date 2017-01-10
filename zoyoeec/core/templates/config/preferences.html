@@ -1,5 +1,6 @@
 {% extends "gbase.html" %}
 {% load hash_filters %}
+{% load template_filters %}
 {% block title %}
 <div class="col-md-12">
   <ul class="breadcrumbs-alt">
@@ -19,136 +20,150 @@
 {% block head %}
 <div ng-app="site-preference">
 
-<section class="col-lg-7 col-md-7">
-<div class = "panel" ng-controller="basic-setting-api">
-  <div class="panel-heading">Basic Setting:
-  </div>
-  <div class = "panel-body">
-    <table class="table  table-hover general-table">
-      <thead>
-        <tr>
-          <th> Field </th>
-          <th> Value </th>
-          <th> type </th>
-          <th> action </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>logo</td>
-          {% angular %}<td>{{site.logo}}</td>{% endangular %}
-          <td><span class="label label-info label-mini">private</span></td>
-          <td>{% include "config/config.thingy" with title="logo" category="private" form="config-form" content=SITE.logo%}</td>
-        </tr>
-        <tr>
-          <td>main shop</td>
-          {% angular %}<td>{{site.mainshop}}</td>{% endangular %}
-          <td><span class="label label-info label-mini">private</span></td>
-          <td>{% include "config/config.thingy" with title="mainshop" category="private" form="config-form" content=SITE.mainshop%}</td>
-        </tr>
-        <tr>
-          <td>analytics</td>
-          {% angular %}<td>{{site.analytics}}</td>{% endangular %}
-          <td><span class="label label-info label-mini">private</span></td>
-          <td>{% include "config/config.thingy" with title="analytics" category="private" form="config-form" content=SITE.analytics%}</td>
-        </tr>
-        <tr>
-          <td>published</td>
-          {% angular %}<td>{{site.published}}</td>{% endangular %}
-          <td><span class="label label-info label-mini">private</span></td>
-          <td>{% include "config/config.thingy" with title="private" category="private" form="config-form" content=SITE.private %}</td>
-        </tr>
-        <tr>
-          <td>siteinfo</td>
-          {% angular %}<td>{{site.siteinfo}}</td>{% endangular %}
-          <td><span class="label label-info label-mini">private</span></td>
-          <td>{% include "config/config.thingy" with title="siteinfo" category="private" form="config-form" content=SITE.siteinfo%}</td>
-        </tr>
-        <tr>
-          <td>ebayinfo</td>
-          {% angular %}<td>{{site.ebayinfo}}</td>{% endangular %}
-          <td><span class="label label-info label-mini">private</span></td>
-          <td>{% include "config/config.thingy" with title="ebayinfo" category="private" form="config-form" content=SITE.ebayinfo%}</td>
-        </tr>
-        <tr>
-          <td>requirelogin</td>
-          {% angular %}<td>{{site.requirelogin}}</td>{% endangular %}
-          <td><span class="label label-info label-mini">private</span></td>
-          <td>{% include "config/config.thingy" with title="requirelogin" category="private" form="config-form" content=SITE.requirelogin %}</td>
-        </tr>
-
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<div ng-controller="suppliers-api">
-{% angular %}
-  <div class="row">
-    <div class="col-md-12">
-      <div class="mini-stat clearfix">
-        <span class="mini-stat-icon orange"><i class="fa fa-gavel"></i></span>
-        <div class="mini-stat-info">
-          <span>{{suppliers.length}}</span>suppliers
-          <a class="pull-right btn-xs btn-primary btn" href="javascript::zoyoe.supplier.create(ngapp)">create supplier</a>
-        </div>
-      </div>
+<section class="col-lg-6 col-md-7" ng-controller="site-config-api">
+  <div class = "panel" >
+    <div class="panel-heading">Basic Setting:
+    </div>
+    <div class = "panel-body">
+      <table class="table  table-hover general-table">
+        <thead>
+          <tr>
+            <th> Field </th>
+            <th> Value </th>
+            <th> type </th>
+            <th> action </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% angular %}
+          <tr ng-repeat="(title, attr) in data.private">
+            <td>{{title}}</td>
+            <td>{{attr.content}}</td>
+            <td>{{attr.category}}</td>
+            <td ng-switch="attr.datatype">
+              <a ng-switch-when="external" ng-href="{{attr.api}}" class="fa fa-external-link"></a>
+              <a ng-switch-default ng-click="alter(title, 'private')" class="fa fa-pencil"></a>
+            </td>
+          </tr>
+          {% endangular %}
+        </tbody>
+      </table>
     </div>
   </div>
+  <nav class="navbar navbar-inverse">
+    <div class="navbar-header">
+      <a class="navbar-brand"> Template Setting</a>
+    </div>
+    <div class="collapse navbar-collapse navbar-ex1-collapse">
+    <ul class="nav navbar-nav navbar-right">
+      <li class="dropdown">
+        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a ng-click="changetemplate()">Change Template</a></li>
+          <li><a ng-click="previewtemplate()">Preview</a></li>
+        </ul>
+      </li>
+    </ul>
+    </div>
+  </nav>
+
+{% include "config"|templatethingy%}
+</section>
+<section class="col-lg-6 col-md-5">
+
+<div ng-controller="supplier-config-api">
+{% angular %}
+  <nav class="navbar navbar-inverse">
+    <div class="navbar-header">
+      <a class="navbar-brand"> Suppliers </a>
+    </div>
+    <div class="collapse navbar-collapse navbar-ex1-collapse">
+    <ul class="nav navbar-nav navbar-right">
+      <li class="dropdown">
+        <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a ng-click="add()">Create New Supplier</a></li>
+        </ul>
+      </li>
+    </ul>
+    </div>
+  </nav>
 
   <script type="text/ng-template"  id="tree_item_renderer.html">
-    <a href="/admin/items/sid/data">
-    {{data.name}}
-    </a>
-    <button ng-click="delete(data)" ng-show="data.children">Delete nodes</button>
-    <ul>
-        <li ng-repeat="data in data.children" ng-include="'tree_item_renderer.html'"></li>
-        <button ng-click="add(data)">Add Category</button>
+    <h6>
+    <span ng-show="data.edit==undefined">{{data.name}}({{key}})</span>
+    <span ng-show="data.edit!=undefined"><input value="{{data.edit}}" ng-model="data.edit"></input></span>
+    <span class="pull-right"> 
+      <a ng-show="data.edit==undefined" ng-click="edit(key,data)" class="fa fa-pencil"></a>
+      <a ng-show="data.edit!=undefined" ng-click="blur(key,data)" class="fa fa-check"></a>
+      <a ng-show="data.children!=undefined" ng-click="addcategory(data)" class="fa fa-plus"></a>
+      <a ng-click="deletecategory(supplier,key)" class="fa fa-times-circle"></a>
+    </span>
+    </h6>
+    <ul class="dd-list" ng-if="data.children != null">
+        <li class="dd-item" ng-repeat="(key,data) in data.children" ng-include="'tree_item_renderer.html'"></li>
     </ul>
   </script>
-  <div ng-repeat="supplier in suppliers" id='supplier-{{supplier.name}}' class="panel">
-    <div class="panel-heading">{{supplier.name}}
+  <div ng-repeat="(name,supplier) in data" class="panel">
+    <div class="panel-heading">{{name}}
         <span class="pull-right"> 
-           <a class="fa fa-pencil"></a>
+           <a ng-click="addrootcategory(supplier)" class="btn btn-xs btn-primary">add category</a>
+           <a ng-click="alter(name,supplier)" class="btn btn-xs btn-primary">save</a>
+           <a ng-click="delete(name,supplier)" class="btn btn-xs btn-primary">delete</a>
         </span>
     </div>
     <div class="panel-body">
-      <ul class="list-group">
-        <li ng-repeat="data in supplier.data" ng-include="'tree_item_renderer.html'"></li>
-        <button ng-click="add(supplier.data)" type="button" class="btn btn-primary btn-xs btn-block">
-        <span class="fa fa-plus"></span></button>
+      <div class="dd">
+      <ul class="dd-list">
+        <li class="dd-item" ng-repeat="(key,data) in supplier.data" ng-include="'tree_item_renderer.html'"></li>
       </ul>
+      </div>
     </div>
   </div>
 {% endangular %}
 </div> 
 </section>
 
-<div class="col-lg-12">
-{% include "config/addconfig.form" with formid="config-form" %}
+<div class="col-lg-12" ng-controller="config-dialog">
+{% include "config/configapi.form" %}
+</div>
+<div class="col-lg-12" ng-controller="supplier-dialog">
+{% include "config/supplierapi.form" %}
 </div>
 
 </div> <!-- end ng app-->
 {% endblock %}
 {% block dialogfirst %}
 <script>
-  var app = angular.module("supplier-info",[]);
-  app.controller('suppliers-api', ['$scope', function($scope) {
-    $scope.suppliers = [
-      {'name':'test',data:{}},
-    {% for supplier in SUPPLIERS%}
-      {'name':'{{supplier.name}}',data:{{supplier.data|safe}}},
-    {% endfor %}
-    ];
-    $scope.createsupplier = function(){
+  var app = angular.module("site-preference",[]);
+  app.factory('config', function($rootScope) {
+    zoyoe.ajax.digest = function(){
+      $rootScope.$digest();
     }
-  }
-  ]);
-  app.controller('basic-setting-api', ['$scope', function($scope) {
-    $scope.site = {{SITE|dumpjson}};
-  }
-  ]);
+    return zoyoe.config;
+  });
+  app.factory('supplier', function($rootScope) {
+    return zoyoe.supplier;
+  });
 
+  app.controller('config-dialog', ['$scope','config',function($scope,config){
+    $scope.dialog = config.formdata;
+  }]);
+  app.controller('supplier-dialog',['$scope','supplier',function($scope,supplier){
+    $scope.dialog = supplier.formdata;
+  }]);
+  zoyoe.config.angular(app,"site-config-api");
+  zoyoe.supplier.angular(app,"supplier-config-api");
+
+
+  var basic_config = {% include "config/site.thingy" with site=SITE %};
+  zoyoe.config.data['private'] = basic_config;
+  {% for supplier in SUPPLIERS%}
+  zoyoe.supplier.data['{{supplier.name}}'] = {islocked:"True" == "{{supplier.islocked}}",data:{{supplier.data|safe}}};
+  {% endfor %}
+  {% include "config"|templatejs%}
+  zoyoe.config.preloadform('#cfg-dialog');
+  zoyoe.supplier.preloadform('#sply-dialog');
 </script>
 
 {% endblock%}

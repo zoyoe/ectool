@@ -121,6 +121,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'retail',
     'ebayapi',
     'ebaysdk',
     'requests',

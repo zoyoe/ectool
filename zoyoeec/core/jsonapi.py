@@ -14,7 +14,7 @@ import requests,json,datetime
 from google.appengine.ext import db,search
 from google.appengine.api import urlfetch
 from zuser import *
-from retailtype import getCategoryItems, getItem
+from dbtype import getCategoryItems, getItem
 
 def categories(request):
   stories = getCategoriesInfo()

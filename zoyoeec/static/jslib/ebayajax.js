@@ -4,79 +4,143 @@ if(zoyoe == undefined){
   zoyoe = document.zoyoe
 }
 
-zoyoe.ebay = {}
-zoyoe.cart = {}
-zoyoe.order = {}
-zoyoe.image = {}
-zoyoe.config = {}
-zoyoe.deliver = {}
+zoyoe.ebay = {};
+zoyoe.cart = {};
+zoyoe.order = {};
+zoyoe.image = {};
+zoyoe.config = {};
+zoyoe.deliver = {};
+zoyoe.ajax = {forms:{}};
 
-/* You need a post form to do it properly */
-zoyoe.config.delete = function(fid,title){
-  var formobj = $(fid);
-  formobj.find('#title').val(title);
-  formobj.find('#content').val("");
-  formobj.submit();
+zoyoe.config.urls = {
+  api: "/admin/config/api/",
+  info: "/admin/config/info/"
+};
+
+zoyoe.config.data = {};
+zoyoe.config.formdata = {lock:{},input:{},error:{}};
+
+
+zoyoe.config.angular = function(app, controller_name){
+  app.controller(controller_name, function($scope,config) {
+    $scope.data = zoyoe.config.data;
+    $scope.alter = function(title, category){
+      var attr = $scope.data[category][title];
+      config.formdata.input.title = title;
+      config.formdata.lock.title = true;
+      config.formdata.input.category = attr.category;
+      config.formdata.lock.category = true;
+      config.formdata.input.datatype = attr.datatype;
+      config.formdata.input.content = attr.content;
+      config.formdata.input.api = attr.api;
+      config.formdata.lock.content = false;
+      config.formdata.input.command = "alter";
+      zoyoe.config.alter(function(data){
+        $scope.data[data.category][data.title].content = data.content;
+      });
+    }
+    $scope.delete = function(title, category){
+      var attr = $scope.data[category][title];
+      config.formdata.input.title = title;
+      config.formdata.lock.title = true;
+      config.formdata.input.category = attr.category;
+      config.formdata.lock.category = true;
+      config.formdata.input.datatype = attr.datatype;
+      config.formdata.input.content = attr.content;
+      config.formdata.lock.content = true;
+      config.formdata.input.command = "delete";
+      zoyoe.config.delete(function(data){
+        delete $scope.data[attr.category][title];
+      });
+    }
+    $scope.add = function(category,datatype){
+      config.formdata.input.title = "";
+      config.formdata.lock.title = false;
+      config.formdata.input.category = category;
+      config.formdata.lock.category = true;
+      config.formdata.input.content = "";
+      config.formdata.lock.content = false;
+      config.formdata.input.datatype = datatype;
+      config.formdata.input.command = "add"; 
+      zoyoe.config.add(function(data){
+        data.datatype = "text"; /* Added info must be text at the moment */
+        $scope.data[category][data.title] = data;
+      });
+    }
+  });
 }
 
-zoyoe.config.modify = function(fid,title,prefix,type){
-  if(!zoyoe.config.formobj){
-    var formobj = $(fid);
+
+zoyoe.ajax.result = function(data,cb,attacher){
+  var info = JSON.parse(data);
+  if(info.reply){/* success */
+    cb(info.data);
+    zoyoe.ajax.digest();
+    zoyoe.ajax.dialog.close();
+  }else{
+    attacher.error = info.data;
+    zoyoe.ajax.digest();
+  }
+}
+
+zoyoe.ajax.open = function(title,cb,url,formid,attacher){
+  var formobj = $(formid);
+  if(zoyoe.ajax.forms[formid] == undefined){
     formobj.detach();
     formobj.show();
-    zoyoe.config.formobj = formobj;
+    zoyoe.ajax.forms[formid] = formobj;
   }
-  zoyoe.config.formobj.find('#title').val(title);
-  var content = $("#config-" + prefix + "-" + title).find(".panel-body").html();
-  if(prefix){
-    var option = document.createElement("option");
-    option.value = prefix;
-    option.innerHTML = prefix;
-    var wrap = zoyoe.config.formobj.get()[0].elements.type;
-    wrap.innerHTML = 0;
-    wrap.add(option);
-  }
-  if(type == "boolean"){
-    var wrap = zoyoe.config.formobj.get()[0].elements.content;
-    wrap.parentElement.innerHTML = "<select class='form-control' name='content'></select>";
-    wrap = zoyoe.config.formobj.get()[0].elements.content;
-    var trueopt = document.createElement("option");
-    trueopt.value = "True";
-    trueopt.innerHTML = "True";
-    var falseopt = document.createElement("option");
-    falseopt.value = "False";
-    falseopt.innerHTML = "False";
-    wrap.add(trueopt);
-    wrap.add(falseopt)
-    if(content == "True"){
-      trueopt.selected = true;
-    }else{
-      falseopt.selected = true;
-    }
-  }else{
-    var wrap = zoyoe.config.formobj.get()[0].elements.content;
-    wrap.parentElement.innerHTML = "<textarea name='content' id='content' class='form-control'></textarea>";
-    zoyoe.config.formobj.find('#content').val(content);
-  }
-  zoyoe.config.dialog = new BootstrapDialog({
-      title: "Modify Site Preference",
-      message: zoyoe.config.formobj,
+  zoyoe.ajax.formobj = zoyoe.ajax.forms[formid];
+  zoyoe.ajax.dialog = new BootstrapDialog({
+      title: title,
+      message: zoyoe.ajax.formobj,
       buttons: [{
         label: 'Confirm',
         cssClass: 'btn-primary',
         action: function(dialogRef){
-          zoyoe.config.formobj.submit();
+          $.ajax({
+            type: "POST",
+            url: url,
+            data: zoyoe.ajax.formobj.serialize(),
+          }).done(function(data){
+              zoyoe.ajax.result(data, cb, attacher);
+          });
         }},{
         label: 'Cancel',
         cssClass: 'btn-warning',
         action: function(dialogRef){
-          zoyoe.config.dialog.close();
+          zoyoe.ajax.dialog.close();
         }
       }]
     });
-  zoyoe.config.dialog.open();
+  zoyoe.ajax.dialog.open();
 }
 
+zoyoe.config.preloadform = function(fid){
+  if(!this.formid){
+    this.formid = fid;
+  }
+}
+
+/* 
+  This should be as general as possible and should know nothing about the underlining forms.
+  The forms are supposed to be managed by a angular block.
+  fid: formid
+  dtitle: dialog title
+  cb: callback function
+*/
+
+zoyoe.config.delete = function(cb){
+  zoyoe.ajax.open("Delete Config",cb,this.urls.api,this.formid,this.formdata);
+}
+
+zoyoe.config.alter = function(cb){
+  zoyoe.ajax.open("Modify Config",cb,this.urls.api,this.formid,this.formdata);
+}
+
+zoyoe.config.add = function(cb){
+  zoyoe.ajax.open("Add Config",cb,this.urls.api,this.formid,this.formdata);
+}
 
 zoyoe.image.rotate = function(shop,key,idx,cid){
    var url = "/admin/rotateimage/"+shop+"/"+key+"/";
@@ -90,15 +154,104 @@ zoyoe.image.rotate = function(shop,key,idx,cid){
  
 }
 
-zoyoe.supplier = {};
-/* you need a post form to do this */
-zoyoe.supplier.create = function(form,name,cb){
-   $.ajax({
-      url: "/admin/addsupplier/",
-      data: {'name':name}
-   }).done(function (data){
-     cb(JSON.stringify(data));
-   });
+zoyoe.supplier = {data:{},formdata:{lock:{},input:{},error:{}}};
+zoyoe.supplier.preloadform = function(fid){
+  if(!this.formid){
+    this.formid = fid;
+  }
+}
+
+zoyoe.supplier.urls = {
+  api: "/admin/supplier/api/",
+  info: "/admin/config/info/"
+};
+zoyoe.supplier.data = {};
+zoyoe.supplier.formdata= {lock:{},input:{},error:{}};
+zoyoe.supplier.angular = function(app, controller_name){
+  app.controller(controller_name, function($scope,supplier) {
+    $scope.data = zoyoe.supplier.data;
+    $scope.alter = function(name){
+      var attr = $scope.data[name];
+      supplier.formdata.input.name = name;
+      supplier.formdata.lock.name = true;
+      supplier.formdata.input.data = JSON.stringify(attr.data);
+      supplier.formdata.lock.data= true;
+      supplier.formdata.input.command = "alter";
+      supplier.formdata.error = {};
+      zoyoe.supplier.alter(function(data){
+        $scope.data[name] = data;
+      });
+    };
+    $scope.edit = function(key,data){
+      data.edit = data.name;
+    }
+    $scope.blur = function(key,data){
+      data.name = data.edit;
+      delete(data.edit);
+    }
+    $scope.delete = function(name){
+      var attr = $scope.data[name];
+      supplier.formdata.input.name = name;
+      supplier.formdata.lock.name = true;
+      supplier.formdata.input.data = JSON.stringify(attr.data);
+      supplier.formdata.lock.data= true;
+      supplier.formdata.input.command = "delete"; 
+      supplier.formdata.error = {};
+      zoyoe.supplier.delete(function(data){
+        delete(key);
+      });
+    }
+    $scope.addrootcategory = function(supplier){
+      var timeStamp = Math.floor(Date.now() / 1000);
+      supplier.data["ts" + timeStamp] = {name:"new category", children:{}};
+    }
+
+    $scope.addcategory = function(category){
+      var timeStamp = Math.floor(Date.now() / 1000);
+      if(category.children == undefined){
+        category.children= {};
+      }
+      category.children["ts" + timeStamp] = {name:"new category", children:{}};
+    }
+    $scope.deletecategory = function(supplier,key){
+      function findanddelete(data, key){
+        if(data[key]!=undefined){
+          delete data[key];
+        }else{
+          for(nkey in data){
+            if(data[nkey].children){
+              findanddelete(data[nkey].children,key);
+            }
+          }
+        }
+      }
+      findanddelete(supplier.data,key);
+    }
+
+    $scope.add = function(){
+      supplier.formdata.input.name= "";
+      supplier.formdata.lock.name= false;
+      supplier.formdata.input.command = "add"; 
+      supplier.formdata.error = {};
+      supplier.formdata.input.data = "{}";
+      supplier.formdata.lock.data= true;
+      zoyoe.supplier.add(function(data){
+        $scope.data[data.name] = data;
+      });
+    }
+  });
+};
+zoyoe.supplier.alter = function(cb){
+  zoyoe.ajax.open("Alter Supplier",cb,this.urls.api,this.formid,this.formdata);
+}
+
+zoyoe.supplier.add = function(cb){
+  zoyoe.ajax.open("Add Supplier",cb,this.urls.api,this.formid,this.formdata);
+}
+
+
+zoyoe.supplier.delete = function(cb){
+  zoyoe.ajax.open("Delete Supplier",cb,this.urls.api,this.formid,this.formdata);
 }
 
 zoyoe.order.submit = function(form,table){

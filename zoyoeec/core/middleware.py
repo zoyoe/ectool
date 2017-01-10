@@ -2,8 +2,8 @@ from google.appengine.api import namespace_manager, users
 from django.shortcuts import render_to_response
 import error
 import record
-import retailtype
-import core.retailtype
+import dbtype
+import core.dbtype
 
 class NSMiddleware(object):
   def process_request(self, request):
@@ -23,20 +23,8 @@ class NSMiddleware(object):
 
 
 def info(request):
-  extra = retailtype.ShopInfo.all().filter("type =","footer")
-  analytic = retailtype.ShopInfo.all().filter("name =","analytic").get()
-  if analytic:
-    analytic = analytic.content
-  logourl = retailtype.ShopInfo.all().filter("name =","logo").get()
-  if logourl:
-    logourl = logourl.content
+  site = dbtype.currentSite()
   history = record.getItemHistory(request)
   error = request.session.get('error')
   request.session['error'] = None
-
-  # Collect information of cart
-  cart = request.session.get('cart',{})
-  if not cart:
-    cart = {}
-
-  return {'CART':cart.values(),'HISTORY':history, 'ERROR':error, 'FOOTER':extra,'ANALYTIC':analytic,'LOGO':logourl}
+  return {'HISTORY':history, 'SITE':site, 'ERROR':error}

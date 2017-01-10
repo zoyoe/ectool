@@ -1,4 +1,4 @@
-from retailtype import *
+from dbtype import *
 from core import userapi
 from google.appengine.ext import db
 

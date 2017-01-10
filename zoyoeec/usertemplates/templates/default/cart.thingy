@@ -1,0 +1,35 @@
+{% load hash_filters %}
+<table class="shop_table beta-shopping-cart-table">
+  <thead>
+    <tr>
+      <th class="product-name">Product</th>
+      <th class="product-name">Description</th>
+      <th class="product-quantity">Quantity</th>
+      <th class="product-price">Unit Price</th>
+      <th class="product-remove">Remove</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in CART %}
+    <tr>
+      <td>
+        <div class="media">
+          <img class="pull-left" style="width:70px;" src="{{item|hash:"galleryurl"}}?sc=" alt=""/>
+        </div>
+      </td>
+      <td> 
+        <p>{{item|hash:"description"}}</p>
+      </td>
+      <td class="quantity">
+         <h5> {{item|hash:"amount"}} </h5>
+      </td>
+      <td class="total-price">
+        <h5> $ {{item|hash:"price"}}</h5>include gst
+      </td>
+      <td>
+        <button onclick="zoyoe.cart.remove(this,'{{item|hash:"id"}}')" class="btn btn-icon btn-danger" data-title="Remove" data-placement="top" data-tip="tooltip" data-original-title=""><i class="fa fa-trash"></i></button>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

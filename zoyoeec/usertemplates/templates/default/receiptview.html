@@ -1,0 +1,62 @@
+{% extends "default/root.html" %}
+{% load hash_filters %}
+{% block content %}
+  <div class="inner-header">
+        <div class="container">
+            <div class="pull-left">
+                <h6 class="inner-title">Receipt <small>--{{RECEIPT.key.id}}</small></h6>
+            </div>
+            <div class="pull-right">
+                <div class="beta-breadcrumb font-large">
+                    <a href="/">Home</a> / <span>Receipt</span>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+  </div>
+
+  <div id="cart-result">
+{% include "default/receiptinfo.thingy" %}
+  </div>
+
+  <div class="col-lg-6 col-md-8 col-sm-12">
+    <div class="panel panel-default">
+      <div class="inner-header">
+        <div class="container">
+            <div class="pull-left">
+                <h6 class="inner-title">Billing Info</small></h6>
+            </div>
+            <div class="pull-right">
+                <div class="beta-breadcrumb font-large">
+                    <a href="/">Home</a> / <span>Receipt</span>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+        </div>
+      </div>
+      {% if RECEIPT.status == "paid" %}
+      <div class="panel-body receipt-paid">
+      {% else %}
+      <div class="panel-body">
+      {% endif %}
+        <h6>Customer Name:</h6>
+        <p>{{RECEIPT.firstname}} {{RECEIPT.lastname}}</p>
+        <h6>Shipping Address:</h6>
+        <p>{{address|hash:"line1"}} {{address|hash:"city"}} {{address|hash:"state"}} {{address|hash:"postal_code"}}</p>
+        <h6> Payment method:</h6>
+        {% include "receipts/paymentform.thingy" %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6 col-md-4 col-sm-12">
+    <div class="cart-totals pull-right">
+                    <div class="cart-totals-row"><h5 class="cart-total-title">Cart Totals</h5></div>
+                    <div class="cart-totals-row"><span>Cart Subtotal:</span> <span> $ {{RECEIPT.total}}</span></div>
+                    <div class="cart-totals-row"><span>Shipping:</span> <span> $ 10.0 </span></div>
+                    <div class="cart-totals-row"><span>Order Total:</span> <span> ${{RECEIPT.total|add:10}}</span></div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block dialogfirst %}
+{% endblock %}

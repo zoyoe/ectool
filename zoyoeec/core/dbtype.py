@@ -20,7 +20,7 @@ class SiteInfo(db.Model):
   """ site logo, it should be a must if site is published
       but we do not enforce it at the moment
   """
-  logo = db.BlobProperty(default=None)
+  logo = db.StringProperty(default=None)
 
   """ the mainshop is a pseudo supplier that
       we used to store the information of categories
@@ -84,14 +84,32 @@ def createSite(name):
   site.mainshop = name
   site.put()
 
-def getCategoriesInfo():
+def __cateinfo(supplier):
+  return json.loads(supplier.data)
+
+def __default_cateinfo():
   site = getSiteInfo()
-  stories = {}
   if site:
     supplier = Supplier.getSupplierByName(site.mainshop) 
-    if(supplier):
-      stories[supplier.name] = json.loads(supplier.data)
+    return __cateinfo(supplier)
+  return None
+
+def getCategoriesInfo():
+  stories = {}
+  info = __default_cateinfo()
+  site = getSiteInfo()
+  if info:
+    stories[site.mainshop] = __default_cateinfo()
   return stories
+
+def getCategoriesInfoBySupplier(supplier):
+  stories = {}
+  if(supplier.data):
+    stories[supplier.name] = __cateinfo(supplier)
+  else:
+    stories[supplier.name] = __default_cateinfo(supplier)
+  return stories
+  
 
 def formatRID(name):
   return name.replace(" ", "_").upper().encode('ascii','ignore')
@@ -145,10 +163,6 @@ class Supplier(db.Model):
       item.put()
       item.addIndex()
       return item
-  def getItems(self):
-    return Item.all().ancestor(self)
-  def getCategoryItems(self,category):
-    return Item.all().ancestor(self).filter("category =",category)
   def getSndCategoryItems(self,category):
     return Item.all().ancestor(self).filter("category2 =",category)
   def getItem(self,key):
@@ -160,16 +174,35 @@ class Supplier(db.Model):
       return Item.all().ancestor(self).count()
   def getEbayStat(self):
     return Item.all().ancestor(self).filter("ebayid !=",None).filter("ebayid !=","").count()
-  def getEbayItems(self):
-    return Item.all().ancestor(self).filter("ebayid !=",None).filter("ebayid !=","")
-  def getUnpublishedItems(self):
-    return Item.all().ancestor(self).filter("ebayid =",None)
+  def getItems(self,deco="",category=""):
+    match = "!="
+    if deco.startswith("non"):
+      match = "="
+    if deco.endswith("ebayid"):
+      items = Item.all().ancestor(self).filter("ebayid "+match,"")
+    else:
+      items = Item.all().ancestor(self)
+    if category:
+      items = items.filter("category =",category)
+    return items
 
   @staticmethod
   def getSupplierByName(sname):
     suppliers = db.GqlQuery("SELECT * FROM Supplier WHERE name = :1",sname)
     return suppliers.get()
 
+def createSupplier(name,data,lock):
+  supplier = Supplier.getSupplierByName(name)
+  if supplier:
+    return None
+  else:
+    try:
+      jobj = json.loads(data)    
+      supplier = Supplier(name = name,data = data, islocked = lock)
+      supplier.put()
+      return supplier
+    except:
+      return None
 
 def getCategoryItems(category):
   return Item.all().filter("category =",category)

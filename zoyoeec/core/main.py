@@ -9,9 +9,9 @@ from ebayapi.ebay import ebay_view_prefix,getactivelist, getEbayInfo
 from google.appengine.ext import db
 from google.appengine.api import users,namespace_manager
 from page import *
-from retail import retail,Supplier,Item,SiteInfo
+from retail import view as retailview
 import record, random, json, error
-import userapi, retailtype, cryptohelper
+import userapi, dbtype, cryptohelper
 import zoyoeforms
 
 application = django.core.handlers.wsgi.WSGIHandler()
@@ -19,16 +19,16 @@ application = django.core.handlers.wsgi.WSGIHandler()
 def main(request):
   if (request.META['HTTP_HOST']=="www.zoyoe.com"):
     # This is the main website
-    stories = retailtype.getCategoriesInfo()
-    fliers = retailtype.ShopInfo.all().filter("type =","category").order("name")
+    stories = dbtype.getCategoriesInfo()
+    fliers = dbtype.ShopInfo.all().filter("type =","category").order("name")
     context = Context({'STORIES':stories,'FLIERS':fliers})
     return (render_to_response("zoyoe/index.html",context,context_instance=RequestContext(request)))
   else:
     # This is customer's website
-    site = retailtype.getSiteInfo()
+    site = dbtype.getSiteInfo()
     if site:
       if site.published:
-        return retail(request)
+        return retailview.retail(request)
       else:
         return HttpResponseRedirect('/admin/')
     else:
@@ -101,7 +101,7 @@ def register(request):
       return HttpResponseRedirect("/");
 
 def createworkspace(request):
-  if retailtype.currentSite():
+  if dbtype.currentSite():
     return HttpResponseRedirect('/admin/config/preference/')
   elif (request.method == "POST"):
     rf = zoyoeforms.CreateWorkspace(request.POST)
@@ -110,7 +110,7 @@ def createworkspace(request):
       password = rf.cleaned_data['password']
       zuser = userapi.registerUser(request,email,password)
       if zuser:
-        retailtype.createSite(rf.cleaned_data['name'])
+        dbtype.createSite(rf.cleaned_data['name'])
         zuser.addAuthority(["ebay","config","item"])
         return HttpResponseRedirect('/admin/config/preference/');
       else:
@@ -121,7 +121,7 @@ def createworkspace(request):
     return HttpResponseRedirect('/workspace/');
 
 def items(request,shop,category):
-  stories = retailtype.getCategoriesInfo()
+  stories = dbtype.getCategoriesInfo()
   lvl1 = "Category"
   lvl2 = "Gallery"
   if (shop in stories):
@@ -132,7 +132,7 @@ def items(request,shop,category):
   else:
     return error.ZoyoeError("category does not exist")
   dict = {'SHOP':shop,'ITEM_WIDTH':'200','STORIES':stories,'PATH':lvl1,'CATEGORY':lvl2}
-  query = retailtype.getCategoryItems(category).filter("disable ==",False)
+  query = dbtype.getCategoryItems(category).filter("disable ==",False)
   myPagedQuery = PagedQuery(query, 12)
   items = []
   dict['queryurlprev'] = "#" 
@@ -152,11 +152,11 @@ def items(request,shop,category):
   dict['sellitems'] = items
   dict['queryurl'] = "/items/"+shop+"/"+category
   context = Context(dict)
-  temp_path = retailtype.getSiteInfo().getTemplate("products.html");
+  temp_path = dbtype.getSiteInfo().getTemplate("products.html");
   return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
 
 def item(request,shop,key):
-  stories = retailtype.getCategoriesInfo()
+  stories = dbtype.getCategoriesInfo()
   item = Item.get_by_id(int(key),parent = Supplier.getSupplierFromName(shop))
   return record.getItemResponse(request,item,stories)
 

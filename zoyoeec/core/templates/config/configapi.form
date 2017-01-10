@@ -1,0 +1,39 @@
+{% load hash_filters %}
+<form  method='POST' id="cfg-dialog" style="display:none">
+  <div class="form-horizontal caption">
+    {% csrf_token %}
+    {% angular %}
+    <div ng-repeat="(key,value) in dialog.error" class="alert alert-warning fade in">
+     <strong>{{key}}: {{value}}</strong>
+    </div>
+    <input type="text" name="command" value="{{dialog.input.command}}" style="display:none">
+    <div class="form-group">
+      <label class="col-lg-2 control-label">Title: </label>
+      <div class="col-lg-8">
+        <input type="text" id="title" name="title" value="{{dialog.input.title}}" class="form-control" ng-readonly="dialog.lock.title">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-lg-2 control-label">Tag: </label>
+      <div class="col-lg-8">
+        <select class='form-control' name="type" ng-readonly="dialog.lock.category">
+         <option ng-value="dialog.input.category">{{dialog.input.category}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label col-lg-2">Value: </label>
+      <div class="col-lg-8" ng-switch="dialog.input.datatype">
+        <input name="content" type="text" class="form-control" ng-switch-when="string" value="{{dialog.input.content}}" ng-readonly="dialog.lock.content"></input>
+        <textarea name="content" ng-switch-when="text" class="form-control" ng-readonly="dialog.lock.content">{{dialog.input.content}}</textarea>
+        <select class="form-control" name="content" ng-switch-when="boolean" ng-readonly="dialog.lock.content">
+          <option value="true" ng-selected="config.vallue=true">True</option>
+          <option value="false" ng-selected="config.vallue=false">False</option>
+        </select>
+        <a ng-href="{{dialog.input.api}}" class="form-control" ng-switch-when="external" >{{dialog.input.content}}</a>
+        </select>
+      </div>
+    </div>
+    {% endangular %}
+  </div>
+</form>

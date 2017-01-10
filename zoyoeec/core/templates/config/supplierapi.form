@@ -1,0 +1,36 @@
+{% load hash_filters %}
+<form method='POST' id="sply-dialog" style="display:none">
+  <div class="form-horizontal caption">
+    {% csrf_token %}
+    {% angular %}
+    <div ng-repeat="(key,value) in dialog.error" class="alert alert-warning fade in">
+     <strong>{{key}}: {{value}}</strong>
+    </div>
+
+    <input type="text" name="command" value="{{dialog.input.command}}" style="display:none">
+    <div class="form-group">
+      <label class="col-lg-2 control-label">Supplier Name: </label>
+      <div class="col-lg-8">
+        <input type="text" name="name" value="{{dialog.input.name}}" class="form-control" ng-readonly = "dialog.lock.name">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="control-label col-lg-2">Value: </label>
+      <div class="col-lg-8">
+        <textarea name="data" class="form-control" ng-readonly="dialog.lock.data">{{dialog.input.data}}</textarea>
+      </div>
+    </div>
+    <div class="form-group">
+    <div class="lg-offset-2 col-lg-10">
+      <div class="checkbox">
+       <label>
+        <input type="checkbox" name="lock" ischecked="{{dialog.input.lock}}" ng-readonly = "dialog.lock.lock"> Lock after create:
+       </label>
+      </div>
+    </div>
+    </div>
+
+    {% endangular %}
+  </div>
+</form>

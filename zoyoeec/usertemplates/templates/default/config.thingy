@@ -1,0 +1,40 @@
+{% load template_filters %}
+{% load hash_filters %}
+{% angular %}
+<div class="panel" >
+  <div class="panel-heading">Page Foot:
+  <a class="pull-right btn-xs btn-primary btn" ng-click="add('foot','text')">Add Foot</a>
+  </div>
+  <div class = "panel-body">
+    <div class="well" ng-repeat="(title, attr) in data.foot">
+      <span class="pull-right">
+        <a ng-click="alter(title,'foot')" class="fa fa-pencil"></a>
+        <a ng-click="delete(title,'foot')" class="fa fa-times-circle"></a>
+      </span>
+      <h4>{{title}}
+      </h4> 
+      <div>
+      {{attr.content}}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="panel">
+  <div class="panel-heading">Cover Page:
+  <a class="pull-right btn-xs btn-primary btn" ng-click="add('cover','text')">Add Pin</a>
+  </div>
+  <div class = "panel-body">
+    <div class="well" ng-repeat="(title, attr) in data.cover">
+      <span class="pull-right">
+        <a ng-click="alter(title,'cover')" class="fa fa-pencil"></a>
+        <a ng-click="delete(title,'cover')" class="fa fa-times-circle"></a>
+      </span>
+      <h4>{{title}}
+      </h4> 
+      <div>
+      {{attr.content}}
+      </div>
+    </div>
+  </div>
+</div>
+{% endangular %}

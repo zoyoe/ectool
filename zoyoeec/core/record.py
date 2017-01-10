@@ -4,8 +4,7 @@ import userapi
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
-from retail import Supplier,Item,SiteInfo
-from retailtype import getCategoriesInfo, Item
+from dbtype import getCategoriesInfo, Item
 from google.appengine.ext import db
 from google.appengine.api import users
 from error import *

@@ -6,10 +6,9 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from ebaysdk import finding
 from ebaysdk.exception import ConnectionError
-from core.retailtype import Supplier,ShopInfo,Item
+from core.dbtype import Supplier,ShopInfo,Item
 import urllib, random, json, datetime
-from core import error, retailtype
-from core import userapi
+from core import error, dbtype, userapi
 from StringIO import StringIO
 
 from lxml import etree 
@@ -116,7 +115,7 @@ def auth(request):
   else:
     if ('HTTP_REFERER' in request.META):
       request.session['continue'] = request.META['HTTP_REFERER']
-    sessionid = GetSessionID(request)
+    sessionid = api.GetSessionID(request)
     xml_doc = etree.parse(StringIO(sessionid))
     ack = xml_doc.xpath("//xs:Ack",
     namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
@@ -127,7 +126,7 @@ def auth(request):
       ebayinfo['session'] = session.text
       request.session['ebayinfo'] = ebayinfo
       args = urllib.quote_plus("zre="+request.META['HTTP_HOST']) 
-      token = GetToken(args,session.text)
+      token = api.GetToken(args,session.text)
       return token
     else:
       return HttpResponse(ack.text)
@@ -156,7 +155,7 @@ def getToken(request):
     token = ebayinfo['token']
   else:
     if ('session' in ebayinfo): 
-      token = FetchToken(request,ebayinfo['session'])
+      token = api.FetchToken(request,ebayinfo['session'])
       xml_doc = etree.parse(StringIO(token))
       ack = xml_doc.xpath("//xs:Ack",
         namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
@@ -197,7 +196,7 @@ def getToken(request):
 
 # here we try to get as much info as possible from a ebay token
     if((not 'id' in ebayinfo) or (not 'email' in ebayinfo)):
-      zuser = GetUserInfo(token)
+      zuser = api.GetUserInfo(token)
       user_doc = etree.parse(StringIO(zuser))
       ack = user_doc.xpath("//xs:Ack",
         namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
@@ -213,7 +212,7 @@ def getToken(request):
         logging.info("Can not find email address in ebayinfo")
         return None
     if((not 'store' in ebayinfo) or (not 'logo' in ebayinfo) or (not 'category' in ebayinfo)):
-      store = GetStore(token)
+      store = api.GetStore(token)
       store_doc = etree.parse(StringIO(store))
       ack = store_doc.xpath("//xs:Ack",
         namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
@@ -251,7 +250,7 @@ def getToken(request):
         logging.info("Can not find shopinfo in ebayinfo:" + store)
         return None
     request.session['ebayinfo'] = ebayinfo
-    retailtype.currentSite().setEbayInfo(json.dumps(ebayinfo))
+    dbtype.currentSite().setEbayInfo(json.dumps(ebayinfo))
     return ebayinfo['token']
   else:
     return None  
@@ -264,7 +263,7 @@ def getToken(request):
 def ebayorders(request):
   tt = datetime.datetime.utcnow()
   context = Context({"ORDER_GROUP":[tt]})
-  return (render_to_response("ebayorders.html",context,context_instance=RequestContext(request)))
+  return (render_to_response("ebay/ebayorders.html",context,context_instance=RequestContext(request)))
 
 @ebay_ajax_prefix
 def ebayordersajax(request,ebayinfo):
