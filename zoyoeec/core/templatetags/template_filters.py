@@ -15,6 +15,6 @@ def templatethingy(tname, *args, **kwargs):
   return site.getSiteInfo().getTemplate(tname + ".thingy")
 
 @register.filter("templatejs")
-def templatethingy(tname, *args, **kwargs):
+def templatejs(tname, *args, **kwargs):
   return site.getSiteInfo().getTemplate(tname + ".js")
 

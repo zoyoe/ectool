@@ -1,16 +1,14 @@
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
-from django.http import HttpResponse
-from django.shortcuts import render_to_response
 from google.appengine.ext import db
-import random,json
-import error,dbtype
+import json,error,dbtype,cryptohelper
+
 from google.appengine.api import users
-from google.appengine.api import namespace_manager
 
-from lxml import etree
-import cryptohelper
-
+"""
+@change: This should be moved to the middleware.py 
+@bug why using user instead of USER
+"""
 def user_pre_processor(request):
   user = getCurrentUser(request)
   return {'user':user}
@@ -96,7 +94,7 @@ def checkAuthority(authority,user):
 
 def redirect_login(request):
   absoluteurl = request.build_absolute_uri()
-  return HttpResponseRedirect("/login/?requesturl=" + crptyhelper.encrypt("url",absoluteurl))
+  return HttpResponseRedirect("/login/?requesturl=" + cryptohelper.encrypt("url",absoluteurl))
 
 
 

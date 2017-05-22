@@ -58,16 +58,16 @@ class EscapeNode(template.Node):
 
 register.tag("fullescape",do_fullescape)
 
-def do_anjular(parser,token):
-  nodelist = parser.parse(('endanjular',))
-  parser.delete_first_token()
-  return AnjularNode(nodelist.render(template.Context()))
-
 class AngularNode(template.Node):
   def __init__(self, text):
       self.text = text
   def render(self, context):
       return self.text
+
+def do_anjular(parser,token):
+  nodelist = parser.parse(('endanjular',))
+  parser.delete_first_token()
+  return AngularNode(nodelist.render(template.Context()))
 
 @register.tag
 def angular(parser, token):

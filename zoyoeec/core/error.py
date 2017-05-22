@@ -29,19 +29,11 @@ def jsonReply(success, data = {}):
   reply = {'reply': success,'data': data}
   return HttpResponse(json.dumps(reply), mimetype="text")
   
+def jsonError(error,msg):
+  return jsonReply(error,msg)
 
-
-####
-#
-# Usually we do not append extra document in which case it returns a pure zoyoe error or success xml document
-#
-####
-
-def ZoyoeError(error):
-  return xmlError(error)
-
-def ZoyoeSuccess(success):
-  return xmlSuccess(success)
+def jsonSuccess(msg):
+  return jsonReply('success',msg)
 
 ####
 # 
@@ -49,15 +41,15 @@ def ZoyoeSuccess(success):
 #
 ####
 
-def retailError(request,error,url="/retail/receiptview/"):
+def retailError(request,error,url="/"):
   stories = dbtype.getCategoriesInfo()
   context = Context({'ERROR':error,'URL':url,'STORIES':stories})
-  temp_path = currentSite().getTemplate("error.html");
+  temp_path = dbtype.currentSite().getTemplate("error.html");
   return (render_to_response(temp_path
     ,context,context_instance=RequestContext(request)))
 
 def retailErrorAjax(request,error):
-  return ZoyoeError(error)
+  return xmlError(error)
 
 ####
 #
@@ -72,37 +64,61 @@ def retailErrorAjax(request,error):
 #
 ####
 
+"""
+@note: This is suppose to be a decorator 
+"""
+def setAjaxTag(handler):
+  def rst_handler(request, *args, **kargs):
+    request.reqtype = "ajax"
+    return handler(request,*args,**kargs)
+  return rst_handler
+
 def isAjaxRequest(request):
-  return False
+  return request.reqtype =='ajax';
+
+"""
+@note: This is suppose to be a decorator
+"""
+def setJSONTag(handler):
+  def rst_handler(request, *args, **kargs):
+    request.reqtype = "json"
+    return handler(request,*args,**kargs)
+  return rst_handler
+
+def isJSONRequest(request):
+  return request.reqtype =='json';
 
 def workspaceError(request,error):
   if isAjaxRequest(request):
-    return zoyoeError(error)
+    return xmlError(error)
+  elif isJSONRequest(request):
+    return jsonError(error)
   else:
     return HttpResponseRedirect("/workspace/")
 
 def loginError(request,error):
   if isAjaxRequest(request):
-    return zoyoeError("login required")
+    return xmlError("login required")
+  elif isJSONRequest(request):
+    return jsonError("login required")
   else:
     absoluteurl = request.build_absolute_uri()
     return HttpResponseRedirect("/login/?requesturl=" + cryptohelper.encrypt("url",absoluteurl))
 
 def authorityError(request,error):
   if isAjaxRequest(request):
-    return ZoyoeError(error)
+    return xmlError(error)
+  elif isJSONRequest(request):
+    return jsonError(error)
   else:
     stories = dbtype.getCategoriesInfo()
     context = Context({'ERROR':error,'STORIES':stories})
     return (render_to_response("error/authorityerror.html",context,context_instance=RequestContext(request)))
 
-
-####
-#
-# We put the latest error in the session. 
-# However this is might cause problems when 2 instance are created at the same time.
-#
-####
+"""
+@attention We put the latest error in the session. 
+  However this is might cause problems when 2 instance are created at the same time.
+"""
 def builderror(request,error):
   request.session['error'] = error
 

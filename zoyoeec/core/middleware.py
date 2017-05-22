@@ -5,8 +5,12 @@ import record
 import dbtype
 import core.dbtype
 
+"""
+@summary: Requrest type is html by default.
+"""
 class NSMiddleware(object):
   def process_request(self, request):
+    request.reqtype = 'html'
     try:
       ## if it is not from google appspot, it is a normal web visit
       if (request.META['HTTP_HOST']!="zoyoeec.appspot.com"):
@@ -20,7 +24,6 @@ class NSMiddleware(object):
 
   def process_response(self, request, response):        
     return response
-
 
 def info(request):
   site = dbtype.currentSite()

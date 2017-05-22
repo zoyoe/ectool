@@ -4,8 +4,6 @@ from django.core.context_processors import csrf
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
-from ebaysdk import finding
-from ebaysdk.exception import ConnectionError
 import ebayapi.ebay
 from error import *
 import urllib2,httplib
@@ -165,6 +163,8 @@ class Supplier(db.Model):
       return item
   def getSndCategoryItems(self,category):
     return Item.all().ancestor(self).filter("category2 =",category)
+  def getCategoryItems(self,category):
+    return Item.all().ancestor(self).filter("category =",category)
   def getItem(self,key):
     return Item.get_by_id(key,parent=self)
   def getStat(self,category=None):
@@ -273,8 +273,6 @@ class Item(db.Model):
     item = db.GqlQuery("SELECT * FROM Item WHERE refid = :1",formatrid)
     return item.get()
 
-
-
 def createDefaultItem(refid,suppliername="Anonymous"):
   item = Item.getItemByRID(refid)
   if item:
@@ -314,8 +312,9 @@ class ShopInfo(db.Model):
 def getShopInfoByType(type):
   return ShopInfo.all().filter("type =",type).order("name")
 
-
-# Schema updating functions
+#### 
+#   Schema updating functions
+####
 
 def checkrid(request):
   items = Item.all()

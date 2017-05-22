@@ -4,13 +4,14 @@ import api
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
-from ebaysdk import finding
-from ebaysdk.exception import ConnectionError
 from core.dbtype import Supplier,ShopInfo,Item
-import urllib, random, json, datetime
+import urllib, json, datetime
 from core import error, dbtype, userapi
 from StringIO import StringIO
 
+"""
+@attention lxml is not included in GAE env, but it is ok here.
+"""
 from lxml import etree 
 
 
@@ -275,7 +276,7 @@ def ebayordersajax(request,ebayinfo):
   ft = tt - datetime.timedelta(hours=120)
   tt = tt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
   ft = ft.strftime("%Y-%m-%dT%H:%M:%S.000Z")
-  xml_doc_str = GetOrders(token,ft,tt)
+  xml_doc_str = api.GetOrders(token,ft,tt)
   xml_doc = etree.parse(StringIO(xml_doc_str))
   xslt = GetXSLT(Context({}),'xslt/EbayOrdersJSON.xslt')
   xrst = xslt(xml_doc)
@@ -304,13 +305,13 @@ def relist(ebayinfo,item):
   content = ebaylistformat.render(Context(config))
 
   token = ebayinfo['token']
-  ebayitem = GetItem(item.ebayid,token)
+  ebayitem = api.GetItem(item.ebayid,token)
   xml_doc,error = __fetch_ebay_reply_xml(ebayitem)
   if xml_doc:
     sellingstatus = xml_doc.xpath("//xs:SellingStatus/xs:ListingStatus",
       namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
     if (sellingstatus == "Completed"):
-      revise = RelistItemSimple(item,token,content)
+      revise = api.RelistItemSimple(item,token,content)
       xml_doc, error = __fetch_ebay_reply_xml(revise)
       if xml_doc:
         ebayid = xml_doc.xpath("//xs:ItemID",
@@ -324,13 +325,12 @@ def relist(ebayinfo,item):
     return (error.xmlError("Can not get item.", xml_doc), item)
 
 def __import_ebay_item(ebayinfo,itemid):
-
 # fetch ebay related info
   token = ebayinfo['token']
   id = ebayinfo['id']
 
 # fetch ebay item
-  item = GetItem(itemid,token)
+  item = api.GetItem(itemid,token)
   xml_doc,error = __fetch_ebay_reply_xml(item)
   if xml_doc:
     description = xml_doc.xpath("//xs:Description",
@@ -370,7 +370,7 @@ def __import_ebay_item(ebayinfo,itemid):
       ,'infourl':infourl,'category':category,'sndcategory':sndcategory
       ,'description':topd[0],'ebayid':itemid,'ebaycategory':ebaycategory
       ,'specification':"{}"}
-    item = Item.getItemById(refid)
+    item = Item.getItemByRID(refid)
     supplier = getSupplierFromEbayInfo(ebayinfo)
     if item:
       iteminfo['specification'] = item.specification
@@ -384,25 +384,25 @@ def __import_ebay_item(ebayinfo,itemid):
     contentformat = loader.get_template("ebay/format.html")
     content = contentformat.render(Context(config))
     if (sellingstatus != "Completed"):
-      revise = ReviseItemSimple(item,token,content)
+      revise = api.ReviseItemSimple(item,token,content)
       xml_doc, error = __fetch_ebay_reply_xml(revise)
       if xml_doc:
-        return (xmlSuccess("Success!",xml_doc),item)
+        return (error.xmlSuccess("Success!",xml_doc),item)
       else:
-        return (xmlError("can not revise item.",error), None)
+        return (error.xmlError("can not revise item.",error), None)
     else:
-      revise = RelistItemSimple(item,token,content)
+      revise = api.RelistItemSimple(item,token,content)
       xml_doc, error = __fetch_ebay_reply_xml(revise)
       if xml_doc:
         ebayid = xml_doc.xpath("//xs:ItemID",
           namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0].text
         zitem.ebayid = refid
         zitem.put()
-        return (xmlSuccess("Success!",xml_doc),item)
+        return (error.xmlSuccess("Success!",xml_doc),item)
       else:
-        return (xmlError("can not revise item.",error), None)
+        return (error.xmlError("can not revise item.",error), None)
   else:
-    return (xmlError("can not get item.",error), None)
+    return (error.xmlError("can not get item.",error), None)
 
 ####
 #
@@ -422,9 +422,9 @@ def sync(ebayinfo,item):
   format = loader.get_template("ebay/format.html")
   content = format.render(Context(config))
   if (not item.ebayid):
-    revise = ReviseItemBySKU(item.refid,name,token,content)
+    revise = api.ReviseItemBySKU(item.refid,name,token,content)
   else:
-    revise = ReviseItem(item,token,content)
+    revise = api.ReviseItem(item,token,content)
   return HttpResponse(revise,mimetype = "text/xml")
 
 # FIXME: need deco here ebay_view_prefix ? ebay_ajax_prefix ?
@@ -437,12 +437,12 @@ def getactivelist(request):
   if token:
     if 'itemid' in request.GET:
       rid = request.GET['itemid']
-      iteminfo = GetItem(rid,token)
+      iteminfo = api.GetItem(rid,token)
       xml_doc = etree.parse(StringIO(iteminfo))
       xslt = GetXSLT(Context({}),'xslt/MyeBaySelling.xslt')
       list_content = etree.tostring(xslt(xml_doc.getroot()))
     else:
-      my_ebay_selling = GetMyeBaySelling(token,page)
+      my_ebay_selling = api.GetMyeBaySelling(token,page)
       xml_doc = etree.parse(StringIO(my_ebay_selling))
       total = xml_doc.xpath("//xs:TotalNumberOfPages",namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
       total = int(total.text);
@@ -464,12 +464,12 @@ def getinactivelist(request):
   if token:
     if 'itemid' in request.GET:
       rid = request.GET['itemid']
-      iteminfo = GetItem(rid,token)
+      iteminfo = api.GetItem(rid,token)
       xml_doc = etree.parse(StringIO(iteminfo))
       xslt = GetXSLT(Context({}),'xslt/MyeBaySelling.xslt')
       list_content = etree.tostring(xslt(xml_doc.getroot()))
     else:
-      my_ebay_selling = GetMyeBaySellingInactive(token,page)
+      my_ebay_selling = api.GetMyeBaySellingInactive(token,page)
       xml_doc = etree.parse(StringIO(my_ebay_selling))
       total = xml_doc.xpath("//xs:TotalNumberOfPages",namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})
       list_content = "" #none item if there is no TotalNumberOfPages provided
@@ -487,7 +487,7 @@ def getinactivelist(request):
 def fetchcategory(request):
   query = request.GET['term']
   token = getToken(request)
-  rslt = GetCategories(request,token,query)
+  rslt = api.GetCategories(request,token,query)
   xml_doc = etree.parse(StringIO(rslt))
   suggests = xml_doc.xpath("//xs:SuggestedCategory",namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})
   items = []

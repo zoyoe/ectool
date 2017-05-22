@@ -3,18 +3,16 @@ from django.core.context_processors import csrf
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
-from ebaysdk import finding
-from ebaysdk.exception import ConnectionError
 from error import *
 from receipt import *
 from page import *
 import random
-from ebay import ebay
+from ebayapi import ebay
 import requests,json,datetime
 from google.appengine.ext import db,search
 from google.appengine.api import urlfetch
 from zuser import *
-from dbtype import getCategoryItems, getItem
+import dbtype
 
 def categories(request):
   stories = getCategoriesInfo()
@@ -24,7 +22,7 @@ def categories(request):
 
 def item(request,itemid):
   stories = getCategoriesInfo()
-  item = getItem(itemid)
+  item = Item.getItem(itemid)
   if item:
     iteminfo = {}
     iteminfo['galleryurl'] = item.galleryurl
@@ -40,7 +38,7 @@ def item(request,itemid):
     return response
 
 def items(request,category):
-  query = getCategoryItems(category)
+  query = dbtype.getCategoryItems(category);
   myPagedQuery = PagedQuery(query, 48)
   items = []
   dict = {}
