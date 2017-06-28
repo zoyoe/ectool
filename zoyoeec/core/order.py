@@ -3,18 +3,13 @@ from django.core.context_processors import csrf
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
-from ebaysdk import finding
-from ebaysdk.exception import ConnectionError
 from error import *
 import random
-from ebay import ebay
-from ebay.ebay import ebay_view_prefix,getactivelist, getEbayInfo
-from retail import getSupplier,getSupplierByName,getSupplierFromEbayInfo,Supplier,Item
 import urllib2,httplib
 import requests,json,datetime
 from google.appengine.ext import db
 from google.appengine.api import urlfetch
-import re,string,zuser
+import re,string
 
 class SupplierOrder(db.Model):
   oid = db.StringProperty(required=True)

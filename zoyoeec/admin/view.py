@@ -252,11 +252,11 @@ def fixitems(cursor=None, num_updated=0):
         logging.debug(
             'Scan items complete with %d updates!', num_updated)
         return None
-####
-#
-# Maintaince request
-#
-####
+
+"""
+Requests for Maintaince:
+
+"""
 
 def scanitems(request):
   deferred.defer(fixitems)

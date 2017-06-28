@@ -58,11 +58,11 @@ def retailErrorAjax(request,error):
 ###
 
 
-####
-#
-# We need some special way to distinguish between view request or ajax request
-#
-####
+"""
+@summary 
+We need some special way to distinguish between view request or ajax request
+
+"""
 
 """
 @note: This is suppose to be a decorator 

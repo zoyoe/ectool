@@ -101,11 +101,11 @@ def redirect_login(request):
 ##def ajax_require_work_space
 
 
-####
+"""
 #
 # Most commonly used prefix before view requests or ajax requests.
 #
-####
+"""
 
 def require_work_space(handler):
   def rst_handler(request, *args, **kargs):

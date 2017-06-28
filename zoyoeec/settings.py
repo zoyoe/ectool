@@ -123,7 +123,6 @@ INSTALLED_APPS = (
     'core',
     'retail',
     'ebayapi',
-    'ebaysdk',
     'requests',
     'usertemplates',
     # Uncomment the next line to enable the admin:
