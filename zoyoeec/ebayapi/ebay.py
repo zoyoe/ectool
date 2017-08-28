@@ -1,6 +1,7 @@
 import django.core.handlers.wsgi
 import logging
 import api
+import admin
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -505,15 +506,15 @@ def fetchcategory(request):
 @userapi.authority_ebay
 @ebay_view_prefix
 def exporttoebay(request,shop,key):
-  __register_admin_action(request,"ebayexport",shop+"/"+key)
-  token = ebay.getToken(request)
-  item = Item.get_by_id(int(key),parent = getSupplier(shop))
+  admin.api.register_admin_action(request,"ebayexport",shop+"/"+key)
+  token = getToken(request)
+  item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
   if item:
     if (item.ebayid and (item.ebayid != '0')):
-      info = ebay.getEbayInfo(request)
+      info = getEbayInfo(request)
       rslt = sync(info,item)
       return HttpResponse(rslt,mimetype="text/xml")
-    rslt = ebay.api.AddItem(token,item)
+    rslt = api.AddItem(token,item)
     xml_doc = etree.parse(StringIO(rslt))
     ack = xml_doc.xpath("//xs:Ack",
       namespaces={'xs':"urn:ebay:apis:eBLBaseComponents"})[0]
@@ -527,20 +528,20 @@ def exporttoebay(request,shop,key):
 @userapi.authority_ebay
 @ebay_view_prefix
 def relisttoebay(request,shop,key):
-  __register_admin_action(request,"ebayrelist",shop+"/"+key)
-  info = ebay.getEbayInfo(request)
+  admin.api.register_admin_action(request,"ebayrelist",shop+"/"+key)
+  info = getEbayInfo(request)
   item = Item.get_by_id(int(key),parent = Supplier.getSupplierByName(shop))
   if item:
     if (item.ebayid and (item.ebayid != '0')):
       rslt,item = relist(info,item)
       return rslt
-  return (returnError("item not find or not exists in ebay"))
+  return (error.returnError("item not find or not exists in ebay"))
 
 @ebay_ajax_prefix
 def importfromebay(request,ebayinfo,itemid):
   (rslt,item) = __import_ebay_item(ebayinfo,itemid)
   if item:
-    __register_admin_action(request,"ebaydepoly",item.parent().name+"/"+str(item.key().id()))
+    admin.api.register_admin_action(request,"ebaydepoly",item.parent().name+"/"+str(item.key().id()))
     return rslt
   else:
     return rslt
@@ -561,9 +562,9 @@ def deploy(request):
   context['itemlist'] = getactivelist(request)
   #request.session['ebayinfo'] = {}
   context['ebayinfo'] = getEbayInfo(request)
-  site = SiteInfo.all().get()
+  site = dbtype.SiteInfo.all().get()
   if not site:
-    site = SiteInfo()
+    site = dbtype.SiteInfo()
   site.mainshop = formatName(context['ebayinfo']['store'])
   site.put()
   saveSupplier(context['ebayinfo'])

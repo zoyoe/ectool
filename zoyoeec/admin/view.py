@@ -11,10 +11,7 @@ from google.appengine.api import users,images
 from google.appengine.runtime.apiproxy_errors import RequestTooLargeError 
 from core import error, dbtype, userapi, page
 from model import *
-import string
-
-application = django.core.handlers.wsgi.WSGIHandler()
-
+import string, logging
 
 #  This is a helper function for standard paged query.
 #  It will fill context needed for paging
@@ -166,7 +163,7 @@ def saveitem(request,shop,key):
     item.ebaycategory = request.POST['ebaycategory']
     item.disable = (True,False)[request.POST['disabled'] == "False"]
     item.put()
-    indexItem(item)
+    item.addItem(item)
   response =  HttpResponseRedirect('/admin/item/'+ shop + '/' + key +"/")
   return response
 
@@ -178,7 +175,7 @@ def saveitem(request,shop,key):
 
 
 def clean(request):
-  items = Item.all()
+  items = dbtype.Item.all()
   for item in items:
     item.name = item.name.replace("\n","").replace("\t","").replace("\r","")
     item.put()
@@ -224,7 +221,7 @@ def ebayconfig(request):
 ####
 
 def fixitems(cursor=None, num_updated=0):
-    query = Item.all()
+    query = dbtype.Item.all()
     if cursor:
         query.with_cursor(cursor)
     to_put = []
@@ -237,7 +234,7 @@ def fixitems(cursor=None, num_updated=0):
         item.disable = True
       img = item.getImage(0)
       if img:
-        img = ImageData(image=item.picture,name=item.name,parent=item,idx=0) 
+        img = dbtype.ImageData(image=item.picture,name=item.name,parent=item,idx=0) 
       item.picture = None
       to_put.append(item)
     if to_put:

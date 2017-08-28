@@ -124,7 +124,7 @@ def supplierapi(request):
     lock = rf.cleaned_data['lock']
     command = rf.cleaned_data['command']
     if (command == 'alter'):
-      supplier = Supplier.getSupplierByName(name)
+      supplier = dbtype.Supplier.getSupplierByName(name)
       if supplier:
         try:
           supplier.name = name
@@ -135,7 +135,7 @@ def supplierapi(request):
         except:
           er = zoyoeforms.constructError("malformed data")
     if (command == 'delete'):
-      if (name == getSiteInfo().mainshop):
+      if (name == dbtype.getSiteInfo().mainshop):
         er = zoyoeforms.constructError("title","main shop " + name + " can not been deleted")
         return error.jsonReply(False, er)
       else:
@@ -162,6 +162,10 @@ def addsupplier(request):
   supplier.put()
 
 
+def register_admin_action(request,action,target):
+  user = userapi.getCurrentUser(request)
+  action = AdminAction(action = action,target=target,parent=user)
+  action.put()
 
 #### End website config ####
 

@@ -81,6 +81,7 @@ def createSite(name):
   site = getSiteInfo()
   site.mainshop = name
   site.put()
+  createSupplier(name,"{}",True) #create a supplier that has the same name with the site as the retail supplier
 
 def __cateinfo(supplier):
   return json.loads(supplier.data)

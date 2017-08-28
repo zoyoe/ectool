@@ -8,8 +8,4 @@ class AdminAction(db.Model):
   action = db.StringProperty(required = True)
   target = db.StringProperty(required = True)
 
-def register_admin_action(request,action,target):
-  user = userapi.getCurrentUser(request)
-  action = AdminAction(action = action,target=target,parent=user)
-  action.put()
 

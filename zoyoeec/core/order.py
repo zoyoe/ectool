@@ -3,7 +3,7 @@ from django.core.context_processors import csrf
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response
-from error import *
+import userapi,dbtype,error
 import random
 import urllib2,httplib
 import requests,json,datetime
@@ -25,7 +25,7 @@ class SupplierItem(db.Model):
   cost = db.FloatProperty()
   amount = db.IntegerProperty()
 
-@zuser.authority_item
+@userapi.authority_item
 def saveorder(request):
   order = SupplierOrder(oid = request.POST['supplier_id']
     ,supplier = request.POST['supplier_name']
@@ -46,7 +46,7 @@ def saveorder(request):
       a.put()
   return HttpResponseRedirect('/order/orderview/?key='+str(order.key().id()))
 
-@zuser.authority_item
+@userapi.authority_item
 def modifyorder(request):
   k = request.POST['key']
   order = SupplierOrder.get_by_id(int(k))
@@ -57,7 +57,7 @@ def modifyorder(request):
   order.put()
   return HttpResponseRedirect('/order/orderview/?key='+str(order.key().id()))
 
-@zuser.authority_item
+@userapi.authority_item
 def deleteorder(request):
   k = request.GET['key']
   order = SupplierOrder.get_by_id(int(k))
@@ -67,28 +67,28 @@ def deleteorder(request):
   order.delete()
   return HttpResponseRedirect('/orders/')
 
-@zuser.authority_item
+@userapi.authority_item
 def orderview(request):
   key = request.GET['key']
   order = SupplierOrder.get_by_id(int(key))
   if not order:
-    return retailError(request,"Order not exist.")
+    return error.retailError(request,"Order not exist.")
   orderitems = SupplierItem.all().ancestor(order)
   context = Context({'ORDER':order,'ITEMS':orderitems})
   return (render_to_response("order/orderview.html",context,context_instance=RequestContext(request)))
 
-@zuser.authority_item
+@userapi.authority_item
 def deploy(request):
   key = request.GET['key']
   order = SupplierOrder.get_by_id(int(key))
   if not order:
-    return retailError(request,"Order not exist.")
+    return error.retailError(request,"Order not exist.")
   orderitems = SupplierItem.all().ancestor(order)
-  supplier = getSupplierByName(order.supplier)
+  supplier = dbtype.Supplier.getSupplierByName(order.supplier)
   if not supplier:
     supdata = {'store':order.supplier,
         'category':{'other':{'name':'misc','children':{}}}}
-    supplier = Supplier(name = order.supplier,data=json.dumps(supdata['category']))
+    supplier = dbtype.Supplier(name = order.supplier,data=json.dumps(supdata['category']))
     supplier.put()
   for item in orderitems:
     deployitem(item,supplier)
@@ -114,7 +114,7 @@ def deployitem(item,supplier):
 
 ### A view that returns all the recepits 
 ###
-@zuser.authority_item
+@userapi.authority_item
 def orders(request):
   receipts = db.GqlQuery("SELECT * FROM SupplierOrder ORDER BY date DESC")
   context = Context({'ORDERS':receipts,'ebayinfo':getEbayInfo(request)})

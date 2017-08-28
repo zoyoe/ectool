@@ -3,7 +3,7 @@ from django.core.context_processors import csrf
 from django.template import loader,Context,RequestContext
 from django.http import HttpResponse,HttpResponseRedirect
 from django.shortcuts import render_to_response
-from ebayapi.ebay import ebay_view_prefix,getactivelist, getEbayInfo
+from ebayapi.ebay import ebay_view_prefix, getactivelist, getEbayInfo
 from google.appengine.ext import db
 from google.appengine.api import users,namespace_manager
 from page import *
@@ -107,6 +107,9 @@ def register(request):
     else:
       return HttpResponseRedirect("/");
 
+"""
+@fixme: need to think about a framework to deal with redirected request_url 
+"""
 def createworkspace(request):
   if dbtype.currentSite():
     return HttpResponseRedirect('/admin/config/preference/')
@@ -119,7 +122,8 @@ def createworkspace(request):
       if zuser:
         dbtype.createSite(rf.cleaned_data['name'])
         zuser.addAuthority(["ebay","config","item"])
-        return HttpResponseRedirect('/admin/config/preference/');
+        requesturl = cryptohelper.encrypt('url','/admin/config/preference/') 
+        return HttpResponseRedirect("/login/?requesturl=" + requesturl);
       else:
         return HttpResponseRedirect('/workspace/');
     else:

@@ -67,7 +67,7 @@ def getItemHistoryResponse(request):
     temp_path = dbtype.currentSite().getTemplate("products.html");
     return (render_to_response(temp_path,context,context_instance=RequestContext(request)))
   else:
-    return error.UserError(request,"Your have not signed in")
+    return error.retailError(request,"Your have not signed in")
   
 
 
